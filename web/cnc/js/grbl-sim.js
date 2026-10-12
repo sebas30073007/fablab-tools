@@ -128,7 +128,7 @@ export class GrblSim {
       Object.entries(this.aj).forEach(([k, v]) => this._enviar(`$${k}=${Number.isInteger(v) ? v : v.toFixed(3)}`));
       return "ok";
     }
-    if (l === "$I") { this._enviar("[VER:1.1f.20170801:CUBIKO-SIM]"); this._enviar("[OPT:VZL,15,128]"); return "ok"; }
+    if (l === "$I") { this._enviar("[VER:1.1f.20170801:CUBIKO-SIM]"); this._enviar("[OPT:VL,15,128]"); return "ok"; }
     if (l === "$#") {
       const f = (o) => `${o.x.toFixed(3)},${o.y.toFixed(3)},${o.z.toFixed(3)}`;
       ["G54", "G55", "G56", "G57", "G58", "G59"].forEach((g, i) => this._enviar(`[${g}:${i ? "0.000,0.000,0.000" : f(this.g54)}]`));

@@ -155,3 +155,7 @@
 - CNC: el 3D se agranda con su botón ⤢ (`#btn-visor`, se recuerda); la cámara se aleja en un visor vertical; las hojas se abren sobre toda la pantalla; Tutorial queda solo con ícono; el pad de Mover se encoge.
 - CNC: el tutorial pone el globo abajo o arriba del objetivo, a todo lo ancho; la ayuda de Configuración sale al enfocar en pantallas táctiles; objetivos de 44 px con dedo; zona segura.
 - Hub: en teléfono, el aviso del navegador baja a su renglón.
+
+## 2026-10-12 · Gemelo y sonda con la Cubiko real
+- La Cubiko real trae HOMING_FORCE_SET_ORIGIN (`[OPT:VMZ0L]`): tras `$H` su posición es 0,0,0 y el recorrido es positivo. El gemelo suponía el marco estándar (negativo) y se quedaba a medio recorrido, con la placa fuera de la cama. Ahora `aGemelo()` traslada lo que llega de la máquina; la máquina gobierna y, al confirmar el homing, el gemelo salta a casa con ella. El simulador deja de anunciar la «Z» (ya usa el marco estándar).
+- Calibrar Z se quedaba en «Bajando…» tras tocar: el sondeo solo terminaba si leía `[PRB:x,y,z:1]` con tres números. Ahora acepta más ejes y espacios, y si llega el `ok` sin un `[PRB]` legible toma la posición actual (sin contacto habría ALARM:5).

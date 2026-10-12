@@ -10,7 +10,7 @@
 
 import { Grbl } from "./grbl.js";
 import { SUPERFICIE } from "./grbl-sim.js";
-import { Visor, COLOR_TRABAJO } from "./visor.js";
+import { Visor, COLOR_TRABAJO, AREA } from "./visor.js";
 import { ALARMAS, ERRORES } from "./alarmas.js";
 import { leer, transformar, alineacion, formatoTiempo, tiempoAcumulado } from "./gcode.js";
 import { MapaAlturas } from "./alturas.js";
@@ -110,7 +110,9 @@ async function cambiarModo(m) {
 async function homing() {
   S.alarma = null; refrescar();
   const r = await grbl.enviar("$H");
-  if (r.ok) { S.homed = true; anunciar("Homing hecho"); }
+  // La máquina gobierna: tras el ok se espera su reporte de posición (en la Cubiko real, 0,0,0)
+  // para que el gemelo quede en casa con ella, sin animación de por medio.
+  if (r.ok) { S.homed = true; await grbl.esperarQuieto(5000); visor.saltar(); anunciar("Homing hecho"); }
   refrescar();
 }
 async function desbloquear() {
@@ -140,6 +142,17 @@ grbl.addEventListener("log", (e) => {
   if (/\[MSG:'\$H'\|'\$X' to unlock\]/.test(e.detail.texto)) { S.alarma = "bloqueo"; refrescar(); }
 });
 
+// La Cubiko real trae HOMING_FORCE_SET_ORIGIN (la «Z» de [OPT:VMZ0L,…]): tras $H su posición de
+// máquina es 0,0,0 y el recorrido va en positivo. El gemelo está en el marco de GRBL estándar
+// (X −145…0, Y −110…0, Z −40…0, casa a la izquierda, atrás y arriba menos el retroceso $27), así
+// que se traslada al dibujar. WPos no cambia: MPos y WCO se trasladan igual. El simulador ya
+// trabaja en el marco estándar y no anuncia la «Z».
+function aGemelo(p) {
+  if (!p || !/Z/.test((grbl.opciones || "").split(",")[0])) return p;
+  const r = grbl.ajustes[27] ?? 2;
+  return { x: p.x - AREA.x + r, y: p.y - AREA.y + r, z: p.z - r };
+}
+
 function actualizar() {
   const e = grbl.est, ok = grbl.listo;
   if (ok && e.estado !== "Alarm" && S.alarma != null) S.alarma = null;
@@ -149,9 +162,9 @@ function actualizar() {
   const toca = ok && grbl.contacto && !S.corriendo;
   $("#sonda-visor").hidden = !toca;
   $("#btn-paro").disabled = !ok;
-  visor.ponerPosicion(ok ? e.mpos : visor.meta, e.wco, { xy: ok && S.xyListo, z: ok && S.zListo });
+  visor.ponerPosicion(ok ? aGemelo(e.mpos) : visor.meta, aGemelo(e.wco), { xy: ok && S.xyListo, z: ok && S.zListo });
   // Surco: con el simulador, todo el rastro (también las esquinas que pasan entre dos reportes)
-  if (ok) visor.cortar(grbl.sim ? grbl.sim.tomarRastro() : [e.mpos]);
+  if (ok) visor.cortar(grbl.sim ? grbl.sim.tomarRastro() : [aGemelo(e.mpos)]);
   visor.contacto(toca);
   visor.encendida(grbl.conectado);
   visor.pantalla({ conectado: ok, estado: e.estado, wpos: e.wpos });
@@ -181,7 +194,7 @@ const hist = ls.get("hist", []);
 function enviarComando(v) {
   v = v.trim(); if (!v) return;
   if (v === "?" || v === "!" || v === "~") grbl.tiempoReal(v);
-  else grbl.enviar(v).then((r) => { if (v.toUpperCase() === "$H" && r.ok) { S.homed = true; refrescar(); } });
+  else grbl.enviar(v).then(async (r) => { if (v.toUpperCase() === "$H" && r.ok) { S.homed = true; await grbl.esperarQuieto(5000); visor.saltar(); refrescar(); } });
   if (hist[hist.length - 1] !== v) { hist.push(v); if (hist.length > 50) hist.shift(); ls.set("hist", hist); }
 }
 

@@ -208,9 +208,12 @@ export class Grbl extends EventTarget {
     }
 
     if (l.startsWith("[PRB:")) {
-      const m = l.match(/\[PRB:([-\d.]+),([-\d.]+),([-\d.]+):(\d)\]/);
-      if (m) {
-        this.ultimaSonda = { x: +m[1], y: +m[2], z: +m[3], ok: m[4] === "1" };
+      // Tolerante: hay firmwares que mandan más de tres ejes ([PRB:x,y,z,a:1]) o espacios.
+      // Si no se leyera, el sondeo se quedaría esperando para siempre.
+      const m = l.match(/^\[PRB:\s*([^:\]]+):\s*(\d)\s*\]/);
+      const n = m ? m[1].split(",").map(Number) : [];
+      if (n.length >= 3 && n.slice(0, 3).every(Number.isFinite)) {
+        this.ultimaSonda = { x: n[0], y: n[1], z: n[2], ok: m[2] === "1" };
         this._emitir("sonda", this.ultimaSonda);
       }
       this.log(l, "rx");
@@ -284,14 +287,28 @@ export class Grbl extends EventTarget {
   }
 
   // Sondeo: resuelve con la posición de contacto (coordenadas de máquina) o null si falla.
+  // G38.2 contesta [PRB:…:1] y luego ok; sin contacto, ALARM:5. Si llega el ok sin un [PRB] legible,
+  // el contacto sí ocurrió (si no, habría alarma): se toma la posición del siguiente reporte con la
+  // máquina quieta, en vez de quedarse esperando.
   sondear(cmd) {
     return new Promise((resolve) => {
-      const fin = (v) => { this.removeEventListener("sonda", alSonda); this.removeEventListener("alarma", alAlarma); resolve(v); };
+      let listo = false;
+      const fin = (v) => {
+        if (listo) return; listo = true;
+        this.removeEventListener("sonda", alSonda); this.removeEventListener("alarma", alAlarma); resolve(v);
+      };
       const alSonda = (e) => fin(e.detail.ok ? e.detail : null);
       const alAlarma = () => fin(null);
       this.addEventListener("sonda", alSonda);
       this.addEventListener("alarma", alAlarma);
-      this.enviar(cmd).then((r) => { if (!r.ok) fin(null); });
+      this.enviar(cmd).then(async (r) => {
+        if (!r.ok) return fin(null);
+        await new Promise((ok) => setTimeout(ok, 400));
+        if (listo) return;
+        this.log("Sondeo terminado sin [PRB] legible: se usa la posición actual", "err");
+        const quieto = await this.esperarQuieto();
+        fin(quieto && this.est.estado !== "Alarm" ? { ...this.est.mpos, ok: true } : null);
+      });
     });
   }
 

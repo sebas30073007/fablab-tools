@@ -9,7 +9,7 @@
 | Firmware | `Grbl 1.1f`; `$I` → `[VER:V44.2.20250822:]` `[OPT:VMZ0L,35,254]` (variante de Genmitsu) |
 | Puerto | USB B, 115200 baud (COM18 en la laptop de Sebastián) |
 | Movimiento | la **cama se mueve en Y**; el husillo en X y Z |
-| Coordenadas | todo el recorrido es negativo (X −145…0, Y −110…0, Z −40…0). En el homing, visto de frente, el husillo va a la **izquierda** y la cama hacia **atrás**: X e Y buscan su tope negativo (`$23=3`) y quedan cerca de X −143 Y −108 Z −2 (observado el 11 oct 2026; falta leer `$$`) |
+| Coordenadas | `[OPT:VMZ0L]` trae HOMING_FORCE_SET_ORIGIN (la «Z»): tras `$H` la posición de máquina es 0,0,0 y X, Y crecen en positivo (Z baja en negativo). El gemelo y el simulador usan el marco estándar (X −145…0, Y −110…0, Z −40…0) y `aGemelo()` en `main.js` traslada lo que llega de la máquina real. En el homing, visto de frente, el husillo va a la **izquierda** y la cama hacia **atrás**: X e Y buscan su tope negativo (`$23=3`) y quedan cerca de X −143 Y −108 Z −2 (observado el 11 oct 2026; falta leer `$$`) |
 
 **Modelo 3D.** No hay CAD público de la máquina completa: solo hay modelos del spoilboard en Printables y MakerWorld. El gemelo de `web/cnc/js/cubiko.js` está hecho con primitivas a partir de las medidas oficiales y de las fotos de la [reseña de SainSmart](https://www.sainsmart.com/blogs/news/part-1-genmitsu-cubiko-full-review-from-unboxing-to-projects-the-new-benchmark-for-desktop-cnc) (fotos de hardwarepoint.net, ago 2025). Lo que reproduce:
 - base de dos niveles con chaflanes al frente, franja LED verde y control con pantalla y cruceta (la pantalla muestra el estado y la posición en vivo)
