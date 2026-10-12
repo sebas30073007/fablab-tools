@@ -4,16 +4,16 @@
 // Solo contenido y SVG. La vista que lo arma está en vistas.js (config).
 // Cada cota lleva data-k = el parámetro que dibuja; al enfocar ese campo se resalta.
 
-import { anchoAislado } from "./cam.js";
+import { anchoAislado, anchoV } from "./cam.js";
 
 const n = (v, d = 2) => (isFinite(v) ? String(+(+v).toFixed(d)) : "—");
-const TAN15 = Math.tan((15 * Math.PI) / 180);
 
 // ---------------- Campos ----------------
 // [clave, etiqueta, unidad, { paso, min, max, esc }]  esc: lo que se muestra = valor × esc
 export const CAMPOS = {
   pistas: [
-    ["diam", "Ancho de corte", "mm", { paso: 0.01, min: 0.02 }], ["prof", "Profundidad", "mm", { paso: 0.01, min: 0.01 }],
+    ["punta", "Punta", "mm", { paso: 0.05, min: 0.01 }], ["angulo", "Ángulo", "°", { paso: 5, min: 5, max: 90 }],
+    ["prof", "Profundidad", "mm", { paso: 0.01, min: 0.01 }],
     ["pasadas", "Pasadas", "", { paso: 1, min: 1 }], ["traslape", "Traslape", "%", { paso: 5, min: 0, max: 90, esc: 100 }],
     ["f", "Avance", "mm/min", { paso: 10, min: 1 }], ["fz", "Bajada", "mm/min", { paso: 10, min: 1 }],
   ],
@@ -43,7 +43,8 @@ export const HERRAMIENTAS = {
 // (y lo lee el lector de pantalla como descripción del campo)
 export const NOTAS = {
   pistas: {
-    diam: "Ancho que raya la punta. Si es mayor que la separación entre pistas, se unen.",
+    punta: "Ancho de la punta plana de la V; viene en la caja o grabado en la fresa (por ejemplo, 20° 0.1 mm).",
+    angulo: "Ángulo de la V. Con la profundidad decide el ancho que raya en el cobre.",
     prof: "Cuánto entra la punta bajo el cobre (el cobre mide 0.035 mm).",
     pasadas: "Vueltas alrededor de cada pista, cada una más afuera. Más pasadas, menos hilos de cobre sueltos.",
     traslape: "Cuánto se encima cada pasada sobre la anterior.",
@@ -148,13 +149,16 @@ function capas(W, ySup, k, grosor, yMax) {
 export function dibujosPistas(P) {
   return conSilueta("v", cortePistas(P)) + pasadasPistas(P);
 }
-// De lado: la punta en V de 30° entra «prof» bajo el cobre; el corte mide «diam» en la superficie
+// De lado: la punta en V entra «prof» bajo el cobre; el corte mide anchoV(P) en la superficie
 function cortePistas(P) {
   const W = 320, H = 150, k = 200, ySup = 64, cx = 170;     // 200 px por mm: la ventana mide 1.6 mm
   const prof = Math.max(0, Math.min(P.prof, 0.4)), yTip = ySup + prof * k;
-  const t = Math.max(0.02, P.diam - 2 * P.prof * TAN15) * k;   // punta plana
-  const med = (y) => t / 2 + (yTip - y) * TAN15;
-  const fresa = `<polygon class="m-acero" data-k="diam" points="${cx - t / 2},${yTip} ${cx + t / 2},${yTip} ${cx + med(0)},0 ${cx - med(0)},0"/>`;
+  const tanM = Math.tan(((P.angulo || 30) / 2) * Math.PI / 180);
+  const t = Math.max(0.02, P.punta ?? 0.1) * k;             // punta plana
+  const med = (y) => t / 2 + (yTip - y) * tanM;
+  const fresa = `<polygon class="m-acero" data-k="angulo" points="${cx - t / 2},${yTip} ${cx + t / 2},${yTip} ${cx + med(0)},0 ${cx - med(0)},0"/>
+    <line class="m-acero" data-k="punta" x1="${cx - t / 2}" y1="${yTip}" x2="${cx + t / 2}" y2="${yTip}" stroke-width="3"/>`;
+  P = { ...P, diam: anchoV(P) };
   const ancho = P.diam * k, xd = cx + Math.max(ancho / 2, med(ySup)) + 18;
   const L = capas(W, ySup, k, 1.6, H);
   return svg(W, H, `De lado: la punta en V entra ${n(P.prof)} mm y corta ${n(P.diam)} mm de ancho`, `

@@ -8,6 +8,7 @@ import { ALARMAS, ESTADOS } from "./alarmas.js";
 import { formatoTiempo } from "./gcode.js";
 import { esc, ico, mm, ls, miniJog, descargar } from "./ui.js";
 import { aPNG, vista } from "./raster.js";
+import { anchoV } from "./cam.js";
 import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, resumen, atraviesa, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun } from "./herramientas.js";
 
 const chev = ico("chev");
@@ -518,6 +519,7 @@ function config(pag, app) {
         if (i.type === "checkbox") Q[k] = i.checked;
         else if (i.value !== "" && isFinite(+i.value)) Q[k] = +i.value / +i.dataset.esc;
       });
+      if (g === "pistas") Q.diam = anchoV(Q);
       return Q;
     };
     const enfocado = () => sec.querySelector("[data-p]:focus")?.dataset.p.split(".")[1] || null;

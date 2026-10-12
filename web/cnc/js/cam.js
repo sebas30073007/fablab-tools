@@ -12,9 +12,15 @@
 
 import { binaria } from "./raster.js";
 
+// Ancho que raya una fresa en V a cierta profundidad: la punta plana más lo que abre el cono.
+// Es el «diam» que usa el CAM en pistas; punta y ángulo vienen en la caja («20° 0.1 mm»).
+export function anchoV({ punta, angulo, prof }) {
+  return +(punta + 2 * Math.max(0, prof) * Math.tan((angulo / 2) * Math.PI / 180)).toFixed(3);
+}
+
 export const DEF = {
   comun: { zSeguro: 5, rpm: 10000, espera: 3, climb: true },
-  pistas: { diam: 0.2, prof: 0.1, pasadas: 2, traslape: 0.5, f: 120, fz: 60 },
+  pistas: { punta: 0.1, angulo: 20, diam: anchoV({ punta: 0.1, angulo: 20, prof: 0.1 }), prof: 0.1, pasadas: 2, traslape: 0.5, f: 120, fz: 60 },
   hoyos: { broca: 1.0, prof: 1.8, fz: 60, min: 0.6, max: 1.3 },
   contorno: { diam: 1.0, prof: 1.85, pasadas: 4, f: 120, fz: 60, puentes: 4, anchoPuente: 3.1, zPuente: -0.9 },
 };

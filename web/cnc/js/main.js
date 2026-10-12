@@ -32,7 +32,7 @@ const S = {
   alarma: null,          // código de ALARM, "bloqueo" al encender, o null
   archivos: [],          // {nombre, tipo, texto}
   pcb: null,             // {cobre, contorno, hoyos, job, marco, imgs, miniatura, nombre}
-  params: structuredClone(ls.get("params", null) || cam.DEF),
+  params: conPistasV(structuredClone(ls.get("params", null) || cam.DEF)),
   material: null,        // {ancho, alto, grosor, x, y}: la placa virgen y dónde va el diseño dentro de ella
   trabajos: [],          // {id, origen, nombre, herramienta, lineas, prev, estado}
   corriendo: null,       // id del trabajo en curso
@@ -302,7 +302,7 @@ async function generar() {
   const origen = cam.origenDe(m, M);   // X0 Y0 = esquina del material; el diseño queda en (M.x, M.y)
   if (pcb.imgs.pistas) {
     const paths = cam.trayectoriasPistas(pcb.imgs.pistas, m, P.pistas, P.comun, origen);
-    nuevos.push({ id: "pistas", origen: "cam", nombre: "Pistas", herramienta: `Fresa ${P.pistas.diam} mm`, lineas: cam.gcodePistas(paths, P.pistas, P.comun) });
+    nuevos.push({ id: "pistas", origen: "cam", nombre: "Pistas", herramienta: `V ${P.pistas.angulo}° punta ${P.pistas.punta} · corte ${P.pistas.diam} mm`, lineas: cam.gcodePistas(paths, P.pistas, P.comun) });
   }
   const hoyos = cam.seleccionHoyos(pcb.hoyos || [], P.hoyos, m, origen);
   if (hoyos.length) nuevos.push({ id: "hoyos", origen: "cam", nombre: "Hoyos", herramienta: `Broca ${P.hoyos.broca} mm`, lineas: cam.gcodeHoyos(hoyos, P.hoyos, P.comun) });
@@ -321,7 +321,15 @@ async function generar() {
   anunciar(`Trayectorias listas: ${nuevos.map((t) => t.nombre).join(", ")}`);
   refrescar();
 }
-function ponerParam(g, k, v) { S.params[g][k] = v; ls.set("params", S.params); }
+// Pistas con fresa en V: el ancho de corte (diam, el que usa el CAM) sale de punta, ángulo y
+// profundidad. Los ajustes guardados antes de existir esos campos toman la fresa por defecto.
+function conPistasV(P) {
+  const q = P.pistas;
+  if (q.punta == null || q.angulo == null) { q.punta = cam.DEF.pistas.punta; q.angulo = cam.DEF.pistas.angulo; }
+  q.diam = cam.anchoV(q);
+  return P;
+}
+function ponerParam(g, k, v) { S.params[g][k] = v; conPistasV(S.params); ls.set("params", S.params); }
 function paramsPorDefecto() { S.params = structuredClone(cam.DEF); ls.set("params", S.params); refrescar(); }
 
 function previsualizar() {
