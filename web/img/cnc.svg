@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 150" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Silueta de la Cubiko vista de frente: carcasa, pórtico, husillo, cama con placa -->
+  <rect x="40" y="18" width="160" height="118" rx="6" stroke="#6B6F76" stroke-width="2"/>
+  <path d="M52 40h136M52 50h136" stroke="#8E939B" stroke-width="3"/>
+  <rect x="104" y="30" width="32" height="44" rx="3" fill="#2A2D33" stroke="#8E939B" stroke-width="1.5"/>
+  <path d="M120 74v16" stroke="#B7BCC4" stroke-width="3"/>
+  <path d="M118 90l2 5 2-5z" fill="#FF6B35"/>
+  <rect x="62" y="104" width="116" height="10" rx="1" fill="#C8A27A"/>
+  <rect x="78" y="99" width="70" height="5" fill="#FF6B35"/>
+  <path d="M86 101.5h20M112 101.5h28" stroke="#111317" stroke-width="1.2"/>
+  <rect x="40" y="122" width="160" height="14" rx="3" fill="#2A2D33"/>
+  <path d="M60 129h40" stroke="#3DDC84" stroke-width="2"/>
+</svg>

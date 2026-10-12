@@ -1,0 +1,42 @@
+/* Hub del Fab Lab — capa 3. Superficies: barra light, catálogo mist, cartela light. */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-sans); font-size: 14px; line-height: 20px; color: var(--text); background: var(--mist); min-height: 100vh; display: flex; flex-direction: column; }
+
+.hub-barra { display: flex; align-items: center; gap: var(--space-sm); height: 56px; padding: 0 var(--space-xl); background: var(--technical-white); border-bottom: 1px solid var(--mist); }
+.hub-barra__t { font-weight: 700; font-size: 16px; }
+.hub-barra__req { margin-left: auto; font-size: 13px; color: var(--text-secondary); }
+
+.hub { flex: 1; width: 100%; max-width: var(--container-max); margin: 0 auto; padding: var(--space-3xl) var(--space-xl); display: flex; flex-direction: column; gap: var(--space-2xl); }
+.hub-intro h1 { margin: 0 0 var(--space-sm); font-size: 32px; line-height: 40px; font-weight: 800; letter-spacing: -0.01em; }
+.hub-intro p { margin: 0; font-size: 16px; line-height: 24px; color: var(--alloy); max-width: 56ch; }
+
+.catalogo { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: var(--space-lg); }
+.maquina { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-lg); background: var(--technical-white); border: 1px solid var(--technical-white); border-radius: var(--radius-lg); color: inherit; text-decoration: none; }
+.maquina--activa { grid-row: span 1; }
+.maquina--activa:hover { border-color: var(--accent); }
+.maquina--activa:focus-visible { outline-offset: 3px; }
+.maquina[aria-disabled="true"] { color: var(--alloy); }
+.maquina__vista { aspect-ratio: 16 / 10; border-radius: var(--radius-md); background: var(--graphite); display: grid; place-items: center; overflow: hidden; }
+.maquina__vista img { width: 100%; height: 100%; object-fit: contain; }
+.maquina__vista--vacia { background: var(--mist); }
+.maquina__vista--foto { background: var(--mist); }
+.maquina__vista--foto img { object-fit: cover; }
+.maquina__vista--vacia span { font-family: var(--font-mono); font-size: 13px; color: var(--alloy); }
+.maquina__txt h2 { margin: 0 0 4px; font-size: 18px; line-height: 24px; }
+.maquina__txt p { margin: 0; font-size: 14px; line-height: 20px; color: var(--alloy); }
+.maquina .cartela--inline { margin-top: auto; }
+
+.hub-cartela { margin-top: auto; }
+
+@media (max-width: 900px) {
+  .catalogo { grid-template-columns: 1fr 1fr; }
+  .maquina--activa { grid-column: 1 / -1; }
+  .hub { padding: var(--space-xl) var(--space-lg); }
+  .hub-barra { padding: 0 var(--space-lg); }
+}
+@media (max-width: 560px) {
+  .catalogo { grid-template-columns: 1fr; }
+  /* El aviso de navegador baja a su propio renglón en vez de desbordar la barra */
+  .hub-barra { flex-wrap: wrap; height: auto; min-height: 56px; padding: 10px var(--space-lg); row-gap: 2px; }
+  .hub-barra__req { margin-left: 0; flex-basis: 100%; font-size: 12.5px; line-height: 17px; }
+}

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fab Lab · Herramientas</title>
+<meta name="description" content="Herramientas web del Fab Lab: conecta la máquina por USB y trabaja desde el navegador, sin instalar nada.">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/chrome.css">
+<link rel="stylesheet" href="css/project.css">
+<link rel="stylesheet" href="css/hub.css">
+</head>
+<body>
+<header class="hub-barra">
+  <img src="img/simbolo.png" alt="SEBS" width="28" height="28" onerror="this.remove()">
+  <span class="hub-barra__t">Fab Lab</span>
+  <span class="hub-barra__req" id="req"></span>
+</header>
+
+<main class="hub">
+  <section class="hub-intro">
+    <h1>Herramientas del Fab Lab</h1>
+    <p>Elige la máquina, conéctala por USB y trabaja desde el navegador. Sin instalar nada.</p>
+  </section>
+
+  <section class="catalogo" aria-label="Máquinas">
+    <a class="maquina maquina--activa" href="cnc/">
+      <div class="maquina__vista maquina__vista--foto"><img src="img/cnc-cubiko.webp" alt="La Genmitsu Cubiko, en felpa" width="1120" height="700"></div>
+      <div class="maquina__txt">
+        <h2>CNC</h2>
+        <p>PCB desde KiCad: pistas, hoyos y contorno. Calibración guiada y gemelo 3D.</p>
+      </div>
+      <dl class="cartela cartela--inline">
+        <div class="cartela__campo"><dt>Máquina</dt><dd>Genmitsu Cubiko</dd></div>
+        <div class="cartela__campo"><dt>Firmware</dt><dd>GRBL 1.1</dd></div>
+        <div class="cartela__campo"><dt>Estado</dt><dd><i class="dot dot--active"></i>Lista</dd></div>
+      </dl>
+    </a>
+    <div class="maquina" aria-disabled="true">
+      <div class="maquina__vista maquina__vista--vacia"><span>Láser</span></div>
+      <div class="maquina__txt"><h2>Corte láser</h2><p>Corte y grabado desde SVG.</p></div>
+      <dl class="cartela cartela--inline"><div class="cartela__campo"><dt>Estado</dt><dd><i class="dot"></i>En preparación</dd></div></dl>
+    </div>
+    <div class="maquina" aria-disabled="true">
+      <div class="maquina__vista maquina__vista--vacia"><span>3D</span></div>
+      <div class="maquina__txt"><h2>Impresión 3D</h2><p>Enviar G-code y vigilar la impresión.</p></div>
+      <dl class="cartela cartela--inline"><div class="cartela__campo"><dt>Estado</dt><dd><i class="dot"></i>En preparación</dd></div></dl>
+    </div>
+    <div class="maquina" aria-disabled="true">
+      <div class="maquina__vista maquina__vista--vacia"><span>Sublimado</span></div>
+      <div class="maquina__txt"><h2>Sublimado</h2><p>Plantillas y tiempos por material.</p></div>
+      <dl class="cartela cartela--inline"><div class="cartela__campo"><dt>Estado</dt><dd><i class="dot"></i>En preparación</dd></div></dl>
+    </div>
+  </section>
+</main>
+
+<footer class="cartela hub-cartela" aria-label="Ficha del proyecto">
+  <div class="cartela__firma">
+    <img src="img/simbolo.png" alt="" width="32" height="32" onerror="this.remove()">
+    <div><p class="cartela__nombre">fablab-tools</p><p class="cartela__linea">Herramientas web del Fab Lab</p></div>
+  </div>
+  <dl class="cartela__campos">
+    <div class="cartela__campo"><dt>ID</dt><dd>FAB-01</dd></div>
+    <div class="cartela__campo"><dt>Rev</dt><dd>0.1</dd></div>
+    <div class="cartela__campo"><dt>Fecha</dt><dd>2026-10-08</dd></div>
+    <div class="cartela__campo"><dt>Estado</dt><dd><i class="dot dot--active"></i>ACTIVE</dd></div>
+  </dl>
+</footer>
+<script>
+  // Web Serial: solo Chrome y Edge de escritorio
+  if (!("serial" in navigator)) document.getElementById("req").textContent = "Para conectar máquinas usa Chrome o Edge en una computadora";
+</script>
+</body>
+</html>
