@@ -711,7 +711,13 @@ async function correrTrabajo(t, { aire }) {
   });
   S.corriendo = null; S.prog = null;
   if (r.ok) { log(`${aire ? "Prueba en aire" : t.nombre}: terminado.`, "sys"); if (!aire) t.estado = "hecho"; anunciar(`${t.nombre} terminado`); }
-  else log(`${t.nombre}: detenido (${r.error}${r.linea ? ` en «${r.linea}»` : ""}).`, "sys err");
+  else {
+    log(`${t.nombre}: detenido (${r.error}${r.linea ? ` en «${r.linea}»` : ""}).`, "sys err");
+    // Que no pase desapercibido: la máquina termina lo que ya tenía en su búfer y se queda quieta
+    if (typeof r.error === "number") {
+      confirmar({ titulo: `${t.nombre} se detuvo`, html: `<p>GRBL rechazó la línea <code>${esc(r.linea || "")}</code>: ${esc(ERRORES[r.error] || `error ${r.error}`)}.</p><p>La máquina terminó las líneas que ya tenía y se quedó quieta.</p>`, si: "Entendido", no: "Cerrar" });
+    }
+  }
   if (aire) visor.progreso(t.id, -1);
   refrescar();
 }

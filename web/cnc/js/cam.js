@@ -228,9 +228,12 @@ export function seleccionHoyos(hoyos, P, m, origen = origenDe(m)) {
 // ---------------- G-code ----------------
 const f4 = (v) => (Math.abs(v) < 5e-5 ? 0 : v).toFixed(4).replace(/\.?0+$/, "").replace(/^-0$/, "0");
 
+// En G-code un comentario termina en el primer «)»: un paréntesis dentro del texto dejaba un «)»
+// suelto que GRBL rechaza (error:1) y el trabajo se detenía tras las primeras líneas.
+const comentario = (t) => `(${String(t).replace(/[()]/g, "")})`;
 function cabecera(titulo, notas, C) {
   return [
-    `(${titulo})`, ...notas.map((n) => `(${n})`),
+    comentario(titulo), ...notas.map(comentario),
     "(ORIGEN X0 Y0: ESQUINA INFERIOR IZQUIERDA DEL MATERIAL - Z0: SUPERFICIE DEL COBRE)",
     "(GENERADO POR FAB LAB CNC)",
     "G21", "G90", "G17", "G94", "G54",
@@ -263,7 +266,7 @@ export function gcodeHoyos(hoyos, P, C) {
 
 export function gcodeContorno(paths, P, C) {
   const out = cabecera("CONTORNO - CORTE", [
-    `FRESA DE CORTE LATERAL ${P.diam} MM (NO BROCA HELICOIDAL)`,
+    `FRESA DE CORTE LATERAL ${P.diam} MM - NO BROCA HELICOIDAL`,
     `${P.pasadas} PASADAS HASTA Z-${P.prof} - ${P.puentes} PUENTES DE ${P.anchoPuente} MM A Z${P.zPuente}`,
   ], C);
   // Los puentes van en el lazo más largo (el borde exterior)

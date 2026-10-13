@@ -322,7 +322,10 @@ export class Grbl extends EventTarget {
   // Manda un programa completo respetando el búfer. alProgreso(hechas, total).
   correr(lineas, { alProgreso } = {}) {
     if (this._programa) return Promise.resolve({ ok: false, error: "ya hay un programa" });
-    const limpias = lineas.map((l) => l.replace(/\(.*?\)|;.*$/g, "").trim()).filter(Boolean);
+    // Comentarios como los entiende GRBL: «;» hasta el fin y «(» hasta el primer «)». Lo que sobre
+    // de un paréntesis mal cerrado no se manda: GRBL lo rechazaría y el trabajo quedaría a medias.
+    const limpia = (l) => l.replace(/;.*$/, "").replace(/\([^)]*\)/g, "").replace(/\(.*$/, "").replace(/\)/g, "").trim();
+    const limpias = lineas.map(limpia).filter(Boolean);
     let hechas = 0, enviadas = 0;
     return new Promise((resolve) => {
       const prog = (this._programa = {
