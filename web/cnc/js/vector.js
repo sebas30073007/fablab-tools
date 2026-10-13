@@ -67,7 +67,8 @@ function sinDuplicados(trazos) {
   const vistos = new Set(), res = [];
   const q = ([x, y]) => `${Math.round(x / TOL)},${Math.round(y / TOL)}`;
   for (const t of trazos) {
-    if (t.pts.length < 2) continue;
+    // Un trazo de largo cero (pasa en exportaciones de CAD) no es nada que cortar ni grabar
+    if (t.pts.length < 2 || largo(t.pts) < TOL) continue;
     const ida = t.pts.map(q);
     const k1 = ida.join(";"), k2 = ida.slice().reverse().join(";");
     // un lazo es el mismo aunque empiece en otro vértice: se compara por su conjunto de vértices

@@ -363,12 +363,13 @@ export function gcodeHoyos(hoyos, P, C) {
   return [...out, ...pie(C)];
 }
 
-// Puentes repartidos a lo largo de un lazo: centros en mm de trabajo. Cada pieza lleva los suyos;
-// una pieza chica, menos (nunca más de la mitad de su perímetro en puentes).
+// Puentes repartidos a lo largo de un lazo: centros en mm de trabajo. Cada pieza lleva los de
+// Configuración; una pieza chica, menos: hasta una cuarta parte de su perímetro en puentes (al menos
+// 2 si caben en la mitad).
 function centrosPuente(pts, P) {
   const L = largo(pts), ancho = P.anchoPuente + P.diam;
   if (P.puentes <= 0 || L <= 0) return [];
-  const n = Math.min(P.puentes, Math.max(Math.min(2, P.puentes), Math.round(L / 30)), Math.floor((L * 0.5) / ancho));
+  const n = Math.min(P.puentes, Math.max(Math.min(2, P.puentes), Math.floor((L * 0.25) / ancho)), Math.floor((L * 0.5) / ancho));
   const res = [];
   for (let k = 0; k < n; k++) {
     let s = ((k + 0.5) * L) / n;

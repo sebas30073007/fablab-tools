@@ -46,7 +46,7 @@ Una pieza dentro de un hueco vuelve a ser pieza. Sale solo porque el contorno es
 Primero se cortan los lazos más adentro: los huecos de cada pieza van antes que su borde, para que la pieza siga sujeta mientras se trabaja. Cada lazo baja todas sus pasadas antes de pasar al siguiente.
 
 Cada pieza lleva sus propios puentes:
-- el número de Configuración, o menos si la pieza es chica (unos 30 mm de perímetro por puente, y nunca más de la mitad del perímetro en puentes);
+- el número de Configuración, o menos si la pieza es chica (hasta una cuarta parte de su perímetro en puentes; al menos 2 si caben en la mitad);
 - se ubican por posición, así que la vuelta de acabado los respeta igual que el desbaste.
 
 ## Sentido de corte
