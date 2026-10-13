@@ -791,8 +791,9 @@ async function correrTrabajo(t, { aire }) {
     if (!(await asistenteZ(t, { cambio: true }))) return;
   }
   const c = t.prev.caja;
+  const otraZ = S.herramientaZ && !cam.igualHerr(t.herramienta, S.herramientaZ) && t.origen === "cam";
   const html = aire
-    ? `<p>El trabajo completo con la fresa ${S.dzAire} mm más arriba.</p>`
+    ? `<p>El trabajo completo con la fresa ${S.dzAire} mm más arriba.</p>${otraZ ? `<div class="aviso">${ico("alerta")}<span>Z0 se calibró con ${esc(S.herramientaZ)}. Si pusiste otra fresa, calíbrala antes: la altura puede no coincidir.</span></div>` : ""}`
     : `<div class="pila-s">${[`Puesta: ${esc(t.herramienta)}`, mat().conduce ? "Placa pegada, MDF debajo" : "Material sujeto, MDF debajo", "Caimán quitado", "Gafas y tapa"].map((x, i) => `<label class="check"><input type="checkbox" data-chk ${i ? "" : "data-foco"}> ${x}</label>`).join("")}</div>
        <p class="mono muted">${formatoTiempo(t.prev.tiempo)} · Z mín. ${mm(c.min.z, 2)} mm</p>
        ${holgura()?.cabe === false ? `<div class="aviso">${ico("alerta")}<span>El corte se sale del material. Revísalo en Placa → Material.</span></div>` : ""}`;

@@ -69,7 +69,7 @@ export function ahora(app) {
   const t = acc.siguienteTrabajo();
   if (!t) return { k: "fin", cab: "Ahora", texto: S.pcb?.vector ? "Pieza terminada" : "Placa terminada", masc: "placa", acc: [{ id: "nueva", t: S.pcb?.vector ? "Nueva pieza" : "Nueva placa", main: true }] };
   if (!S.zListo) return { k: "z" + t.id, cab: "Ahora", texto: "Calibrar Z", sub: t.herramienta, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "zmanual", t: "Sin sonda" }] };
-  if (S.herramientaZ && !igualHerr(t.herramienta, S.herramientaZ) && t.origen === "cam") return { k: "cambio" + t.id, cab: "Ahora", texto: `Cambiar a ${t.herramienta}`, sub: `para ${t.nombre}`, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "misma", t: "Misma fresa", texto: true }] };
+  if (S.herramientaZ && !igualHerr(t.herramienta, S.herramientaZ) && t.origen === "cam") return { k: "cambio" + t.id, cab: "Ahora", texto: `Cambiar a ${t.herramienta}`, sub: `para ${t.nombre}`, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "aire", t: "Prueba en aire", ico: "aire" }, { id: "misma", t: "Misma fresa", texto: true }] };
   return { k: "fresar" + t.id, cab: "Ahora", texto: `Fresar ${t.nombre}`, sub: `${t.herramienta} · ${formatoTiempo(t.prev.tiempo)}`, masc: "hola", acc: [{ id: "paso", t: "Fresar", main: true, ico: "play" }, { id: "aire", t: "Prueba en aire", ico: "aire" }] };
 }
 

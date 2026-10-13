@@ -217,3 +217,4 @@
 - Cualquier trabajo se puede omitir desde su hoja. Comparación con la versión anterior: el G-code de la PCB de ejemplo sale idéntico salvo comentarios. Detalle en `docs/cnc-dibujos.md`.
 
 - Girar pieza 90° (solo con DXF/SVG): gira el dibujo sobre el material y recalcula las trayectorias; el botón de antes ahora dice «Girar material».
+- Prueba en aire también en el paso «Cambiar a …» (antes solo aparecía con la fresa ya calibrada); la confirmación avisa con qué herramienta se calibró Z0.
