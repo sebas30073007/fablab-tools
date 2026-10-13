@@ -206,3 +206,6 @@
 - Arriba y Frente ya no encuadran la máquina: miran al trabajo cargado (sus trayectorias) o, sin trabajo, al material. Se ocultan las piezas que estorban (torre, techo, tapa, control, carro y cuerpo del husillo); quedan la base, la cama con lo que lleva y la fresa.
 - Movimiento acotado: Arriba sin giro; Frente con ±23° de giro y entre 45° y 84° de inclinación; acercamiento hasta 0.2× y alejamiento hasta 1.6× del encuadre; el desplazamiento no sale de la zona del trabajo. La cámara viaja con la cama, así que el trabajo queda quieto y se ve moverse la fresa. Se vuelven a encuadrar al cambiar el trabajo, el material, el cero o el tamaño del visor.
 - La vista 3D sigue igual. Piezas marcadas en cubiko.js (`userData.base`, `userData.fresa`).
+
+## 2026-10-13 · Saltar la calibración en el cambio de fresa
+- En el paso «Cambiar a …» del widget Ahora hay un botón de texto discreto, «Misma fresa», junto a Empezar. Pide confirmación («¿Saltar la calibración?», Saltar / Calibrar) y, si se acepta, conserva Z0 y da el cambio por hecho (`mismaFresa` en main.js). Sirve cuando la fresa del contorno también hace los barrenos y no se movió.

@@ -13,8 +13,8 @@ import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, resumen, atraviesa, dibujosPistas,
 
 const chev = ico("chev");
 const masc = (app, k) => `<img class="w-masc" src="${app.MASC[k]}" alt="" onerror="this.remove()">`;
-const btn = (acc, txt, { main = false, icono = null, dis = false } = {}) =>
-  `<button type="button" class="btn-pill ${main ? "btn-pill--main" : ""}" data-acc="${acc}" ${dis ? "disabled" : ""}>${icono ? ico(icono) : ""}${esc(txt)}</button>`;
+const btn = (acc, txt, { main = false, icono = null, dis = false, texto = false } = {}) =>
+  `<button type="button" class="${texto ? "btn-texto" : `btn-pill ${main ? "btn-pill--main" : ""}`}" data-acc="${acc}" ${dis ? "disabled" : ""}>${icono ? ico(icono) : ""}${esc(txt)}</button>`;
 function cablear(pag, mapa) {
   pag.querySelectorAll("[data-acc]").forEach((b) => { const f = mapa[b.dataset.acc]; if (f) b.onclick = () => f(b); });
   pag.querySelectorAll("[data-ir]").forEach((b) => (b.onclick = () => mapa.__irA(b.dataset.ir)));
@@ -64,7 +64,7 @@ export function ahora(app) {
   const t = acc.siguienteTrabajo();
   if (!t) return { k: "fin", cab: "Ahora", texto: "Placa terminada", masc: "placa", acc: [{ id: "nueva", t: "Nueva placa", main: true }] };
   if (!S.zListo) return { k: "z" + t.id, cab: "Ahora", texto: "Calibrar Z", sub: t.herramienta, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "zmanual", t: "Sin sonda" }] };
-  if (S.herramientaZ && t.herramienta !== S.herramientaZ && t.origen === "cam") return { k: "cambio" + t.id, cab: "Ahora", texto: `Cambiar a ${t.herramienta}`, sub: `para ${t.nombre}`, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }] };
+  if (S.herramientaZ && t.herramienta !== S.herramientaZ && t.origen === "cam") return { k: "cambio" + t.id, cab: "Ahora", texto: `Cambiar a ${t.herramienta}`, sub: `para ${t.nombre}`, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "misma", t: "Misma fresa", texto: true }] };
   return { k: "fresar" + t.id, cab: "Ahora", texto: `Fresar ${t.nombre}`, sub: `${t.herramienta} · ${formatoTiempo(t.prev.tiempo)}`, masc: "hola", acc: [{ id: "paso", t: "Fresar", main: true, ico: "play" }, { id: "aire", t: "Prueba en aire", ico: "aire" }] };
 }
 
@@ -103,7 +103,7 @@ function ahoraHTML(app, a, ps) {
     ${a.sub ? `<span class="w-sub">${esc(a.sub)}</span>` : ""}
     ${a.pasos?.length ? `<ol class="w-pasos-alarma">${a.pasos.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>` : ""}
     ${conMasc ? masc(app, a.masc) : ""}
-    ${a.acc.length ? `<span class="w-acc">${a.acc.map((b) => btn(b.id, b.t, { main: b.main, icono: b.ico })).join("")}</span>` : ""}
+    ${a.acc.length ? `<span class="w-acc">${a.acc.map((b) => btn(b.id, b.t, { main: b.main, icono: b.ico, texto: b.texto })).join("")}</span>` : ""}
   </section>`;
 }
 
@@ -168,6 +168,7 @@ function inicio(pag, app) {
       abrir: acc.elegirArchivos, ejemplo: acc.cargarEjemplo, generar: acc.generar, verPlaca: () => app.irA("placa"),
       mover: () => app.irA("mover"), nueva: acc.nuevaPlaca,
       paso: () => acc.siguientePaso(acc.siguienteTrabajo()), zmanual: () => acc.asistenteZManual(acc.siguienteTrabajo()),
+      misma: () => acc.mismaFresa(acc.siguienteTrabajo()),
       aire: () => acc.correrTrabajo(acc.siguienteTrabajo(), { aire: true }),
       pausar: () => { acc.pausar(); setTimeout(app.refrescar, 300); }, reanudar: () => { acc.reanudar(); setTimeout(app.refrescar, 300); }, paro: acc.paro,
     });

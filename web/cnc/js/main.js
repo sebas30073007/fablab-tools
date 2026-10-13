@@ -702,6 +702,21 @@ async function siguientePaso(t) {
   return correrTrabajo(t, { aire: false });
 }
 
+// Saltar el cambio de fresa: la misma herramienta sirve para dos trabajos (la fresa del contorno
+// también barrena) y no se movió, así que Z0 sigue valiendo
+async function mismaFresa(t) {
+  if (!t || !S.herramientaZ) return false;
+  const ok = await confirmar({ titulo: "¿Saltar la calibración?",
+    html: `<p>Z0 se queda como se calibró con ${esc(S.herramientaZ)}.</p><p>Solo si no sacaste ni moviste la fresa: si cambió su altura, ${esc(t.nombre)} sale muy hondo o al aire.</p>`,
+    si: "Saltar", no: "Calibrar" });
+  if (!ok) return false;
+  S.herramientaZ = t.herramienta;
+  log(`Calibración saltada: ${t.nombre} usa el Z0 de la fresa anterior.`, "sys");
+  anunciar("Calibración saltada");
+  refrescar();
+  return true;
+}
+
 // ======================================================================
 // Acciones rápidas («+»): rejilla de 2, solo ícono y nombre
 // ======================================================================
@@ -774,7 +789,7 @@ const app = {
     ponerMaterial, centrarDiseno, girarMaterial, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
     asistenteZ, asistenteZManual, asistenteAlinear, quitarAlineacion: () => { S.alinear = null; previsualizar(); refrescar(); },
     medirAlturas, exportarMapa, ponerUsarMapa: (v) => { S.usarMapa = v; },
-    abrirTrabajo, correrTrabajo, siguientePaso, siguienteTrabajo,
+    abrirTrabajo, correrTrabajo, siguientePaso, siguienteTrabajo, mismaFresa,
     pausar: () => grbl.pausar(), reanudar: () => grbl.reanudar(),
     enviarComando, limpiarConsola: () => (consola.innerHTML = ""),
     velocidadSim: (v) => { if (grbl.sim) grbl.sim.velocidad = v; },
