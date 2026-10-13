@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es" data-estilo="lab">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Láser · Fab Lab</title>
+<meta name="description" content="Control de la cortadora láser xTool S1 desde el navegador: del SVG o la imagen al corte y grabado, con biblioteca de materiales, encuadre y gemelo 3D.">
+<!-- Jerarquía SEBS: capa 0 (tokens) → capa 1 (chrome) → capa 2 (project) → capa 3 (shared/css + laser) -->
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/chrome.css">
+<link rel="stylesheet" href="../css/project.css">
+<link rel="stylesheet" href="../shared/css/app.css">
+<link rel="stylesheet" href="laser.css">
+<link rel="stylesheet" href="../shared/css/lab.css">
+<script>try { const e = JSON.parse(localStorage.getItem("fablab.laser.estilo")); if (e) document.documentElement.dataset.estilo = e; } catch (_) {}</script>
+<script type="importmap">
+{ "imports": {
+  "three": "../shared/vendor/three/three.module.min.js",
+  "three/addons/": "../shared/vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<!-- Íconos: web/shared/js/iconos.js los agrega al cargar -->
+
+<div class="app">
+  <!-- ================= Barra: solo marca y PARO ================= -->
+  <header class="barra" aria-label="Barra superior">
+    <a class="barra__marca" href="../" aria-label="Fab Lab: volver al catálogo">
+      <img src="../img/simbolo.png" alt="" width="24" height="24" onerror="this.remove()">
+      <span class="barra__nombre">Fab Lab</span>
+    </a>
+    <span class="barra__sep" aria-hidden="true"></span>
+    <h1 class="barra__app">Láser</h1>
+    <a class="btn-tutorial" href="diagnostico.html" aria-label="Diagnóstico de la conexión"><svg class="ico" aria-hidden="true"><use href="#i-usb"/></svg><span class="btn-tutorial__txt" aria-hidden="true">Diagnóstico</span></a>
+    <button class="btn-paro" id="btn-paro" disabled aria-keyshortcuts="Escape" title="Esc">PARO</button>
+  </header>
+
+  <!-- ================= Visor ================= -->
+  <main class="visor" id="visor" aria-label="Gemelo 3D de la máquina">
+    <div class="visor__coords" aria-hidden="true">
+      <span class="pildora-dato" data-eje="X"><b>X</b><span id="wx">—</span></span>
+      <span class="pildora-dato" data-eje="Y"><b>Y</b><span id="wy">—</span></span>
+      <span class="pildora-dato pildora-dato--laser" id="laser-visor" hidden><i class="punto"></i>Láser</span>
+    </div>
+    <div class="seg seg--flota" role="radiogroup" aria-label="Vista" id="vistas">
+      <button role="radio" data-vista="3d" aria-checked="true">3D</button>
+      <button role="radio" data-vista="arriba" aria-checked="false">Arriba</button>
+      <button role="radio" data-vista="frente" aria-checked="false">Frente</button>
+    </div>
+    <button type="button" class="btn-visor" id="btn-visor" aria-pressed="false" aria-label="Agrandar vista 3D"><svg class="ico" aria-hidden="true"><use href="#i-agrandar"/></svg></button>
+    <div class="soltar" id="soltar" hidden><div>Suelta el SVG, la imagen o el .gcode</div></div>
+  </main>
+
+  <!-- ================= Panel: una app móvil al lado del 3D ================= -->
+  <aside class="panel" aria-label="Controles">
+    <div class="panel__vista" id="vista"></div>
+    <nav class="navinf" aria-label="Secciones">
+      <div class="navinf__pildora">
+        <button data-tab="inicio" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-casa-on"/></svg><span>Inicio</span></button>
+        <button data-tab="mover"><svg class="ico" aria-hidden="true"><use href="#i-mover"/></svg><span>Mover</span></button>
+        <button data-tab="consola"><svg class="ico" aria-hidden="true"><use href="#i-consola"/></svg><span>Consola</span></button>
+      </div>
+      <button class="navinf__mas" id="btn-mas" aria-label="Acciones rápidas"><svg class="ico" aria-hidden="true"><use href="#i-mas"/></svg></button>
+    </nav>
+    <div class="hojas" id="hojas"></div>
+    <div class="sr-only" id="anuncio" aria-live="polite"></div>
+  </aside>
+</div>
+
+<input type="file" id="archivos" accept=".svg,.png,.jpg,.jpeg,.webp,.bmp,.gcode,.nc,.gc,.txt" hidden>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

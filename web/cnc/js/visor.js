@@ -13,8 +13,7 @@
 // ancho de la herramienta (color y relieve según la profundidad).
 
 import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { VisorBase } from "../../shared/js/visor-base.js";
 import { construirCubiko, pintarPantalla, Z_FRESA } from "./cubiko.js";
 
 export const AREA = { x: 145, y: 110, z: 40 };
@@ -30,73 +29,20 @@ export const COLOR_TRABAJO = { pistas: 0x2563eb, hoyos: 0x00bfa6, contorno: 0x7c
 const v3 = (x, y, z) => new THREE.Vector3(x, z, -y);   // máquina → three
 const COBRE = 0xa8673d;
 
-export class Visor {
+export class Visor extends VisorBase {
   constructor(cont) {
-    this.cont = cont;
-    const r = (this.renderer = new THREE.WebGLRenderer({ antialias: true }));
-    r.setPixelRatio(Math.min(devicePixelRatio, 2));
-    r.outputColorSpace = THREE.SRGBColorSpace;
-    r.toneMapping = THREE.NeutralToneMapping;
-    r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFShadowMap;
-    cont.appendChild(r.domElement);
-
-    const s = (this.scene = new THREE.Scene());
-    s.background = new THREE.Color(C.fondo);
-    s.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
-    s.environmentIntensity = 0.55;
-    const sol = new THREE.DirectionalLight(0xffffff, 1.5);
-    sol.position.set(-200, 500, 300); sol.castShadow = true;
-    sol.shadow.mapSize.set(2048, 2048);
-    Object.assign(sol.shadow.camera, { left: -300, right: 300, top: 300, bottom: -300, near: 10, far: 1500 });
-    sol.target.position.set(-72, 0, Z_FRESA);
-    s.add(sol, sol.target);
-
-    this.camera = new THREE.PerspectiveCamera(30, 1, 20, 4000);
-    const c = (this.controls = new OrbitControls(this.camera, r.domElement));
-    c.enableDamping = true; c.dampingFactor = 0.12;
-    c.maxPolarAngle = Math.PI / 2 - 0.02; c.minDistance = 45; c.maxDistance = 1600;
-    c.screenSpacePanning = true;
-    c.addEventListener("change", () => (this.sucio = true));
-
-    this.pos = { x: -72.5, y: -55, z: -5 };     // posición de máquina mostrada
-    this.meta = { ...this.pos };
-    this.wco = { x: 0, y: 0, z: 0 };
-    this._construir();
-    this.vista("3d");
-
-    new ResizeObserver(() => this._tam()).observe(cont);
-    this._tam();
-    this.sucio = true;
-    let antes = performance.now();
-    r.setAnimationLoop((t) => {
-      const dt = Math.min(0.1, (t - antes) / 1000); antes = t;
-      if (this._suavizar(dt)) this.sucio = true;
-      const su = this._surco;
-      if (su?.sucio && t - su.t > 70) { su.sucio = false; su.t = t; su.texColor.needsUpdate = su.texRelieve.needsUpdate = true; this.sucio = true; }
-      if (c.update() || this.sucio) { this.sucio = false; r.render(s, this.camera); }
+    super(cont, {
+      fondo: C.fondo, colores: { rapido: C.rapido, hecho: C.hecho },
+      sol: { pos: [-200, 500, 300], hacia: [-72, 0, Z_FRESA], mitad: 300 },
+      distancia: [45, 1600], pos: { x: -72.5, y: -55, z: -5 },
     });
   }
 
-  _tam() {
-    const w = this.cont.clientWidth || 1, h = this.cont.clientHeight || 1;
-    this.renderer.setSize(w, h, false);
-    this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
-    // Si cambió cuánto hay que alejarse (visor más angosto o más ancho), se vuelve a encuadrar la vista
-    if (this._vista && Math.abs(this._lejos() - (this._lejosUsado || 1)) > 0.05) this.vista(this._vista);
-    this.sucio = true;
-  }
-
-  // ---------------- Modelo ----------------
-  _mat(color, extra = {}) { return new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.1, ...extra }); }
-  _caja(w, h, d, mat, x, y, z, padre) {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-    m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; padre.add(m); return m;
-  }
-  _cil(r, h, mat, padre, eje = "y") {
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 32), mat);
-    if (eje === "x") m.rotation.z = Math.PI / 2;
-    if (eje === "z") m.rotation.x = Math.PI / 2;
-    m.castShadow = true; padre.add(m); return m;
+  // El surco se sube a la textura cada 70 ms como mucho
+  _cuadro(t) {
+    const su = this._surco;
+    if (su?.sucio && t - su.t > 70) { su.sucio = false; su.t = t; su.texColor.needsUpdate = su.texRelieve.needsUpdate = true; return true; }
+    return false;
   }
 
   _construir() {
@@ -301,19 +247,6 @@ export class Visor {
     }
     this._oDisp = o; this._anclZ = anclado.z;
   }
-  saltar() { this.pos = { ...this.meta }; this._colocar(); }
-
-  _suavizar(dt) {
-    const k = 1 - Math.exp(-dt * 18);
-    let mov = false;
-    for (const e of ["x", "y", "z"]) {
-      const d = this.meta[e] - this.pos[e];
-      if (Math.abs(d) > 0.002) { this.pos[e] += Math.abs(d) < 0.05 ? d : d * k; mov = true; }
-    }
-    if (mov) this._colocar();
-    return mov;
-  }
-
   _colocar() {
     const p = this.pos;
     this.carroX.position.x = p.x;
@@ -330,44 +263,7 @@ export class Visor {
   // capas: [{ id, segs, color }] en coordenadas de trabajo.
   // Lo que va debajo de Z0 se dibuja sobre la superficie del cobre (no enterrado en la placa):
   // la línea dice por dónde pasa la fresa; lo hondo lo muestra el surco cuando se corta.
-  ponerTrayectos(capas) {
-    this.trayectos.clear();
-    this._capas = {};
-    const zv = (z) => Math.max(z, 0) + 0.12;
-    for (const capa of capas) {
-      const n = capa.segs.length;
-      const pos = new Float32Array(n * 6), col = new Float32Array(n * 8);
-      const base = new THREE.Color(capa.color);
-      capa.segs.forEach((s, i) => {
-        const a = v3(s.a.x, s.a.y, zv(s.a.z)), b = v3(s.b.x, s.b.y, zv(s.b.z));
-        pos.set([a.x, a.y, a.z, b.x, b.y, b.z], i * 6);
-      });
-      const g = new THREE.BufferGeometry();
-      g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-      g.setAttribute("color", new THREE.BufferAttribute(col, 4));
-      const lineas = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false }));
-      lineas.renderOrder = 2;
-      this.trayectos.add(lineas);
-      this._capas[capa.id] = { lineas, segs: capa.segs, base };
-      this.progreso(capa.id, -1);
-    }
-    this.sucio = true;
-  }
-
-  // Marca como hechos los segmentos hasta la línea n del programa: lo hecho se aclara para que se vea el surco
-  progreso(id, n) {
-    const c = this._capas?.[id]; if (!c) return;
-    const col = c.lineas.geometry.attributes.color;
-    const h = new THREE.Color(C.hecho), gris = new THREE.Color(C.rapido);
-    for (let i = 0; i < c.segs.length; i++) {
-      const s = c.segs[i];
-      const hecho = s.n <= n;
-      const k = s.rapido ? gris : hecho ? h : c.base;
-      const a = s.rapido ? (hecho ? 0.15 : 0.55) : hecho ? 0.12 : 1;
-      col.setXYZW(i * 2, k.r, k.g, k.b, a); col.setXYZW(i * 2 + 1, k.r, k.g, k.b, a);
-    }
-    col.needsUpdate = true; this.sucio = true;
-  }
+  ponerTrayectos(capas) { super.ponerTrayectos(capas, (z) => Math.max(z, 0) + 0.12); }
 
   // ---------------- Mapa de alturas ----------------
   ponerMalla(mapa, exagerar = 20) {
@@ -391,33 +287,16 @@ export class Visor {
   }
 
   // ---------------- Cámara ----------------
-  // Cuánto alejar la cámara: el campo de visión es vertical, así que en un visor angosto la máquina
-  // se cortaría a los lados
-  _lejos() { const a = this.camera.aspect || 1.6; return a < 1.3 ? Math.min(2.4, 1.3 / a) : 1; }
-
   vista(v) {
-    this._vista = v; this._lejosUsado = this._lejos();
     const centro = new THREE.Vector3(-AREA.x / 2, Z_CAMA + 30, Z_FRESA + 38);
     // Desde arriba el husillo tapa el trabajo: se vuelve translúcido
-    this._translucido(this.carroX, v === "arriba");
+    this._translucido(this.carroX, v === "arriba", this.aro);
     this.techo.visible = v !== "arriba";
     this.tapa.visible = v !== "arriba";
-    if (v === "arriba") { this.camera.position.set(centro.x, 760, centro.z + 0.01); }
-    else if (v === "frente") { this.camera.position.set(centro.x, 60, 1060); }
-    else { this.camera.position.set(centro.x + 560, 470, 940); }
-    this.camera.position.sub(centro).multiplyScalar(this._lejosUsado).add(centro);
-    this.controls.target.copy(centro);
-    this.controls.update(); this.sucio = true;
-  }
-
-  _translucido(grupo, on) {
-    grupo.traverse((o) => {
-      if (!o.isMesh || o === this.aro || o.material.transparent && !o.userData.propio) return;
-      if (!o.userData.propio) { o.material = o.material.clone(); o.userData.propio = true; }
-      o.material.transparent = on; o.material.opacity = on ? 0.18 : 1; o.material.depthWrite = !on;
-      o.castShadow = !on;
-    });
-    this.sucio = true;
+    const desde = v === "arriba" ? new THREE.Vector3(centro.x, 760, centro.z + 0.01)
+      : v === "frente" ? new THREE.Vector3(centro.x, 60, 1060)
+      : new THREE.Vector3(centro.x + 560, 470, 940);
+    this._encuadrar(v, desde, centro);
   }
 
   // Encuadra la cama sobre el trabajo cargado

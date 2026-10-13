@@ -10,7 +10,7 @@ El botón **Tutorial** de la barra abre una ventana con tres opciones:
 
 - **Los 6 pasos son los mismos en tres lugares:** `pasos()` en `vistas.js` (la franja de pasos de «Ahora» y la página Pasos), `MANUAL.pasos` y los bloques con `paso: 1…6`. Si cambia uno, cambian los tres.
 - **Motor:** `web/cnc/js/tutorial.js`.
-- **Estilo:** `web/cnc/tutorial.css`.
+- **Estilo:** `web/shared/css/tutorial.css`.
 
 ## Cómo funciona el recorrido
 

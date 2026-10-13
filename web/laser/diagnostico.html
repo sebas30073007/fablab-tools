@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es" data-estilo="lab">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diagnóstico S1 · Fab Lab</title>
+<meta name="description" content="Prueba la conexión USB con la xTool S1 y guarda lo que contesta, para ajustar la app del láser.">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/chrome.css">
+<link rel="stylesheet" href="../css/project.css">
+<link rel="stylesheet" href="../shared/css/app.css">
+<link rel="stylesheet" href="laser.css">
+<link rel="stylesheet" href="../shared/css/lab.css">
+<style>
+  body { overflow: auto; }
+  .diag { max-width: 720px; margin: 0 auto; padding: 20px 16px 48px; display: flex; flex-direction: column; gap: 12px; }
+  .diag h1 { margin: 4px 0 0; font-size: 22px; }
+  .diag .consola { height: 280px; flex: none; }
+  .paso-n { font-family: var(--font-mono); color: var(--text-secondary); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<main class="diag">
+  <a class="btn-texto" href="./" style="align-self:flex-start">← Volver al láser</a>
+  <h1>Diagnóstico de la S1</h1>
+  <p class="muted" style="margin:0">Cable USB, máquina encendida, xTool Studio y LightBurn cerrados. Chrome o Edge en una computadora.</p>
+
+  <section class="w">
+    <span class="w-cab"><span>1 · Velocidad del puerto</span><span class="paso-n">solo lectura</span></span>
+    <span class="w-sub">Prueba cada velocidad con preguntas que no mueven nada (M2003, M222).</span>
+    <span class="w-acc"><button type="button" class="btn-pill btn-pill--main" id="b-puerto">Elegir puerto y probar</button></span>
+    <span class="w-texto" id="r-baud"></span>
+  </section>
+
+  <section class="w">
+    <span class="w-cab"><span>2 · Preguntas</span><span class="paso-n">solo lectura</span></span>
+    <span class="w-sub">Estado, posición, área, aire, versión. Se anota qué contesta y si manda «ok».</span>
+    <span class="w-acc"><button type="button" class="btn-pill" id="b-preguntas" disabled>Preguntar</button></span>
+  </section>
+
+  <section class="w">
+    <span class="w-cab"><span>3 · Movimiento sin láser</span><span class="paso-n">mueve el cabezal</span></span>
+    <label class="check"><input type="checkbox" id="c-mov"> La tapa está cerrada y no hay nada en el camino del cabezal</label>
+    <span class="w-acc"><button type="button" class="btn-pill" id="b-mover" disabled>Casa y mover a 50, 50</button></span>
+  </section>
+
+  <section class="w">
+    <span class="w-cab"><span>4 · Cuadrado de 20 mm a baja potencia</span><span class="paso-n">enciende el láser</span></span>
+    <span class="w-sub">S50 a 20 mm/s: si la escala es 0–1000 es el 5 %, una marca muy tenue. Sirve para ver la escala de S.</span>
+    <div class="pila-s">
+      <label class="check"><input type="checkbox" data-c4> Cartón o madera de prueba en la esquina de atrás a la izquierda</label>
+      <label class="check"><input type="checkbox" data-c4> Extractor encendido y tapa cerrada</label>
+      <label class="check"><input type="checkbox" data-c4> Alguien se queda mirando, con la mano cerca del botón de paro</label>
+    </div>
+    <span class="w-acc"><button type="button" class="btn-pill" id="b-cuadro" disabled>Marcar el cuadrado</button>
+      <button type="button" class="btn-pill btn-pill--paro" id="b-cancelar" disabled>Cancelar (M108)</button></span>
+  </section>
+
+  <section class="w">
+    <span class="w-cab"><span>Registro</span></span>
+    <div class="consola" id="log" role="log" aria-label="Lo que se manda y lo que contesta la máquina" tabindex="0"></div>
+    <span class="w-acc"><button type="button" class="btn-pill btn-pill--main" id="b-bajar">Descargar el registro (.json)</button></span>
+    <span class="w-sub">Mándalo a quien mantiene la app: con eso se ajusta el perfil de la S1.</span>
+  </section>
+</main>
+
+<script type="module" src="js/diagnostico.js"></script>
+</body>
+</html>

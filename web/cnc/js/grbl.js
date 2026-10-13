@@ -11,58 +11,32 @@
 // La app no habla con el puerto directamente: usa enviar(), tiempoReal() y los eventos
 // `log`, `estado`, `cambio`, `alarma`, `sonda`, `reset`.
 
+import { Serie } from "../../shared/js/serie.js";
 import { GrblSim } from "./grbl-sim.js";
 
 const RX = 127;
-const enc = new TextEncoder();
 
 export const RT = { estado: "?", pausa: "!", reanudar: "~", reset: "\x18", cancelarJog: "\x85" };
 
-export class Grbl extends EventTarget {
+export class Grbl extends Serie {
   constructor() {
-    super();
-    this.puerto = null; this.escritor = null; this.lector = null; this.sim = null;
-    this.conectado = false; this.listo = false;
+    super({ baud: 115200, rx: RX, otros: "Candle, la app de Genmitsu" });
     this.est = {
       estado: "Desconectado", sub: null,
       mpos: { x: 0, y: 0, z: 0 }, wco: { x: 0, y: 0, z: 0 }, wpos: { x: 0, y: 0, z: 0 },
       feed: 0, rpm: 0, pines: "", ov: [100, 100, 100], bf: null,
     };
     this.version = ""; this.grblVer = ""; this.opciones = ""; this.ajustes = {}; this.ultimaSonda = null;
-    this._buffer = ""; this._cola = []; this._vuelo = []; this._sondeo = null;
-    this._programa = null;
+    this._sondeo = null;
   }
 
-  get hayWebSerial() { return "serial" in navigator; }
   get pos() { return this.est.wpos; }
   get contacto() { return this.est.pines.includes("P"); }
-  get ocupado() { return this._vuelo.length > 0 || this._cola.length > 0; }
-
-  _emitir(tipo, detail) { this.dispatchEvent(new CustomEvent(tipo, { detail })); }
-  log(texto, clase = "") { this._emitir("log", { texto, clase }); }
 
   // ---------------- Conexión ----------------
   async conectar() {
-    if (!this.hayWebSerial) { this.log("Este navegador no tiene Web Serial: usa Chrome o Edge.", "sys err"); return false; }
-    try {
-      this.puerto = await navigator.serial.requestPort();
-      await this.puerto.open({ baudRate: 115200 });
-    } catch (e) {
-      if (e.name === "NotFoundError") return false;           // cerró el selector
-      const ocupado = /access denied|failed to open|acceso denegado/i.test(e.message) || e.name === "NetworkError";
-      this.log(ocupado
-        ? "El puerto está ocupado: cierra Candle, la app de Genmitsu u otra pestaña que lo tenga abierto."
-        : "No se abrió el puerto: " + e.message, "sys err");
-      this.puerto = null;
-      return false;
-    }
-    this.conectado = true;
-    this.escritor = this.puerto.writable.getWriter();
-    this._leer();
+    if (!(await super.conectar())) return false;
     this.log("Puerto abierto. Esperando a GRBL…", "sys");
-    navigator.serial.addEventListener("disconnect", () => {
-      if (this.conectado && !this.sim) { this.log("Se desconectó el cable USB.", "sys err"); this.desconectar(); }
-    }, { once: true });
     // Algunos controladores no se reinician al abrir el puerto: pedimos un reset suave.
     setTimeout(() => { if (this.conectado && !this.listo) this.tiempoReal(RT.reset); }, 1500);
     this._cambio();
@@ -70,52 +44,15 @@ export class Grbl extends EventTarget {
   }
 
   conectarSim() {
-    this.sim = new GrblSim((l) => this._recibir(l));
-    this.conectado = true;
+    super.conectarSim(new GrblSim((l) => this._recibir(l)));
     this.log("Simulador iniciado: GRBL emulado, sin hardware.", "sys");
-    this.sim.arrancar();
     this._cambio();
     return true;
   }
 
-  async desconectar() {
+  _alCerrar() {
     clearInterval(this._sondeo);
-    this._abortarCola("desconectado");
-    if (this.sim) { this.sim.cerrar(); this.sim = null; }
-    else {
-      try { if (this.lector) await this.lector.cancel(); } catch (_) {}
-      try { if (this.escritor) this.escritor.releaseLock(); } catch (_) {}
-      try { await this.puerto?.close(); } catch (_) {}
-    }
-    this.puerto = this.escritor = this.lector = null;
-    this.conectado = this.listo = false;
     this.est.estado = "Desconectado"; this.est.pines = "";
-    this.log("Desconectado.", "sys");
-    this._cambio();
-  }
-
-  async _leer() {
-    const dec = new TextDecoderStream();
-    this.puerto.readable.pipeTo(dec.writable).catch(() => {});
-    this.lector = dec.readable.getReader();
-    try {
-      for (;;) {
-        const { value, done } = await this.lector.read();
-        if (done) break;
-        this._buffer += value;
-        let i;
-        while ((i = this._buffer.indexOf("\n")) >= 0) {
-          const l = this._buffer.slice(0, i).replace(/\r$/, "");
-          this._buffer = this._buffer.slice(i + 1);
-          if (l) this._recibir(l);
-        }
-      }
-    } catch (_) { /* cancelado al desconectar */ }
-  }
-
-  _crudo(txt) {
-    if (this.sim) { this.sim.recibir(txt); return; }
-    if (this.escritor) this.escritor.write(enc.encode(txt)).catch(() => {});
   }
 
   // ---------------- Envío ----------------
@@ -125,65 +62,20 @@ export class Grbl extends EventTarget {
     if (c === RT.reset) this._abortarCola("reset");
   }
 
-  // Encola una línea. Resuelve con {ok, error, lineas} cuando GRBL responde.
-  enviar(linea, { callado = false, origen = "usuario" } = {}) {
-    linea = String(linea).trim();
-    if (!this.conectado) return Promise.resolve({ ok: false, error: "sin conexión" });
-    return new Promise((resolve) => {
-      this._cola.push({ linea, callado, origen, resolve, respuestas: [] });
-      this._bombear();
-    });
-  }
-
-  // Varias líneas en orden; se detiene en el primer error.
-  async enviarVarias(lineas, opts) {
-    for (const l of lineas) {
-      const r = await this.enviar(l, opts);
-      if (!r.ok) return r;
-    }
-    return { ok: true };
-  }
-
-  _bombear() {
-    while (this._cola.length) {
-      const sig = this._cola[0];
-      const len = sig.linea.length + 1;
-      const enUso = this._vuelo.reduce((a, b) => a + b.len, 0);
-      // Los $ (ajustes, homing, desbloqueo) van solos: GRBL escribe EEPROM o cambia de estado.
-      const solo = /^\$(?!J=)/.test(sig.linea);
-      if (solo && this._vuelo.length) break;
-      if (this._vuelo.length && this._vuelo[this._vuelo.length - 1].solo) break;
-      if (enUso + len > RX) break;
-      this._cola.shift();
-      sig.len = len; sig.solo = solo;
-      this._vuelo.push(sig);
-      if (!sig.callado) this.log(sig.linea, "tx");
-      this._crudo(sig.linea + "\n");
-    }
-  }
-
-  _abortarCola(motivo) {
-    for (const c of [...this._vuelo, ...this._cola]) c.resolve({ ok: false, error: motivo, lineas: c.respuestas });
-    this._vuelo = []; this._cola = [];
+  // Los $ (ajustes, homing, desbloqueo) van solos: GRBL escribe EEPROM o cambia de estado.
+  _cabe(sig, enUso) {
+    const solo = /^\$(?!J=)/.test(sig.linea);
+    if (solo && this._vuelo.length) return false;
+    if (this._vuelo.length && this._vuelo[this._vuelo.length - 1].solo) return false;
+    if (enUso + sig.len > RX) return false;
+    sig.solo = solo;
+    return true;
   }
 
   // ---------------- Recepción ----------------
   _recibir(l) {
     if (l.startsWith("<")) { this._estado(l); return; }
-
-    if (l === "ok" || l.startsWith("error:")) {
-      const c = this._vuelo.shift();
-      if (l !== "ok") {
-        const n = +l.slice(6);
-        this.log(`${l}${c ? "  ← " + c.linea : ""}`, "err");
-        this._emitir("error", { codigo: n, linea: c?.linea });
-      } else if (c && !c.callado && c.origen === "usuario") this.log("ok", "rx ok");
-      c?.resolve({ ok: l === "ok", error: l === "ok" ? null : +l.slice(6), lineas: c.respuestas });
-      this._bombear();
-      this._programa?.alAvanzar();
-      return;
-    }
-
+    if (l === "ok" || l.startsWith("error:")) { this._confirmar(l); return; }
     if (/^Grbl /i.test(l)) {
       this.log(l, "rx");
       this.grblVer = l.match(/Grbl\s+(\S+)/i)?.[1] || "";
@@ -224,9 +116,7 @@ export class Grbl extends EventTarget {
     const aj = l.match(/^\$(\d+)=([-\d.]+)/);
     if (aj) this.ajustes[+aj[1]] = +aj[2];
 
-    // Respuestas informativas: pertenecen a la línea en vuelo más antigua
-    if (this._vuelo[0]) this._vuelo[0].respuestas.push(l);
-    if (!(this._vuelo[0]?.callado)) this.log(l, "rx");
+    this._informativa(l);
   }
 
   _estado(l) {
@@ -267,8 +157,6 @@ export class Grbl extends EventTarget {
     }, 200);
     this._cambio();
   }
-
-  _cambio() { this._emitir("cambio", this.est); }
 
   // ---------------- Utilidades de alto nivel ----------------
   // Espera a que el planificador se vacíe (G4 P0) y la máquina quede en Idle.
@@ -318,42 +206,6 @@ export class Grbl extends EventTarget {
     return this.enviar(`$J=G21G91${p}F${f}`);
   }
 
-  // ---------------- Programa ----------------
-  // Manda un programa completo respetando el búfer. alProgreso(hechas, total).
-  correr(lineas, { alProgreso } = {}) {
-    if (this._programa) return Promise.resolve({ ok: false, error: "ya hay un programa" });
-    // Comentarios como los entiende GRBL: «;» hasta el fin y «(» hasta el primer «)». Lo que sobre
-    // de un paréntesis mal cerrado no se manda: GRBL lo rechazaría y el trabajo quedaría a medias.
-    const limpia = (l) => l.replace(/;.*$/, "").replace(/\([^)]*\)/g, "").replace(/\(.*$/, "").replace(/\)/g, "").trim();
-    const limpias = lineas.map(limpia).filter(Boolean);
-    let hechas = 0, enviadas = 0;
-    return new Promise((resolve) => {
-      const prog = (this._programa = {
-        total: limpias.length,
-        pausado: false,
-        alAvanzar: () => {},
-        abortar: (motivo) => { this._programa = null; resolve({ ok: false, error: motivo, hechas }); },
-      });
-      const alimentar = () => {
-        while (enviadas < limpias.length && this._cola.length < 4 && this._programa === prog) {
-          const n = enviadas++;
-          this.enviar(limpias[n], { callado: true, origen: "programa" }).then((r) => {
-            if (this._programa !== prog) return;
-            if (!r.ok && r.error !== "reset") { this._programa = null; resolve({ ok: false, error: r.error, linea: limpias[n], hechas }); return; }
-            hechas++;
-            alProgreso?.(hechas, limpias.length);
-            if (hechas === limpias.length) {
-              this.esperarQuieto().then(() => { this._programa = null; resolve({ ok: true, hechas }); });
-            }
-          });
-        }
-      };
-      prog.alAvanzar = alimentar;
-      alimentar();
-    });
-  }
-
-  get corriendo() { return !!this._programa; }
   pausar() { this.tiempoReal(RT.pausa); }
   reanudar() { this.tiempoReal(RT.reanudar); }
   // Paro: pausa (desacelera sin perder pasos) y luego reset; así GRBL conserva la posición.

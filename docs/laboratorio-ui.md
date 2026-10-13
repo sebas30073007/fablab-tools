@@ -2,7 +2,7 @@
 
 fablab-tools es el banco de pruebas para llevar la arquitectura de OPI (Casita, tomada de Samsung Health / One UI) a las apps SEBS, en tonos claros. Lo que funcione aquí se pasa a la skill `sebs-brand` y a los demás proyectos.
 
-- **Dónde vive:** `web/cnc/cnc.css` (componentes y piel SEBS), `web/cnc/lab.css` (piel Laboratorio), `web/cnc/js/ui.js` (hojas, asistentes), `web/cnc/js/vistas.js` (widgets y páginas).
+- **Dónde vive:** `web/shared/css/app.css` (componentes y piel SEBS), `web/shared/css/lab.css` (piel Laboratorio), `web/shared/js/ui.js` (hojas, asistentes), `web/shared/js/navegacion.js` (niveles del panel), `web/shared/js/iconos.js` (íconos). Cada app pone sus widgets y páginas en su `js/vistas.js` (`web/cnc/`, `web/laser/`).
 - **Para comparar:** Máquina → Apariencia: Laboratorio | SEBS. Se guarda por navegador (`fablab.cnc.estilo`).
 
 ## Arquitectura

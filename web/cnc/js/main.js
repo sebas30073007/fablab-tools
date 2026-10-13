@@ -8,6 +8,8 @@
 // Las vistas viven en vistas.js; aquí está todo lo que hace algo.
 // Depuración: window.__cnc
 
+import "../../shared/js/iconos.js";
+import { crearNavegacion } from "../../shared/js/navegacion.js";
 import { Grbl } from "./grbl.js";
 import { SUPERFICIE } from "./grbl-sim.js";
 import { Visor, COLOR_TRABAJO, AREA } from "./visor.js";
@@ -54,41 +56,11 @@ const MASC = {
 // ======================================================================
 // Navegación del panel
 // ======================================================================
-const TABS = ["inicio", "mover", "consola"];
-const PADRE = { config: "placa", alturas: "origen", fina: "origen" };
-const nav = { actual: null, vivo: null };
-
-function irA(id, { dir = null, foco = true } = {}) {
-  const antes = nav.actual;
-  const nivel = (v) => (TABS.includes(v) ? 0 : PADRE[v] ? 3 : 2);
-  if (!dir) dir = !antes ? "ninguna" : nivel(id) > nivel(antes) ? "der" : nivel(id) < nivel(antes) ? "izq" : "funde";
-  nav.actual = id;
-  const cont = $("#vista");
-  const pag = document.createElement("div");
-  pag.className = "pag" + ({ der: " pag--entra-der", izq: " pag--entra-izq", funde: " pag--funde" }[dir] || "");
-  const r = VISTAS[id](pag, app) || {};
-  nav.vivo = r.vivo || null;
-  cont.replaceChildren(pag);
-  cont.scrollTop = 0;
-  // Barra inferior: en el nivel 2 sigue encendido Inicio
-  const tab = TABS.includes(id) ? id : "inicio";
-  $$(".navinf__pildora [data-tab]").forEach((b) => {
-    const on = b.dataset.tab === tab;
-    if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
-    if (b.dataset.tab === "inicio") b.querySelector("use").setAttribute("href", on ? "#i-casa-on" : "#i-casa");
-  });
-  if (foco && antes && dir !== "ninguna") pag.querySelector("h2")?.focus({ preventScroll: true });
-  nav.vivo?.();
-}
-function regresar() { irA(PADRE[nav.actual] || "inicio", { dir: "izq" }); }
-// Vuelve a pintar la página actual, sin animación y sin perder el scroll
-function refrescar() {
-  if (!nav.actual) return;
-  const st = $("#vista").scrollTop;
-  irA(nav.actual, { dir: "ninguna", foco: false });
-  $("#vista").scrollTop = st;
-}
-$$(".navinf__pildora [data-tab]").forEach((b) => (b.onclick = () => irA(b.dataset.tab)));
+const { nav, irA, regresar, refrescar } = crearNavegacion({
+  vistas: VISTAS, tabs: ["inicio", "mover", "consola"],
+  padre: { config: "placa", alturas: "origen", fina: "origen" },
+  app: () => app,
+});
 $("#btn-mas").onclick = () => accionesRapidas();
 
 // ======================================================================

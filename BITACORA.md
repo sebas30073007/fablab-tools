@@ -161,3 +161,35 @@
 - Calibrar Z se quedaba en «Bajando…» tras tocar: el sondeo solo terminaba si leía `[PRB:x,y,z:1]` con tres números. Ahora acepta más ejes y espacios, y si llega el `ok` sin un `[PRB]` legible toma la posición actual (sin contacto habría ALARM:5).
 - Pistas: «Ancho de corte» se reemplaza por **Punta** y **Ángulo** de la fresa en V (por defecto 20° 0.1 mm); el ancho sale de punta + 2·profundidad·tan(ángulo/2) (`anchoV` en cam.js) y el dibujo usa el ángulo real. Los ajustes guardados sin esos campos toman la fresa por defecto.
 - Contorno se detenía en la esquina de inicio: su cabecera llevaba un paréntesis dentro de otro, la limpieza de comentarios dejaba un «)» suelto, GRBL lo rechazaba (error:1) y la app dejaba de enviar mientras la máquina terminaba las ~10 líneas de su búfer. Ahora los comentarios no llevan paréntesis, `correr` limpia como GRBL (hasta el primer «)») y descarta sobrantes, y si GRBL rechaza una línea sale un aviso con la línea y el error.
+
+## 2026-10-12 · Láser xTool S1: base y simulador (camino A)
+- Origen: segunda máquina del Fab Lab, una xTool S1 40 W (la tiene un compañero). Se analizó cómo controlarla sin xTool Studio. Decisión: camino A (USB + Web Serial, G-code en streaming como LightBurn) y después camino B (subir el archivo con el protocolo `f3f4` de xTool Studio). Mascota: Kiwi.
+- Fuentes del protocolo:
+  - la extensión de la S1 dentro de xTool Studio 1.9.11 (`resources/exts.zip` → `S1/index.js`): encabezado del G-code, tabla de estados `M222`, consultas, movimiento
+  - ha-xtool (Home Assistant, probado en una S1)
+  - foro de LightBurn
+  - Todo en `docs/xtool-s1.md`.
+- Compartido entre apps (`web/shared/`):
+  - `serie.js` (Web Serial + cola con `ok`; `Grbl` ahora lo extiende)
+  - `ui.js` con `crearLs`, `navegacion.js`, `iconos.js`
+  - `gcode.js` con potencia del láser por tramo
+  - `visor-base.js` (el visor de la CNC lo extiende)
+  - `css/app.css`, `lab.css`, `tutorial.css`
+  - La CNC quedó igual: probada en Simulación (homing, ejemplo, trayectorias, hoyos completos sin errores).
+- App `web/laser/`:
+  - protocolo `s1.js` con perfil por confirmar y bloqueo de órdenes peligrosas
+  - simulador con tapa y flama
+  - SVG → capas por color (corte, marcado, grabado), imagen → tramado Jarvis, Floyd, umbral o grises
+  - biblioteca de 7 materiales (por validar) y lista de prohibidos
+  - encuadre, 6 pasos en Inicio
+  - gemelo 3D de la S1 hecho a mano con medidas oficiales (no hay modelo público), con rayo, cruz roja, tapa que se abre y quemado sobre el material
+  - `diagnostico.html` para la máquina real
+- Probado:
+  - en Node, `s1.js` contra el simulador: conexión, casa, mover, trabajo con láser, alarma de tapa, bloqueo, pausa y reanudar
+  - en Chrome, con el ejemplo del llavero: 3 capas, 1624 líneas, encuadre y corte completo (1619 líneas `ok`), quemado visible en el gemelo
+- **Pendiente:**
+  - correr `diagnostico.html` con la S1 y ajustar `perfil-s1.js` (baud, `ok`, escala de S, búfer, enfoque, botón)
+  - validar la biblioteca de materiales con matrices de prueba
+  - generar las poses de Kiwi y la tarjeta del catálogo (`docs/kiwi.md`)
+  - tutorial y examen del láser
+  - camino B (`f3f4`)

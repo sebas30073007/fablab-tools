@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xTool S1 · modelo</title>
+<!-- Vista previa del modelo 3D de la xTool S1 (js/s1-modelo.js): solo para revisarlo, no es la app -->
+<style>
+  html, body { margin: 0; height: 100%; background: #e5e7eb; font: 14px/1.3 Manrope, "Segoe UI", sans-serif; color: #16181b; }
+  #vista { position: fixed; inset: 0; }
+  #vista canvas { display: block; width: 100%; height: 100%; }
+  #panel { position: fixed; left: 12px; top: 12px; background: #fffffff0; border-radius: 10px; padding: 10px 12px; box-shadow: 0 2px 10px #0002; width: 230px; }
+  #panel label { display: grid; grid-template-columns: 22px 1fr 44px; align-items: center; gap: 6px; margin: 4px 0; }
+  #panel input[type=range] { width: 100%; }
+  #panel output { text-align: right; font-variant-numeric: tabular-nums; }
+  #panel .fila { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  button { font: inherit; padding: 4px 10px; border-radius: 6px; border: 1px solid #c9ccd1; background: #fff; cursor: pointer; }
+  button[aria-pressed=true] { background: #16181b; color: #fff; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "../shared/vendor/three/three.module.min.js",
+  "three/addons/": "../shared/vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<div id="vista"></div>
+<div id="panel">
+  <label>X <input id="x" type="range" min="0" max="498" value="0"><output id="ox">0</output></label>
+  <label>Y <input id="y" type="range" min="0" max="319" value="0"><output id="oy">0</output></label>
+  <label>Z <input id="z" type="range" min="0" max="40" value="0"><output id="oz">0</output></label>
+  <div class="fila">
+    <button id="tapa" aria-pressed="false">Abrir tapa</button>
+    <button id="cruz" aria-pressed="false">Cruz</button>
+    <button id="luz">Luz</button>
+  </div>
+  <div class="fila">
+    <button data-vista="3d">3/4</button><button data-vista="frente">Frente</button>
+    <button data-vista="arriba">Arriba</button><button data-vista="atras">Atrás</button>
+  </div>
+</div>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { construirS1 } from "./js/s1-modelo.js";
+
+const cont = document.getElementById("vista");
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setPixelRatio(Math.min(devicePixelRatio, 2));
+r.outputColorSpace = THREE.SRGBColorSpace;
+r.toneMapping = THREE.NeutralToneMapping;
+r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFShadowMap;
+cont.appendChild(r.domElement);
+
+// Luz como en el visor de la CNC: entorno de estudio y un sol con sombra
+const s = new THREE.Scene();
+s.background = new THREE.Color(0xe5e7eb);
+s.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+s.environmentIntensity = 0.55;
+const m = construirS1();
+const { medidas } = m;
+const sol = new THREE.DirectionalLight(0xffffff, 1.5);
+sol.position.set(medidas.centro.x - 300, 900, medidas.centro.z + 500); sol.castShadow = true;
+sol.shadow.mapSize.set(2048, 2048);
+Object.assign(sol.shadow.camera, { left: -800, right: 800, top: 800, bottom: -800, near: 10, far: 3000 });
+sol.target.position.copy(medidas.centro);
+s.add(sol, sol.target);
+s.add(m.fijo, m.porticoY);
+const piso = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.ShadowMaterial({ opacity: 0.14 }));
+piso.rotation.x = -Math.PI / 2; piso.position.y = medidas.yPiso - 0.1; piso.receiveShadow = true; s.add(piso);
+
+// Rayo y punto en la boquilla, para comprobar que el foco cae donde dicen los deslizadores
+const rayo = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 10, 8), new THREE.MeshBasicMaterial({ color: 0x5b9cff, toneMapped: false }));
+rayo.position.y = 5; m.boquilla.add(rayo);
+const punto = new THREE.Mesh(new THREE.CircleGeometry(1.6, 20), new THREE.MeshBasicMaterial({ color: 0x5b9cff, toneMapped: false }));
+punto.rotation.x = -Math.PI / 2; punto.position.y = 0.3; m.boquilla.add(punto);
+
+const cam = new THREE.PerspectiveCamera(30, 1, 20, 8000);
+const ctl = new OrbitControls(cam, r.domElement);
+ctl.enableDamping = true; ctl.dampingFactor = 0.12; ctl.screenSpacePanning = true;
+ctl.maxPolarAngle = Math.PI / 2 - 0.02;
+const centroCaja = new THREE.Vector3((medidas.caja.x0 + medidas.caja.x1) / 2, 80, (medidas.caja.z0 + medidas.caja.z1) / 2);
+const VISTAS = {
+  "3d": [1.0, 0.9, 1.35], frente: [0, 0.35, 1.6], arriba: [0, 1.7, 0.02], atras: [-0.9, 0.7, -1.3],
+};
+function vista(n) {
+  const [a, b, c] = VISTAS[n];
+  ctl.target.copy(centroCaja);
+  cam.position.copy(centroCaja).add(new THREE.Vector3(a, b, c).multiplyScalar(1000));
+  ctl.update();
+}
+vista("3d");
+document.querySelectorAll("[data-vista]").forEach((b) => (b.onclick = () => vista(b.dataset.vista)));
+
+const $ = (id) => document.getElementById(id);
+function mover() {
+  m.carroX.position.x = +$("x").value;
+  m.porticoY.position.z = +$("y").value;
+  m.modZ.position.y = +$("z").value;
+  $("ox").value = $("x").value; $("oy").value = $("y").value; $("oz").value = $("z").value;
+}
+["x", "y", "z"].forEach((id) => ($(id).oninput = mover));
+mover();
+
+// La tapa se abre con una animación corta
+let abierta = 0, meta = 0;
+$("tapa").onclick = (e) => { meta = meta ? 0 : 1; e.target.setAttribute("aria-pressed", meta === 1); e.target.textContent = meta ? "Cerrar tapa" : "Abrir tapa"; };
+$("cruz").onclick = (e) => { m.cruz.visible = !m.cruz.visible; e.target.setAttribute("aria-pressed", m.cruz.visible); };
+// Colores del indicador anular: reposo blanco, listo verde, trabajando azul, alarma rojo
+const colores = [0xe8f0ff, 0x3ddc84, 0x3b82f6, 0xff3b47]; let ic = 0;
+$("luz").onclick = () => { ic = (ic + 1) % colores.length; m.luz.material.emissive.setHex(colores[ic]); };
+
+function tam() {
+  const w = cont.clientWidth || 1, h = cont.clientHeight || 1;
+  r.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix();
+}
+new ResizeObserver(tam).observe(cont); tam();
+let antes = performance.now();
+r.setAnimationLoop((t) => {
+  const dt = Math.min(0.1, (t - antes) / 1000); antes = t;
+  if (abierta !== meta) { abierta += Math.sign(meta - abierta) * Math.min(Math.abs(meta - abierta), dt * 1.6); m.tapa.userData.abrir(abierta); }
+  ctl.update(); r.render(s, cam);
+});
+window.s1 = m; window.visor = { cam, ctl, vista };   // para revisar desde la consola
+</script>
+</body>
+</html>
