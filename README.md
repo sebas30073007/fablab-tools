@@ -50,7 +50,8 @@
     - `ejemplos/carrito/` — Gerber de `cpm/pcb/carrito-base-tb6612` (ejemplo anterior, ya no se usa)
   - `img/cnc-cubiko.webp` — la Cubiko en felpa para la tarjeta del catálogo (ChatGPT, con una foto de la reseña de SainSmart como referencia; original en `E:\00_INBOX\fablab-cubiko-felpa.png`)
   - `img/fresa/` — la mascota de la CNC (11 poses), generada con ChatGPT a partir de la Fresa de OPI
-  - `img/kiwi/` — la mascota del láser (por generar; prompts en `docs/kiwi.md`)
+  - `img/kiwi/` — la mascota del láser (12 poses, ChatGPT con Fresa como referencia; ver `docs/kiwi.md`)
+  - `img/laser-s1.webp` — la xTool S1 en felpa para la tarjeta del catálogo
   - `img/manual/` — las imágenes del manual (ChatGPT, estilo de producto ligeramente afelpado); `xy.webp` es un recorte de `placa.webp`
   - `css/` — capas SEBS: `tokens.css` y `chrome.css` (copias, no editar), `project.css` (FAB-01), `hub.css`
 - `docs/cubiko.md` — la máquina, su firmware y lo aprendido calibrándola

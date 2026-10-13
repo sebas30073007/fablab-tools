@@ -193,3 +193,11 @@
   - generar las poses de Kiwi y la tarjeta del catálogo (`docs/kiwi.md`)
   - tutorial y examen del láser
   - camino B (`f3f4`)
+
+## 2026-10-12 · Kiwi y la tarjeta del láser
+- Kiwi rediseñado:
+  - el primer intento (rodaja con patas, bordado, infantil) se descartó
+  - de una hoja de tres propuestas «de la familia de Fresa» se eligió la media fruta: cara en la pulpa, torso café, lentes de laboratorio, felpa flocada sin costuras
+- 12 poses en `web/img/kiwi/`, recortadas a 440 px como Fresa.
+- Tarjeta del catálogo `web/img/laser-s1.webp`: la S1 en felpa, hecha con la tarjeta de la Cubiko y una captura del gemelo 3D como referencias (sin fotos de xTool).
+- Detalle y prompts en `docs/kiwi.md`.
