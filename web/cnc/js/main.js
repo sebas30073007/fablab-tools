@@ -17,7 +17,12 @@ import { ALARMAS, ERRORES } from "./alarmas.js";
 import { leer, transformar, alineacion, formatoTiempo, tiempoAcumulado } from "./gcode.js";
 import { MapaAlturas } from "./alturas.js";
 import { clasificar, leerGerber, leerTaladros, leerJob } from "./gerber.js";
-import { marco, imagenes } from "./raster.js";
+import { leerDXF } from "./dxf.js";
+import { leerSVG } from "./svg.js";
+import { diseno } from "./vector.js";
+import { MATERIALES, material, derivar } from "./materiales.js";
+import { ponerMatDibujo } from "./herramientas.js";
+import { marco, imagenes, dibujoVector } from "./raster.js";
 import * as cam from "./cam.js";
 import { $, $$, esc, ico, mm, ls, descargar, asistente, confirmar, miniJog, hoja, hojaAbierta, cerrarHojaSuperior, dialogoAbierto, cerrarDialogoSuperior, anunciar } from "./ui.js";
 import { abrirTutorial, recorrido } from "./tutorial.js";
@@ -33,17 +38,20 @@ const S = {
   alinear: null, mapa: null, usarMapa: true, dzAire: ls.get("dzAire", 5),
   alarma: null,          // código de ALARM, "bloqueo" al encender, o null
   archivos: [],          // {nombre, tipo, texto}
-  pcb: null,             // {cobre, contorno, hoyos, job, marco, imgs, miniatura, nombre}
+  pcb: null,             // {cobre, contorno, hoyos, job, marco, imgs, miniatura, nombre}; un dibujo DXF/SVG: vector, grabado, vaciado, linea, circulos, avisos
+  avisosGen: [],         // lo que avisó la última generación de trayectorias
   params: conPistasV(structuredClone(ls.get("params", null) || cam.DEF)),
-  material: null,        // {ancho, alto, grosor, x, y}: la placa virgen y dónde va el diseño dentro de ella
+  material: null,        // {tipo, ancho, alto, grosor, x, y}: el material virgen y dónde va el diseño dentro de él
   trabajos: [],          // {id, origen, nombre, herramienta, lineas, prev, estado}
   corriendo: null,       // id del trabajo en curso
   prog: null,            // {id, h, n, t0, aire}
   generando: false, midiendo: null,
 };
 for (const k of Object.keys(cam.DEF)) S.params[k] = { ...cam.DEF[k], ...(S.params[k] || {}) };
-const MAT_DEF = { ancho: 100, alto: 70, grosor: 1.6, x: 3, y: 3 };
+const MAT_DEF = { tipo: "cobre", ancho: 100, alto: 70, grosor: 1.6, x: 3, y: 3 };
 S.material = { ...MAT_DEF, ...(ls.get("material", null) || {}) };
+if (!MATERIALES[S.material.tipo]) S.material.tipo = "cobre";
+const mat = () => material(S.material.tipo);
 
 const MASC = {
   hola: "../img/fresa/hola.webp", sonda: "../img/fresa/sonda.webp", fresando: "../img/fresa/fresando.webp",
@@ -216,6 +224,7 @@ function quitarArchivo(nombre) { S.archivos = S.archivos.filter((a) => a.nombre 
 
 function procesarArchivos() {
   const de = (t) => S.archivos.filter((a) => a.tipo === t);
+  const dibujos = [...de("dxf"), ...de("svg")];
   S.trabajos = S.trabajos.filter((t) => t.origen !== "nc");
   de("nc").forEach((a, i) => {
     S.trabajos.push({ id: `nc${i}`, origen: "nc", nombre: a.nombre.replace(/\.[^.]+$/, ""), herramienta: herramientaDeComentario(a.texto), lineas: a.texto.split(/\r?\n/), prev: leer(a.texto), estado: "pendiente" });
@@ -239,8 +248,43 @@ function procesarArchivos() {
       S.trabajos = S.trabajos.filter((t) => t.origen !== "cam");
       aplicarMaterial();
     }
+    if (dibujos.length) log(`Hay Gerber y dibujo: se usa el Gerber; ${dibujos.map((a) => a.nombre).join(", ")} no se usa.`, "sys");
+  } else if (dibujos.length) {
+    // Un dibujo entra por la misma puerta que el Edge_Cuts: lazos → imagen interior → contorno
+    const leidos = dibujos.map((a) => (a.tipo === "dxf" ? leerDXF(a.texto) : leerSVG(a.texto)));
+    const d = diseno(leidos.flatMap((l) => l.trazos), leidos.flatMap((l) => l.avisos));
+    S.pcb = null;
+    if (d.caja) {
+      const pcb = {
+        vector: true, cobre: null, hoyos: [], job: null,
+        contorno: { caja: d.caja, lazos: d.contorno },
+        circulos: d.circulos, grabado: d.grabado, vaciado: d.vaciado, linea: d.linea, avisos: d.avisos,
+      };
+      pcb.marco = marco(pcb, { dpi: 1000, margen: Math.max(2, S.params.contorno.diam + (S.params.contorno.acabado || 0) + 1.5), maxPx: 10e6 });
+      if (pcb.marco) {
+        pcb.imgs = imagenes(pcb, pcb.marco);
+        pcb.miniatura = miniatura(dibujoVector(pcb, pcb.marco));
+        pcb.nombre = dibujos[0].nombre.replace(/\.(dxf|svg)$/i, "");
+        S.pcb = pcb;
+        S.trabajos = S.trabajos.filter((t) => t.origen !== "cam");
+        aplicarMaterial();
+      }
+    }
+    for (const a of S.pcb?.avisos || d.avisos) log(`${dibujos.map((x) => x.nombre).join(", ")}: ${a}`, "sys");
   } else S.pcb = null;
   previsualizar();
+}
+
+// Hoyos que se taladran: los del Excellon y, en un dibujo, los círculos donde no cabe la fresa del contorno
+function hoyosDiseno() {
+  const p = S.pcb; if (!p) return [];
+  return [...(p.hoyos || []), ...(p.circulos || []).filter((c) => c.d <= S.params.contorno.diam + 1e-6)];
+}
+// Las herramientas que usa lo que está abierto (en Configuración y en el resumen de PCB)
+function gruposActivos() {
+  const p = S.pcb;
+  if (!p?.vector) return ["pistas", "hoyos", "contorno"];
+  return [p.grabado.length && "grabado", hoyosDiseno().length && "hoyos", p.vaciado.length && "vaciado", (p.contorno.lazos.length || p.linea.length) && "contorno"].filter(Boolean);
 }
 
 function miniatura(cv) {
@@ -272,15 +316,36 @@ async function generar() {
   const t0 = performance.now();
   const P = S.params, pcb = S.pcb, m = pcb.marco, nuevos = [], M = S.material;
   const origen = cam.origenDe(m, M);   // X0 Y0 = esquina del material; el diseño queda en (M.x, M.y)
-  if (pcb.imgs.pistas) {
-    const paths = cam.trayectoriasPistas(pcb.imgs.pistas, m, P.pistas, P.comun, origen);
-    nuevos.push({ id: "pistas", origen: "cam", nombre: "Pistas", herramienta: `V ${P.pistas.angulo}° punta ${P.pistas.punta} · corte ${P.pistas.diam} mm`, lineas: cam.gcodePistas(paths, P.pistas, P.comun) });
-  }
-  const hoyos = cam.seleccionHoyos(pcb.hoyos || [], P.hoyos, m, origen);
-  if (hoyos.length) nuevos.push({ id: "hoyos", origen: "cam", nombre: "Hoyos", herramienta: `Broca ${P.hoyos.broca} mm`, lineas: cam.gcodeHoyos(hoyos, P.hoyos, P.comun) });
-  {
-    const paths = cam.trayectoriasContorno(pcb.imgs.interior, m, P.contorno, P.comun, origen);
-    nuevos.push({ id: "contorno", origen: "cam", nombre: "Contorno", herramienta: `Fresa ${P.contorno.diam} mm`, lineas: cam.gcodeContorno(paths, P.contorno, P.comun) });
+  S.avisosGen = [];
+  if (pcb.vector) {
+    // Orden: grabado (fresa en V), hoyos (broca), vaciado y contorno (la misma fresa, sin cambio entre ellos)
+    if (pcb.grabado.length) {
+      const paths = cam.ordenar(cam.trazosATrabajo(pcb.grabado, origen));
+      nuevos.push({ id: "grabado", origen: "cam", nombre: "Grabado", herramienta: cam.herrGrabado(P.grabado), lineas: cam.gcodeGrabado(paths, P.grabado, P.comun) });
+    }
+    const hoyos = cam.seleccionHoyos(hoyosDiseno(), P.hoyos, m, origen);
+    if (hoyos.length) nuevos.push({ id: "hoyos", origen: "cam", nombre: "Hoyos", herramienta: `Broca ${P.hoyos.broca} mm`, lineas: cam.gcodeHoyos(hoyos, P.hoyos, P.comun) });
+    if (pcb.imgs.vaciado) {
+      const reg = cam.trayectoriasVaciado(pcb.imgs.vaciado, m, P.vaciado, P.contorno.diam, P.comun, origen);
+      if (reg.length) nuevos.push({ id: "vaciado", origen: "cam", nombre: "Vaciado", herramienta: `Fresa ${P.contorno.diam} mm`, lineas: cam.gcodeVaciado(reg, P.vaciado, P.contorno.diam, P.comun) });
+      else S.avisosGen.push(`La fresa de ${P.contorno.diam} mm no cabe en lo que hay que vaciar.`);
+    }
+    const lin = cam.trazosATrabajo(pcb.linea, origen);
+    const paths = cam.trayectoriasContorno(pcb.contorno.lazos.length ? pcb.imgs.interior : null, m, P.contorno, P.comun, origen, lin);
+    if (paths.length) nuevos.push({ id: "contorno", origen: "cam", nombre: "Contorno", herramienta: `Fresa ${P.contorno.diam} mm`, lineas: cam.gcodeContorno(paths, P.contorno, P.comun) });
+    const chicos = (pcb.circulos || []).filter((c) => c.d <= P.contorno.diam + 1e-6).length - hoyos.length;
+    if (chicos > 0) S.avisosGen.push(`${chicos} ${chicos === 1 ? "círculo más chico" : "círculos más chicos"} que la fresa quedan fuera del rango de Hoyos.`);
+  } else {
+    if (pcb.imgs.pistas) {
+      const paths = cam.trayectoriasPistas(pcb.imgs.pistas, m, P.pistas, P.comun, origen);
+      nuevos.push({ id: "pistas", origen: "cam", nombre: "Pistas", herramienta: `V ${P.pistas.angulo}° punta ${P.pistas.punta} · corte ${P.pistas.diam} mm`, lineas: cam.gcodePistas(paths, P.pistas, P.comun) });
+    }
+    const hoyos = cam.seleccionHoyos(pcb.hoyos || [], P.hoyos, m, origen);
+    if (hoyos.length) nuevos.push({ id: "hoyos", origen: "cam", nombre: "Hoyos", herramienta: `Broca ${P.hoyos.broca} mm`, lineas: cam.gcodeHoyos(hoyos, P.hoyos, P.comun) });
+    {
+      const paths = cam.trayectoriasContorno(pcb.imgs.interior, m, P.contorno, P.comun, origen);
+      nuevos.push({ id: "contorno", origen: "cam", nombre: "Contorno", herramienta: `Fresa ${P.contorno.diam} mm`, lineas: cam.gcodeContorno(paths, P.contorno, P.comun) });
+    }
   }
   for (const t of nuevos) {
     t.lineas.splice(1, 0, `(DISENO A X${M.x} Y${M.y} DE LA ESQUINA DEL MATERIAL)`);
@@ -302,7 +367,8 @@ function conPistasV(P) {
   return P;
 }
 function ponerParam(g, k, v) { S.params[g][k] = v; conPistasV(S.params); ls.set("params", S.params); }
-function paramsPorDefecto() { S.params = structuredClone(cam.DEF); ls.set("params", S.params); refrescar(); }
+// Los de siempre, ajustados al material elegido (con placa de cobre son exactamente cam.DEF)
+function paramsPorDefecto() { S.params = derivar(structuredClone(cam.DEF), S.material.grosor, S.material.tipo, true); ls.set("params", S.params); refrescar(); }
 
 function previsualizar() {
   // t.vista: el trabajo como lo verá la máquina (con la alineación); t.prev: en coordenadas del material
@@ -325,7 +391,7 @@ function descargarTrabajo(id) {
   descargar(t.origen === "nc" ? `${t.nombre}.nc` : `${S.pcb?.nombre || "placa"}_${t.id}.nc`, t.lineas.join("\n") + "\n");
 }
 function nuevaPlaca() {
-  S.archivos = []; S.pcb = null; S.trabajos = []; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alinear = null; S.mapa = null;
+  S.archivos = []; S.pcb = null; S.trabajos = []; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alinear = null; S.mapa = null; S.avisosGen = [];
   visor.ponerMalla(null); visor.limpiarSurcos(); previsualizar(); refrescar();
 }
 
@@ -335,7 +401,9 @@ function nuevaPlaca() {
 const diamDe = (txt) => { const m = String(txt || "").match(/(\d+(?:\.\d+)?)\s*mm/i); return m ? +m[1] : 0; };
 function aplicarMaterial() {
   const M = S.material;
-  visor.ponerMaterial({ ancho: M.ancho, alto: M.alto, grosor: M.grosor });
+  document.documentElement.dataset.mat = M.tipo;
+  ponerMatDibujo(mat().corto);
+  visor.ponerMaterial({ ancho: M.ancho, alto: M.alto, grosor: M.grosor, tipo: M.tipo });
   SUPERFICIE.z = -40 + 2 + M.grosor;     // el simulador toca el cobre donde se ve (MDF de 2 mm + material)
   marcarDiseno();
 }
@@ -382,7 +450,22 @@ function ponerMaterial(k, v) {
   S.material[k] = v;
   ls.set("material", S.material);
   if (k === "x" || k === "y") return moverDiseno();
+  // La profundidad del contorno, sus bajadas y los puentes siguen al grosor
+  if (k === "grosor" && S.material.tipo !== "otro") { derivar(S.params, v, S.material.tipo); ls.set("params", S.params); }
   aplicarMaterial(); refrescar();
+}
+// Otro material: llena profundidad, bajadas, avance, rpm, sentido de corte y acabado; si ya había
+// trayectorias sin empezar, se vuelven a calcular con los valores nuevos
+async function ponerTipoMaterial(tipo) {
+  if (!MATERIALES[tipo] || tipo === S.material.tipo) return;
+  S.material.tipo = tipo;
+  if (MATERIALES[tipo].grosor) S.material.grosor = MATERIALES[tipo].grosor;
+  derivar(S.params, S.material.grosor, tipo, true);
+  ls.set("material", S.material); ls.set("params", S.params);
+  aplicarMaterial();
+  anunciar(`Material: ${MATERIALES[tipo].t}`);
+  if (S.pcb && S.trabajos.some((t) => t.origen === "cam") && !disenoBloqueado()) await generar();
+  else refrescar();
 }
 function centrarDiseno() {
   const d = tamDiseno(), M = S.material; if (!d) return;
@@ -395,8 +478,10 @@ function girarMaterial() {
   ls.set("material", M); aplicarMaterial();
   if (holgura()?.cabeCentrado) centrarDiseno(); else refrescar();
 }
-function materialNuevo() { visor.limpiarSurcos(); anunciar("Material nuevo: cobre limpio"); }
-const siguienteTrabajo = () => S.trabajos.find((t) => t.estado !== "hecho") || null;
+function materialNuevo() { visor.limpiarSurcos(); anunciar("Material nuevo, sin cortes"); }
+// Omitido cuenta como terminado: la app pasa al siguiente
+const terminado = (t) => t.estado === "hecho" || t.estado === "omitido";
+const siguienteTrabajo = () => S.trabajos.find((t) => !terminado(t)) || null;
 
 // Arrastrar y soltar en el visor
 const vis = $("#visor");
@@ -425,6 +510,7 @@ async function asistenteZ(trabajo, { cambio = false } = {}) {
       } },
       { titulo: "Conecta la sonda", render(c, api) {
         c.innerHTML = `<div class="figura">${FIG_SONDA}</div>
+          ${mat().conduce ? "" : `<p>El ${esc(mat().t.toLowerCase())} no conduce: pon encima una placa de contacto metálica, con el cable de la sonda en ella.</p>`}
           <p>Toca la placa con el caimán para probar.</p>
           <div class="indicador" data-on="0" role="status"><span class="foco" aria-hidden="true"></span><span data-t>Sin contacto</span></div>
           ${grbl.sim ? '<button type="button" class="btn-pill btn-pill--suave" data-tocar>Mantén para simular el toque</button>' : ""}`;
@@ -460,7 +546,9 @@ async function asistenteZ(trabajo, { cambio = false } = {}) {
         api.alSiguiente(async () => {
           if (hecho) return true;
           const grosor = Math.max(0, +c.querySelector("[data-g]").value || 0); ls.set("grosorSonda", grosor);
-          const r = c.querySelector("[data-r]"); r.hidden = false; r.textContent = "Bajando…";
+          const r = c.querySelector("[data-r]"); r.hidden = false;
+          if (!mat().conduce && grosor <= 0) { r.textContent = "Escribe el grosor de la placa de contacto: Z0 va debajo de ella."; return false; }
+          r.textContent = "Bajando…";
           const p = await sondaZ(grosor);
           if (!p) { r.textContent = `No tocó. ${ALARMAS[5].pasos.join(". ")}.`; api.boton("Reintentar"); return false; }
           hecho = true; r.textContent = `Z0 fijado · contacto en ${mm(p.z, 3)} (máquina)`; api.boton("Siguiente");
@@ -478,10 +566,12 @@ async function asistenteZ(trabajo, { cambio = false } = {}) {
 async function sondaZ(grosor) {
   if (grbl.est.estado === "Alarm") { await grbl.enviar("$X"); await new Promise((r) => setTimeout(r, 250)); }
   await grbl.enviarVarias(["G21", "G91"]);
+  // En el simulador, la placa de contacto sobre un material que no conduce está «grosor» más arriba
+  const extra = grbl.sim && !mat().conduce ? grosor : 0;
+  SUPERFICIE.z += extra;
   let p = await grbl.sondear("G38.2 Z-15 F100");
-  if (!p) { await grbl.enviar("G90"); return null; }
-  await grbl.enviar("G0 Z1");
-  p = await grbl.sondear("G38.2 Z-2 F20");
+  if (p) { await grbl.enviar("G0 Z1"); p = await grbl.sondear("G38.2 Z-2 F20"); }
+  SUPERFICIE.z -= extra;
   if (!p) { await grbl.enviar("G90"); return null; }
   await grbl.enviar(`G10 L20 P1 Z${grosor.toFixed(3)}`);
   await grbl.enviarVarias(["G0 Z5", "G90"]);
@@ -495,7 +585,7 @@ async function asistenteZManual(trabajo) {
   const ok = await asistente({
     titulo: "Z sin sonda",
     pasos: [
-      { titulo: "Papel sobre el cobre", render(c) { c.innerHTML = `<p>${esc(herr)} puesta y una hoja de papel bajo la fresa.</p>`; } },
+      { titulo: mat().conduce ? "Papel sobre el cobre" : "Papel sobre el material", render(c) { c.innerHTML = `<p>${esc(herr)} puesta y una hoja de papel bajo la fresa.</p>`; } },
       { titulo: "Baja hasta que el papel se atore", render(c) { c.innerHTML = `<div data-jog></div>`; miniJog(c.querySelector("[data-jog]"), grbl, { ejes: "Z" }); } },
       { titulo: "Fijar Z0", render(c, api) {
         c.innerHTML = `<p class="muted">Se descuentan 0.1 mm del papel y la fresa sube 5 mm.</p>`;
@@ -509,7 +599,7 @@ async function asistenteZManual(trabajo) {
 }
 
 async function asistenteAlinear() {
-  const hoyos = S.pcb ? cam.seleccionHoyos(S.pcb.hoyos, { min: 0, max: 99 }, S.pcb.marco, cam.origenDe(S.pcb.marco, S.material)) : [];
+  const hoyos = S.pcb ? cam.seleccionHoyos([...(S.pcb.hoyos || []), ...(S.pcb.circulos || [])], { min: 0, max: 99 }, S.pcb.marco, cam.origenDe(S.pcb.marco, S.material)) : [];
   if (hoyos.length < 2) return;
   const grandes = hoyos.slice().sort((a, b) => b.d - a.d).slice(0, Math.min(12, hoyos.length));
   let A = grandes[0], B = grandes[1], dmax = 0;
@@ -599,6 +689,7 @@ async function asistenteBorde() {
 
 async function medirAlturas(d) {
   const c = cajaTrabajos(); if (!c) return;
+  if (!mat().conduce) { await confirmar({ titulo: "Solo sobre cobre", html: `<p>El mapa se mide tocando el material con la sonda, y el ${esc(mat().t.toLowerCase())} no conduce.</p>`, si: "Entendido", no: "Cerrar" }); return; }
   if (!S.zListo) { await confirmar({ titulo: "Primero calibra Z", html: "<p>El mapa se mide desde Z0.</p>", si: "Entendido", no: "Cerrar" }); return; }
   if (!(await confirmar({ titulo: "Medir alturas", html: "<p>Caimán en la fresa y cable en la placa hasta que termine.</p>", si: "Empezar" }))) return;
   const nx = Math.max(2, Math.ceil(c.ancho / d.paso) + 1), ny = Math.max(2, Math.ceil(c.alto / d.paso) + 1);
@@ -627,7 +718,7 @@ function exportarMapa() { if (S.mapa) descargar("mapa.map", S.mapa.aMap()); }
 const hex = (id) => "#" + (COLOR_TRABAJO[id] ?? COLOR_TRABAJO.archivo).toString(16).padStart(6, "0");
 function abrirTrabajo(t) {
   hoja({
-    titulo: t.nombre, meta: t.estado === "hecho" ? "Hecho" : "",
+    titulo: t.nombre, meta: t.estado === "hecho" ? "Hecho" : t.estado === "omitido" ? "Omitido" : "",
     contenido(c, h) {
       c.innerHTML = `
         <div class="celdas" style="margin:0">
@@ -643,7 +734,13 @@ function abrirTrabajo(t) {
           <button type="button" class="btn-texto" data-bajar aria-label="Descargar .nc">${ico("bajar")}</button>
           <button type="button" class="btn-pill btn-pill--suave" data-aire>${ico("aire")}Prueba en aire</button>
           <button type="button" class="btn-pill btn-pill--main" data-fresar style="flex:1" data-foco>${ico("play")}Fresar</button>
-        </div>`;
+        </div>
+        ${terminado(t) ? "" : `<button type="button" class="btn-texto" data-omitir style="align-self:center">Omitir este trabajo</button>`}`;
+      const om = c.querySelector("[data-omitir]");
+      if (om) om.onclick = async () => {
+        if (!(await confirmar({ titulo: `¿Omitir ${t.nombre}?`, html: "<p>No se fresa y la app pasa al siguiente trabajo. Puedes fresarlo después desde aquí.</p>", si: "Omitir", no: "Cancelar" }))) return;
+        t.estado = "omitido"; h.cerrar(); anunciar(`${t.nombre} omitido`); refrescar();
+      };
       c.querySelector("[data-dz]").onchange = (e) => { S.dzAire = Math.max(1, +e.target.value || 5); ls.set("dzAire", S.dzAire); };
       c.querySelector("[data-bajar]").onclick = () => descargarTrabajo(t.id);
       c.querySelector("[data-aire]").onclick = () => { h.cerrar(); correrTrabajo(t, { aire: true }); };
@@ -660,7 +757,7 @@ async function correrTrabajo(t, { aire }) {
     if (await confirmar({ titulo: `Falta ${!S.xyListo ? "X0 Y0" : "Z0"}`, html: "<p>Se fija en Origen.</p>", si: "Ir a Origen", no: "Cerrar" })) irA("origen");
     return;
   }
-  if (!aire && S.herramientaZ && t.herramienta !== S.herramientaZ && t.origen === "cam") {
+  if (!aire && S.herramientaZ && !cam.igualHerr(t.herramienta, S.herramientaZ) && t.origen === "cam") {
     if (!(await confirmar({ titulo: `Cambiar a ${t.herramienta}`, html: `<p>Z se calibró con ${esc(S.herramientaZ)}. La fresa sube para el cambio.</p>`, si: "Subir la fresa" }))) return;
     await grbl.enviarVarias(["M5", "G53 G0 Z-1"]);
     S.zListo = false;
@@ -669,11 +766,11 @@ async function correrTrabajo(t, { aire }) {
   const c = t.prev.caja;
   const html = aire
     ? `<p>El trabajo completo con la fresa ${S.dzAire} mm más arriba.</p>`
-    : `<div class="pila-s">${[`Puesta: ${esc(t.herramienta)}`, "Placa pegada, MDF debajo", "Caimán quitado", "Gafas y tapa"].map((x, i) => `<label class="check"><input type="checkbox" data-chk ${i ? "" : "data-foco"}> ${x}</label>`).join("")}</div>
+    : `<div class="pila-s">${[`Puesta: ${esc(t.herramienta)}`, mat().conduce ? "Placa pegada, MDF debajo" : "Material sujeto, MDF debajo", "Caimán quitado", "Gafas y tapa"].map((x, i) => `<label class="check"><input type="checkbox" data-chk ${i ? "" : "data-foco"}> ${x}</label>`).join("")}</div>
        <p class="mono muted">${formatoTiempo(t.prev.tiempo)} · Z mín. ${mm(c.min.z, 2)} mm</p>
        ${holgura()?.cabe === false ? `<div class="aviso">${ico("alerta")}<span>El corte se sale del material. Revísalo en Placa → Material.</span></div>` : ""}`;
   if (!(await confirmar({ titulo: aire ? `Prueba en aire · ${t.nombre}` : `Fresar ${t.nombre}`, html, si: aire ? "Probar" : "Fresar" }))) return;
-  const lineas = transformar(t.lineas, { alinear: S.alinear, alturas: S.usarMapa && S.mapa?.completo ? S.mapa : null, dz: aire ? S.dzAire : 0 });
+  const lineas = transformar(t.lineas, { alinear: S.alinear, alturas: S.usarMapa && S.mapa?.completo && mat().conduce ? S.mapa : null, dz: aire ? S.dzAire : 0 });
   visor.herramienta(diamDe(t.herramienta) || 0.3);
   S.corriendo = t.id; S.prog = { id: t.id, h: 0, n: lineas.length, t0: performance.now(), aire, acum: tiempoAcumulado(lineas) };
   visor.progreso(t.id, -1);
@@ -696,7 +793,7 @@ async function correrTrabajo(t, { aire }) {
 
 // Botón principal del widget Ahora cuando toca un trabajo
 async function siguientePaso(t) {
-  const otraFresa = S.herramientaZ && t.herramienta !== S.herramientaZ && t.origen === "cam";
+  const otraFresa = S.herramientaZ && !cam.igualHerr(t.herramienta, S.herramientaZ) && t.origen === "cam";
   if (!S.zListo) return asistenteZ(t);
   if (otraFresa) { await grbl.enviarVarias(["M5", "G53 G0 Z-1"]); S.zListo = false; return asistenteZ(t, { cambio: true }); }
   return correrTrabajo(t, { aire: false });
@@ -786,7 +883,8 @@ const app = {
     conectar, cambiarModo, homing, desbloquear, paro, ponerEstilo,
     jog, ponerPasoJog, fijarXY, irACero, subirZ, recorrerArea,
     elegirArchivos, quitarArchivo, cargarEjemplo, generar, ponerParam, paramsPorDefecto, descargarTrabajo, nuevaPlaca,
-    ponerMaterial, centrarDiseno, girarMaterial, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
+    ponerMaterial, ponerTipoMaterial, mat, centrarDiseno, girarMaterial, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
+    hoyosDiseno, gruposActivos, terminado,
     asistenteZ, asistenteZManual, asistenteAlinear, quitarAlineacion: () => { S.alinear = null; previsualizar(); refrescar(); },
     medirAlturas, exportarMapa, ponerUsarMapa: (v) => { S.usarMapa = v; },
     abrirTrabajo, correrTrabajo, siguientePaso, siguienteTrabajo, mismaFresa,

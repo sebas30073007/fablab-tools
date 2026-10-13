@@ -8,11 +8,16 @@ import { ALARMAS, ESTADOS } from "./alarmas.js";
 import { formatoTiempo } from "./gcode.js";
 import { esc, ico, mm, ls, miniJog, descargar } from "./ui.js";
 import { aPNG, vista } from "./raster.js";
-import { anchoV } from "./cam.js";
-import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, resumen, atraviesa, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun } from "./herramientas.js";
+import { anchoV, igualHerr } from "./cam.js";
+import { MATERIALES } from "./materiales.js";
+import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, resumen, atraviesa, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun, dibujosGrabado, dibujosVaciado } from "./herramientas.js";
 
 const chev = ico("chev");
 const masc = (app, k) => `<img class="w-masc" src="${app.MASC[k]}" alt="" onerror="this.remove()">`;
+const hecho = (t) => t.estado === "hecho" || t.estado === "omitido";
+// Lo que está abierto: una PCB o la pieza de un dibujo DXF/SVG
+const queEs = (S) => (S.pcb?.vector ? "Pieza" : "PCB");
+const superficie = (app) => (app.acc.mat().conduce ? "Superficie del cobre" : `Superficie del ${app.acc.mat().t.toLowerCase()}`);
 const btn = (acc, txt, { main = false, icono = null, dis = false, texto = false } = {}) =>
   `<button type="button" class="${texto ? "btn-texto" : `btn-pill ${main ? "btn-pill--main" : ""}`}" data-acc="${acc}" ${dis ? "disabled" : ""}>${icono ? ico(icono) : ""}${esc(txt)}</button>`;
 function cablear(pag, mapa) {
@@ -58,13 +63,13 @@ export function ahora(app) {
   }
   if (e === "Home") return { k: "homing", cab: "Ahora", texto: "Homing…", masc: "fresando", acc: [] };
   if (!S.homed) return { k: "home", cab: "Ahora", texto: "Hacer homing", masc: "hola", acc: [{ id: "homing", t: "Homing", main: true, ico: "casa" }, { id: "desbloquear", t: "Ya está en casa" }] };
-  if (!S.pcb && !S.trabajos.length) return { k: "archivos", cab: "Ahora", texto: "Abrir la placa", sub: "Gerber y .drl de KiCad, o un .nc", masc: "archivos", acc: [{ id: "abrir", t: "Abrir archivos", main: true, ico: "abrir" }, { id: "ejemplo", t: "Ejemplo" }] };
+  if (!S.pcb && !S.trabajos.length) return { k: "archivos", cab: "Ahora", texto: "Abrir la placa", sub: "Gerber de KiCad, DXF, SVG o .nc", masc: "archivos", acc: [{ id: "abrir", t: "Abrir archivos", main: true, ico: "abrir" }, { id: "ejemplo", t: "Ejemplo" }] };
   if (S.pcb && !S.trabajos.length) return { k: "generar" + S.generando, cab: "Ahora", texto: S.generando ? "Calculando trayectorias…" : "Generar trayectorias", sub: S.pcb.nombre, masc: "archivos", acc: S.generando ? [] : [{ id: "generar", t: "Generar", main: true }, { id: "verPlaca", t: "Ajustar" }] };
   if (!S.xyListo) return { k: "xy", cab: "Ahora", texto: "Fijar X0 Y0", sub: "Esquina inferior izquierda del material", masc: "hola", acc: [{ id: "mover", t: "Mover", main: true, ico: "mover" }] };
   const t = acc.siguienteTrabajo();
-  if (!t) return { k: "fin", cab: "Ahora", texto: "Placa terminada", masc: "placa", acc: [{ id: "nueva", t: "Nueva placa", main: true }] };
+  if (!t) return { k: "fin", cab: "Ahora", texto: S.pcb?.vector ? "Pieza terminada" : "Placa terminada", masc: "placa", acc: [{ id: "nueva", t: S.pcb?.vector ? "Nueva pieza" : "Nueva placa", main: true }] };
   if (!S.zListo) return { k: "z" + t.id, cab: "Ahora", texto: "Calibrar Z", sub: t.herramienta, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "zmanual", t: "Sin sonda" }] };
-  if (S.herramientaZ && t.herramienta !== S.herramientaZ && t.origen === "cam") return { k: "cambio" + t.id, cab: "Ahora", texto: `Cambiar a ${t.herramienta}`, sub: `para ${t.nombre}`, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "misma", t: "Misma fresa", texto: true }] };
+  if (S.herramientaZ && !igualHerr(t.herramienta, S.herramientaZ) && t.origen === "cam") return { k: "cambio" + t.id, cab: "Ahora", texto: `Cambiar a ${t.herramienta}`, sub: `para ${t.nombre}`, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "misma", t: "Misma fresa", texto: true }] };
   return { k: "fresar" + t.id, cab: "Ahora", texto: `Fresar ${t.nombre}`, sub: `${t.herramienta} · ${formatoTiempo(t.prev.tiempo)}`, masc: "hola", acc: [{ id: "paso", t: "Fresar", main: true, ico: "play" }, { id: "aire", t: "Prueba en aire", ico: "aire" }] };
 }
 
@@ -80,7 +85,7 @@ function ahoraHTML(app, a, ps) {
     const t = S.trabajos.find((x) => x.id === S.corriendo);
     const pausa = grbl.est.estado === "Hold";
     const idx = S.trabajos.indexOf(t);
-    const luego = S.prog.aire ? null : S.trabajos.slice(idx + 1).find((x) => x.estado !== "hecho");
+    const luego = S.prog.aire ? null : S.trabajos.slice(idx + 1).find((x) => !hecho(x));
     const total = S.trabajos.reduce((s, x) => s + Math.max(1, x.prev.tiempo), 0);
     return `<section class="w w-ahora con-masc" aria-label="Ahora" data-tour="ahora">${cab}
       <span class="w-cab w-ahora__cab"><span>${S.prog.aire ? "Prueba en aire" : "En curso"} · ${esc(t.nombre)}</span></span>
@@ -112,14 +117,14 @@ function ahoraHTML(app, a, ps) {
 // ======================================================================
 function pasos(app) {
   const { S, grbl } = app;
-  const todos = S.trabajos.length > 0 && S.trabajos.every((t) => t.estado === "hecho");
+  const todos = S.trabajos.length > 0 && S.trabajos.every(hecho);
   const lista = [
     { id: "maquina", nom: "Máquina", ok: grbl.listo && S.homed && grbl.est.estado !== "Alarm", val: grbl.listo ? (S.modo === "sim" ? "Simulación" : "Cubiko") : "", ir: "maquina" },
     { id: "archivos", nom: "Archivos", ok: !!S.pcb || S.trabajos.some((t) => t.origen === "nc"), val: S.pcb?.nombre || "", ir: "placa" },
     { id: "tray", nom: "Trayectorias", ok: S.trabajos.length > 0, val: S.trabajos.length ? `${S.trabajos.length} trabajos` : "", ir: "placa" },
     { id: "xy", nom: "X0 Y0", ok: S.xyListo, val: S.alinear ? "Alineada" : "", ir: "origen" },
     { id: "z", nom: "Z0", ok: S.zListo, val: S.zListo ? S.herramientaZ || "" : "", ir: "origen" },
-    { id: "fresar", nom: "Fresar", ok: todos, val: S.trabajos.length ? `${S.trabajos.filter((t) => t.estado === "hecho").length} de ${S.trabajos.length}` : "", ir: "inicio" },
+    { id: "fresar", nom: "Fresar", ok: todos, val: S.trabajos.length ? `${S.trabajos.filter(hecho).length} de ${S.trabajos.length}` : "", ir: "inicio" },
   ];
   const actual = lista.findIndex((p) => !p.ok);
   lista.forEach((p, i) => (p.s = p.ok ? "hecho" : i === actual ? "ahora" : ""));
@@ -143,7 +148,7 @@ function inicio(pag, app) {
         <button type="button" class="chip" data-tour="estado" data-ir="maquina" data-s="${em.s}" data-v="chip"><span class="punto" aria-hidden="true"></span><span data-v="chip-t">${esc(em.t)}</span></button></header>
       ${ahoraHTML(app, a, ps)}
       <button type="button" class="w ${S.pcb ? "con-thumb" : ""}" data-tour="w-placa" data-ir="placa">
-        <span class="w-cab"><span>PCB</span>${chev}</span>
+        <span class="w-cab"><span>${queEs(S)}</span>${chev}</span>
         ${S.pcb ? `<span class="w-texto">${esc(S.pcb.nombre)}</span><span class="w-sub">${mm(S.pcb.marco.placa.x1 - S.pcb.marco.placa.x0, 1)} × ${mm(S.pcb.marco.placa.y1 - S.pcb.marco.placa.y0, 1)} mm · material ${mm(S.material.ancho, 0)} × ${mm(S.material.alto, 0)}</span>
           ${acc.holgura()?.cabe === false ? `<span class="w-sub w-sub--atencion">${ico("alerta")}No cabe en el material</span>` : ""}
           <img class="w-thumb" src="${S.pcb.miniatura}" alt="">`
@@ -152,14 +157,14 @@ function inicio(pag, app) {
       </button>
       <button type="button" class="w" data-tour="w-origen" data-ir="origen">
         <span class="w-cab"><span>Origen</span>${chev}</span>
-        <span class="celdas celdas--col">${cel("X0 Y0", S.xyListo, S.xyListo ? (S.alinear ? "Alineada" : "Fijado") : "Pendiente")}${cel(S.zListo && S.mapa?.completo && S.usarMapa ? "Z0 · con mapa" : "Z0", S.zListo, S.zListo ? S.herramientaZ || "Fijado" : "Pendiente")}</span>
+        <span class="celdas celdas--col">${cel("X0 Y0", S.xyListo, S.xyListo ? (S.alinear ? "Alineada" : "Fijado") : "Pendiente")}${cel(S.zListo && S.mapa?.completo && S.usarMapa && acc.mat().conduce ? "Z0 · con mapa" : "Z0", S.zListo, S.zListo ? S.herramientaZ || "Fijado" : "Pendiente")}</span>
       </button>
       ${t.length ? `<section class="w" aria-labelledby="w-trab" data-tour="trabajos">
         <span class="w-cab"><span id="w-trab">Trabajos</span></span>
         <span class="filas">${t.map((x) => `<button type="button" class="fila" data-trabajo="${x.id}">
           <span class="cuad" style="background:${app.hex(x.id)}"></span>
           <span class="fila__nom">${esc(x.nombre)}<small>${esc(x.herramienta)}</small></span>
-          ${x.estado === "hecho" ? `<span class="fila__ok">${ico("ok")}Hecho</span>` : `<span class="fila__val">${formatoTiempo(x.prev.tiempo)}</span>`}
+          ${x.estado === "hecho" ? `<span class="fila__ok">${ico("ok")}Hecho</span>` : x.estado === "omitido" ? `<span class="fila__val">Omitido</span>` : `<span class="fila__val">${formatoTiempo(x.prev.tiempo)}</span>`}
           ${chev}</button>`).join("")}</span>
       </section>` : ""}`;
     cablear(pag, {
@@ -287,8 +292,7 @@ function maquina(pag, app) {
 // ======================================================================
 // PCB: archivos, material, configuración (página aparte) e imagen en blanco y negro
 // ======================================================================
-const TIPOS = { "cobre-sup": "Cobre", "cobre-inf": "Cobre inferior", contorno: "Contorno", taladro: "Taladros", job: "Trabajo KiCad", nc: "G-code", otro: "No se usa" };
-const GRUPOS = ["pistas", "hoyos", "contorno"];
+const TIPOS = { "cobre-sup": "Cobre", "cobre-inf": "Cobre inferior", contorno: "Contorno", taladro: "Taladros", job: "Trabajo KiCad", nc: "G-code", dxf: "Dibujo DXF", svg: "Dibujo SVG", otro: "No se usa" };
 // Al enfocar o señalar un campo se resalta en el dibujo lo que cambia (data-k = clave del campo)
 function resaltar(raiz, clave) { raiz.querySelectorAll("svg [data-k]").forEach((e) => e.classList.toggle("hl", e.dataset.k === clave)); }
 
@@ -298,11 +302,13 @@ function placa(pag, app) {
   const sep = pcb?.job?.reglas?.TrackToTrack;
   const cam = S.trabajos.filter((t) => t.origen === "cam");
   const nc = S.trabajos.filter((t) => t.origen === "nc");
+  const GRUPOS = acc.gruposActivos();
+  const aviso = (t) => `<div class="aviso">${ico("alerta")}<span>${esc(t)}</span></div>`;
   pag.innerHTML = `${cab2("Inicio", pcb ? pcb.nombre : "PCB")}
     ${!S.archivos.length ? `<section class="w con-masc" aria-labelledby="p-arch">
       <span class="w-cab"><span id="p-arch">Archivos</span></span>
       <span class="w-texto">Abre la placa</span>
-      <span class="w-sub">Gerber y .drl de KiCad, o un .nc</span>
+      <span class="w-sub">Gerber de KiCad, DXF, SVG o .nc</span>
       ${masc(app, "archivos")}
       <span class="w-acc">${btn("abrir", "Abrir archivos", { main: true, icono: "abrir" })}${btn("ejemplo", "Ejemplo")}</span>
     </section>
@@ -312,6 +318,7 @@ function placa(pag, app) {
         <li>En la misma ventana: Generar archivos de taladro, en milímetros</li>
         <li>Abre aquí toda la carpeta; lo que no sirve se ignora</li></ol></div></details>` : ""}
     ${sep && P.pistas.diam > sep ? `<div class="aviso">${ico("alerta")}<span>El corte de pistas (${P.pistas.diam} mm) es más ancho que la separación mínima del diseño (${sep} mm): algunas pistas quedarán unidas.</span></div>` : ""}
+    ${(pcb?.avisos || []).concat(S.avisosGen || []).map(aviso).join("")}
     ${materialHTML(app)}
     <button type="button" class="w" data-tour="config" data-ir="config">
       <span class="w-cab"><span>Configuración</span>${chev}</span>
@@ -326,9 +333,10 @@ function placa(pag, app) {
           ${pcb.imgs.pistas ? '<button type="button" role="radio" data-img="pistas" aria-checked="true">Pistas</button>' : ""}
           ${pcb.imgs.hoyos ? '<button type="button" role="radio" data-img="hoyos" aria-checked="false">Hoyos</button>' : ""}
           <button type="button" role="radio" data-img="interior" aria-checked="${pcb.imgs.pistas ? "false" : "true"}">Contorno</button>
+          ${pcb.imgs.vaciado ? '<button type="button" role="radio" data-img="vaciado" aria-checked="false">Vaciado</button>' : ""}
         </div>
-        <canvas class="raster" data-raster role="img" aria-label="Imagen en blanco y negro de la placa: lo blanco es cobre que se queda"></canvas>
-        <span class="fila-wrap" style="justify-content:space-between"><span class="w-sub mono">${pcb.marco.W} × ${pcb.marco.H} px · blanco = cobre que se queda</span>
+        <canvas class="raster" data-raster role="img" aria-label="Imagen en blanco y negro: ${pcb.vector ? "lo blanco es material que se queda" : "lo blanco es cobre que se queda"}"></canvas>
+        <span class="fila-wrap" style="justify-content:space-between"><span class="w-sub mono">${pcb.marco.W} × ${pcb.marco.H} px · ${pcb.vector ? "blanco = material que se queda" : "blanco = cobre que se queda"}</span>
           <button type="button" class="btn-texto" data-png>${ico("bajar")}PNG</button></span>
       </div>
     </details>` : ""}
@@ -338,7 +346,7 @@ function placa(pag, app) {
         <span class="cuad" style="background:${a.tipo === "otro" ? "var(--riel)" : "var(--d-hecho)"}"></span>
         <span class="fila__nom">${esc(a.nombre)}<small>${TIPOS[a.tipo] || a.tipo}</small></span><span></span>
         <button type="button" class="btn-icono" data-quitar="${esc(a.nombre)}" aria-label="Quitar ${esc(a.nombre)}">${ico("x")}</button></span>`).join("")}</span>
-        <span class="w-acc" style="margin-top:4px">${btn("abrir", "Abrir más", { icono: "abrir" })}${btn("nueva", "Nueva placa")}</span></div>
+        <span class="w-acc" style="margin-top:4px">${btn("abrir", "Abrir más", { icono: "abrir" })}${btn("nueva", pcb?.vector ? "Nueva pieza" : "Nueva placa")}</span></div>
     </details>` : ""}
     ${[...cam, ...nc].length ? `<section class="w" aria-labelledby="p-nc"><span class="w-cab"><span id="p-nc">Archivos .nc</span></span>
       <span class="filas">${[...cam, ...nc].map((t) => `<span class="fila"><span class="cuad" style="background:${app.hex(t.id)}"></span>
@@ -347,6 +355,8 @@ function placa(pag, app) {
 
   cablear(pag, { __irA: app.irA, abrir: acc.elegirArchivos, ejemplo: acc.cargarEjemplo, generar: acc.generar, nueva: acc.nuevaPlaca,
     centrar: acc.centrarDiseno, girarMat: acc.girarMaterial, matNuevo: () => { acc.materialNuevo(); app.refrescar(); } });
+  const selMat = pag.querySelector("[data-mat-tipo]");
+  if (selMat) selMat.onchange = () => acc.ponerTipoMaterial(selMat.value);
   pag.querySelectorAll("[data-m]").forEach((inp) => {
     inp.onchange = () => acc.ponerMaterial(inp.dataset.m, +inp.value);
     inp.addEventListener("focus", () => resaltar(pag, inp.dataset.m));
@@ -386,7 +396,8 @@ function materialHTML(app) {
   const area = M.ancho > 145 || M.alto > 110;
   const dib = dibujoMaterial(M, d, h);
   return `<section class="w" aria-labelledby="p-mat" data-tour="material">
-    <span class="w-cab"><span id="p-mat">Material</span></span>
+    <span class="w-cab"><span id="p-mat">Material</span>
+      <select class="mat__tipo" data-mat-tipo aria-label="Qué material" ${bloq ? "disabled" : ""}>${Object.entries(MATERIALES).map(([k, m]) => `<option value="${k}" ${k === M.tipo ? "selected" : ""}>${esc(m.t)}</option>`).join("")}</select></span>
     <div class="mat">
       ${medida("alto", "Y", "Alto")}
       <div class="mat__dib">${dib.svg}</div>
@@ -456,7 +467,8 @@ function config(pag, app) {
   const { S, acc } = app;
   const P = S.params, grosor = S.material.grosor, caja = acc.tamDiseno();
   const sep = S.pcb?.job?.reglas?.TrackToTrack;
-  const hoyos = S.pcb?.hoyos || [];
+  const hoyos = acc.hoyosDiseno();
+  const GRUPOS = acc.gruposActivos();
   const desc = (g, k) => `<span id="n-${g}-${k}" hidden>${NOTAS[g][k] || ""}</span>`;
   const campo = (g, [k, txt, u, o = {}]) => {
     const e = o.esc || 1;
@@ -471,7 +483,8 @@ function config(pag, app) {
     const mini = (k, lbl) => `<label class="rango__campo" aria-label="${lbl}"><span class="u"><input type="number" data-p="hoyos.${k}" data-esc="1" step="0.05" min="0" value="${P.hoyos[k]}" aria-describedby="n-hoyos-${k}"><i>mm</i></span>${desc("hoyos", k)}</label>`;
     return `<div class="rango"><span>Perforar los de Ø</span>${mini("min", "Desde Ø")}<span>a</span>${mini("max", "Hasta Ø")}</div>`;
   };
-  const dib = (g, Q) => g === "pistas" ? dibujosPistas(Q) : g === "hoyos" ? dibujosHoyos(Q, grosor) : g === "contorno" ? dibujosContorno(Q, grosor, caja) : dibujosComun(Q);
+  const dib = (g, Q) => g === "pistas" ? dibujosPistas(Q) : g === "hoyos" ? dibujosHoyos(Q, grosor) : g === "contorno" ? dibujosContorno(Q, grosor, caja)
+    : g === "grabado" ? dibujosGrabado(Q) : g === "vaciado" ? dibujosVaciado(Q, grosor, P.contorno.diam) : dibujosComun(Q);
   const aviso = (t) => `<div class="aviso">${ico("alerta")}<span>${t}</span></div>`;
   const extra = (g, Q) => {
     if (g === "pistas") return sep && Q.diam > sep ? aviso(`La separación mínima del diseño es ${sep} mm: con ${Q.diam} mm algunas pistas quedarán unidas.`) : "";
@@ -481,13 +494,15 @@ function config(pag, app) {
       hoyos.forEach((x) => (cuenta[x.d.toFixed(2)] = (cuenta[x.d.toFixed(2)] || 0) + 1));
       const lista = Object.entries(cuenta).sort((a, b) => a[0] - b[0]);
       const n = hoyos.filter((x) => dentro(x.d)).length;
-      return `${atraviesa(Q, grosor) ? "" : aviso(`No atraviesa: con placa de ${grosor} mm, baja más de ${grosor} mm.`)}
+      return `${atraviesa(Q, grosor) ? "" : aviso(`No atraviesa: con material de ${grosor} mm, baja más de ${grosor} mm.`)}
         ${lista.length ? `<span class="w-sub">Hoyos del diseño · se perforan ${n} de ${hoyos.length}</span>
           <span class="chips-d">${lista.map(([dm, c]) => `<span class="chip-d" data-on="${dentro(+dm) ? 1 : 0}">Ø${dm}<small>×${c}</small></span>`).join("")}</span>`
         : `<span class="w-sub">Abre la placa para ver sus hoyos</span>`}`;
     }
-    if (g === "contorno") return `${Q.prof < grosor ? aviso(`No atraviesa la placa de ${grosor} mm.`) : ""}
-      ${Q.puentes > 0 && Math.abs(Q.zPuente) >= grosor ? aviso("Con Z puente más hondo que la placa no quedan puentes.") : ""}`;
+    if (g === "contorno") return `${Q.prof < grosor ? aviso(`No atraviesa el material de ${grosor} mm.`) : ""}
+      ${Q.puentes > 0 && Math.abs(Q.zPuente) >= grosor ? aviso("Con Z puente más hondo que el material no quedan puentes.") : ""}
+      ${Q.acabado > 0 && Q.acabado >= Q.diam / 2 ? aviso("El acabado es más grande que el radio de la fresa: la última vuelta cortaría de más.") : ""}`;
+    if (g === "vaciado") return Q.prof >= grosor ? aviso(`Con ${+(+Q.prof).toFixed(2)} mm atraviesa el material de ${grosor} mm.`) : "";
     return "";
   };
   const seccion = (g) => {
@@ -502,7 +517,7 @@ function config(pag, app) {
     </section>`;
   };
   const cam = S.trabajos.some((t) => t.origen === "cam");
-  pag.innerHTML = `${cab2("PCB", "Configuración")}
+  pag.innerHTML = `${cab2(queEs(S), "Configuración")}
     ${[...GRUPOS, "comun"].map(seccion).join("")}
     <button type="button" class="btn-texto" data-acc="defecto" style="align-self:center">Valores por defecto</button>
     ${S.pcb ? `<button type="button" class="btn-pill btn-pill--main btn-pill--ancho" data-acc="generar" ${S.generando ? "disabled" : ""}>${S.generando ? "Calculando…" : cam ? "Volver a generar" : "Generar trayectorias"}</button>` : ""}`;
@@ -565,10 +580,10 @@ function origen(pag, app) {
     <section class="w" aria-labelledby="c-z">
       <span class="w-cab"><span id="c-z">Z0</span></span>
       <span class="w-texto">${S.zListo ? esc(S.herramientaZ || "Fijado") : "Pendiente"}</span>
-      <span class="w-sub">${sig ? `Superficie del cobre · siguiente trabajo: ${esc(sig.nombre)} · ${esc(sig.herramienta)}` : "Superficie del cobre"}</span>
+      <span class="w-sub">${sig ? `${superficie(app)} · siguiente trabajo: ${esc(sig.nombre)} · ${esc(sig.herramienta)}` : superficie(app)}</span>
       <span class="w-acc">${btn("sonda", "Calibrar con la sonda", { main: S.xyListo && !S.zListo, icono: "sonda", dis })}${btn("zmanual", "Sin sonda", { dis })}</span>
       <span class="filas" style="margin-top:8px"><button type="button" class="fila fila--sep" data-tour="mapa" data-ir="alturas">
-        ${ico("capas")}<span class="fila__nom">Mapa de alturas<small>${r ? (S.usarMapa ? "Se aplica al fresar" : "Sin aplicar") : "Opcional · si la placa no está plana"}</small></span>
+        ${ico("capas")}<span class="fila__nom">Mapa de alturas<small>${!acc.mat().conduce ? "Solo sobre cobre" : r ? (S.usarMapa ? "Se aplica al fresar" : "Sin aplicar") : "Opcional · si la placa no está plana"}</small></span>
         <span class="fila__val">${r ? `${mm(r.max - r.min, 2)} mm` : "Sin medir"}</span>${chev}</button></span>
     </section>
     <button type="button" class="w" data-tour="fina" data-ir="fina">
@@ -658,7 +673,8 @@ function alturas(pag, app) {
         <label class="campo"><span>Sondeo mm/min</span><input type="number" step="5" data-h="f" value="${d.f}"></label>
       </div>
       <span class="w-sub" data-v="malla" style="margin-top:6px">${malla()}</span>
-      <span class="w-acc">${btn("medir", "Medir", { main: true, icono: "sonda", dis: !grbl.listo || !c || !!S.midiendo || !!S.corriendo })}${btn("importar", ".map", { icono: "abrir" })}${btn("exportar", ".map", { icono: "bajar", dis: !S.mapa })}</span>
+      ${acc.mat().conduce ? "" : `<div class="aviso">${ico("alerta")}<span>Se mide tocando el material con la sonda: el ${esc(acc.mat().t.toLowerCase())} no conduce.</span></div>`}
+      <span class="w-acc">${btn("medir", "Medir", { main: true, icono: "sonda", dis: !grbl.listo || !c || !!S.midiendo || !!S.corriendo || !acc.mat().conduce })}${btn("importar", ".map", { icono: "abrir" })}${btn("exportar", ".map", { icono: "bajar", dis: !S.mapa })}</span>
     </section>`;
   pag.querySelectorAll("[data-h]").forEach((i) => (i.onchange = () => { d[i.dataset.h] = +i.value; ls.set("alturas", d); pag.querySelector('[data-v="malla"]').textContent = malla(); }));
   pag.querySelector("[data-usar]").onchange = (e) => acc.ponerUsarMapa(e.target.checked);

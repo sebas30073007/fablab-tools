@@ -1,6 +1,6 @@
 # fablab-tools
 
-> Herramientas web del Fab Lab: conectas la máquina por USB y trabajas desde el navegador. CNC Genmitsu Cubiko (de los Gerber de KiCad a la placa fresada) y cortadora láser xTool S1 (del SVG o la imagen al corte y grabado).
+> Herramientas web del Fab Lab: conectas la máquina por USB y trabajas desde el navegador. CNC Genmitsu Cubiko (de los Gerber de KiCad a la placa fresada, y de un DXF o SVG al corte en acrílico, MDF o madera) y cortadora láser xTool S1 (del SVG o la imagen al corte y grabado).
 
 | Campo | Valor |
 |---|---|
@@ -31,6 +31,8 @@
     - `js/grbl.js` — Web Serial + protocolo GRBL 1.1 (conteo de caracteres, tiempo real, estado)
     - `js/grbl-sim.js` — GRBL emulado para el modo Simulación (placa virtual, sonda, alarmas)
     - `js/gerber.js`, `raster.js`, `cam.js` — Gerber/Excellon → imágenes en blanco y negro → trayectorias → G-code
+    - `js/dxf.js`, `svg.js`, `vector.js` — dibujos DXF y SVG para cortar otros materiales (o una placa sin pistas): la capa del dibujo decide la operación (ver `docs/cnc-dibujos.md`)
+    - `js/materiales.js` — cobre, acrílico, MDF y madera: profundidad, bajadas, avance, sentido de corte y acabado de partida
     - `js/alturas.js` — mapa de alturas, compatible con el `.map` de Candle
     - `js/visor.js` — gemelo 3D: animación, cama, trayectorias, malla y cámaras
     - `js/cubiko.js` — la Cubiko modelada con primitivas a partir de fotos y medidas oficiales (no hay CAD público)
@@ -56,6 +58,7 @@
   - `css/` — capas SEBS: `tokens.css` y `chrome.css` (copias, no editar), `project.css` (FAB-01), `hub.css`
 - `docs/cubiko.md` — la máquina, su firmware y lo aprendido calibrándola
 - `docs/grbl.md` — el protocolo, en corto
+- `docs/cnc-dibujos.md` — CNC con DXF/SVG: capas, piezas y huecos, sentido de corte por material, acabado, vaciado y grabado
 - `docs/laboratorio-ui.md` — reglas de la piel Laboratorio (OPI en claro) para llevar a otros proyectos
 - `docs/tutorial.md` — el manual y el recorrido guiado: tipos de paso, bloques, anclas y cómo rehacer un bloque
 - `docs/xtool-s1.md` — la S1, su protocolo (de xTool Studio, ha-xtool y LightBurn), caminos A y B, qué falta confirmar

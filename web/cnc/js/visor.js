@@ -24,10 +24,18 @@ const C = {
   rapido: 0x8e939b, hecho: 0x111317, cero: 0x111317, area: 0x6b6f76,
 };
 // Color por trabajo (contenido, capa 3): el mismo en el panel y en el 3D
-export const COLOR_TRABAJO = { pistas: 0x2563eb, hoyos: 0x00bfa6, contorno: 0x7c3aed, archivo: 0x2563eb };
+export const COLOR_TRABAJO = { pistas: 0x2563eb, hoyos: 0x00bfa6, contorno: 0x7c3aed, grabado: 0xb45309, vaciado: 0x4d7c0f, archivo: 0x2563eb };
+// Cómo se ve cada material: cuerpo, cara de arriba (lienzo del surco), brillo y el tono del fondo del surco
+// de poco a muy hondo. El cobre conserva la capa metálica y el sustrato verde de siempre.
+const ACABADO = {
+  cobre:    { cuerpo: 0x2f5e3a, cara: "#a8673d", lado: 0xa8673d, metal: 0.55, aspereza: 0.5, hondo: [[47, 94, 58], [30, 62, 40]] },
+  acrilico: { cuerpo: 0xd5e3ea, cara: "#dde9ef", lado: 0xc9dbe4, metal: 0, aspereza: 0.18, hondo: [[188, 204, 214], [128, 146, 158]] },
+  mdf:      { cuerpo: 0xa97c52, cara: "#b8895c", lado: 0xa97c52, metal: 0, aspereza: 0.92, hondo: [[150, 110, 72], [96, 66, 40]] },
+  madera:   { cuerpo: 0xcfa36c, cara: "#d8b07a", lado: 0xc89a62, metal: 0, aspereza: 0.85, hondo: [[176, 128, 80], [110, 76, 44]] },
+  otro:     { cuerpo: 0x9aa3ad, cara: "#b8bec6", lado: 0x9aa3ad, metal: 0.1, aspereza: 0.6, hondo: [[140, 148, 156], [90, 96, 104]] },
+};
 
 const v3 = (x, y, z) => new THREE.Vector3(x, z, -y);   // máquina → three
-const COBRE = 0xa8673d;
 
 export class Visor extends VisorBase {
   constructor(cont) {
@@ -97,21 +105,22 @@ export class Visor extends VisorBase {
   // ---------------- Material ----------------
   // En coordenadas de trabajo: la esquina inferior izquierda del material es X0 Y0 (se mueve con el cero XY).
   // Volver a ponerlo deja el cobre limpio, como una placa virgen nueva.
-  ponerMaterial({ ancho, alto, grosor = 1.6, base = 2 }) {
+  ponerMaterial({ ancho, alto, grosor = 1.6, base = 2, tipo = "cobre" }) {
     this.placa.clear();
     const g = (this.mat = new THREE.Group()); this.placa.add(g);
-    this._dim = { ancho, alto, grosor };
+    this._dim = { ancho, alto, grosor, tipo };
+    const A = ACABADO[tipo] || ACABADO.cobre;
     this._centroPlaca = { x: ancho / 2, y: alto / 2 };
     this._o = null;
     const zc = Z_CAMA + base;   // MDF de sacrificio debajo
     const m = (w, h, d, mat, px, py, pz) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); o.position.set(px, py, pz); o.castShadow = o.receiveShadow = true; g.add(o); return o; };
     const c = v3(ancho / 2, alto / 2, 0);
     m(ancho + 10, base, alto + 10, this._mat(C.mdf, { roughness: 0.9 }), c.x, Z_CAMA + base / 2, c.z);
-    m(ancho, grosor - 0.2, alto, this._mat(C.fr4, { roughness: 0.8 }), c.x, zc + (grosor - 0.2) / 2, c.z);
-    // Cobre: la cara de arriba es el lienzo del surco; el relieve también apaga el brillo metálico donde ya no hay cobre
-    const s = this._surcoNuevo(ancho, alto);
-    const lado = this._mat(COBRE, { metalness: 0.55, roughness: 0.5 });
-    const arriba = new THREE.MeshStandardMaterial({ map: s.texColor, bumpMap: s.texRelieve, bumpScale: 10, metalnessMap: s.texRelieve, metalness: 0.55, roughness: 0.5 });
+    m(ancho, grosor - 0.2, alto, this._mat(A.cuerpo, { roughness: 0.8 }), c.x, zc + (grosor - 0.2) / 2, c.z);
+    // La cara de arriba es el lienzo del surco; en el cobre el relieve también apaga el brillo metálico donde ya no hay cobre
+    const s = this._surcoNuevo(ancho, alto, A.cara);
+    const lado = this._mat(A.lado, { metalness: A.metal, roughness: A.aspereza });
+    const arriba = new THREE.MeshStandardMaterial({ map: s.texColor, bumpMap: s.texRelieve, bumpScale: 10, metalnessMap: A.metal ? s.texRelieve : null, metalness: A.metal, roughness: A.aspereza });
     m(ancho, 0.2, alto, [lado, lado, arriba, lado, lado, lado], c.x, zc + grosor - 0.1, c.z);
     this.zCobre = zc + grosor;
     this._diseno = null;
@@ -161,7 +170,7 @@ export class Visor extends VisorBase {
   // Diámetro de la herramienta puesta (lo que mide de ancho el surco)
   herramienta(d) { if (d > 0) this.diam = d; }
 
-  _surcoNuevo(ancho, alto) {
+  _surcoNuevo(ancho, alto, cara = "#a8673d") {
     const viejo = this._surco;
     if (viejo) { viejo.texColor.dispose(); viejo.texRelieve.dispose(); }
     const k = Math.min(16, 2048 / Math.max(ancho, alto));       // px por mm
@@ -172,7 +181,7 @@ export class Visor extends VisorBase {
       x.lineCap = x.lineJoin = "round"; x.globalCompositeOperation = "darken";
       return { cv, x };
     };
-    const col = lienzo("#a8673d"), rel = lienzo("#ffffff");
+    const col = lienzo(cara), rel = lienzo("#ffffff");
     const texColor = new THREE.CanvasTexture(col.cv); texColor.colorSpace = THREE.SRGBColorSpace; texColor.anisotropy = 8;
     const texRelieve = new THREE.CanvasTexture(rel.cv); texRelieve.anisotropy = 8;
     return (this._surco = { k, alto, col, rel, texColor, texRelieve, ult: null, sucio: false, t: 0, cortado: false });
@@ -183,12 +192,12 @@ export class Visor extends VisorBase {
   // Color y relieve del fondo del surco según qué tan hondo va. Cada vez más oscuro canal por canal,
   // para que pintar con «darken» nunca aclare un surco ya hecho (los puentes del contorno, una pasada repetida).
   _tono(p) {
-    const g = this._dim.grosor;
+    const g = this._dim.grosor, cobre = (this._dim.tipo || "cobre") === "cobre";
     if (p >= g - 0.05) return ["rgb(26,24,21)", "rgb(0,0,0)"];              // atravesó: se ve la sombra del MDF
-    if (p <= 0.035) return ["rgb(150,88,50)", "rgb(205,205,205)"];          // solo rayó el cobre
+    if (cobre && p <= 0.035) return ["rgb(150,88,50)", "rgb(205,205,205)"]; // solo rayó el cobre
     const t = Math.min(1, p / g), f = (a, b) => Math.round(a + (b - a) * t);
-    const r = f(150, 30);
-    return [`rgb(${f(47, 30)},${f(94, 62)},${f(58, 40)})`, `rgb(${r},${r},${r})`];  // el sustrato (FR-1/FR-4)
+    const r = f(150, 30), [h0, h1] = (ACABADO[this._dim.tipo] || ACABADO.cobre).hondo;
+    return [`rgb(${f(h0[0], h1[0])},${f(h0[1], h1[1])},${f(h0[2], h1[2])})`, `rgb(${r},${r},${r})`];  // el sustrato o el material
   }
 
   // Puntos de la punta de la fresa en coordenadas de máquina (rastro del simulador o reportes de GRBL).

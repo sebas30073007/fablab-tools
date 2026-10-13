@@ -26,6 +26,17 @@ export const CAMPOS = {
     ["pasadas", "Pasadas", "", { paso: 1, min: 1 }], ["puentes", "Puentes", "", { paso: 1, min: 0 }],
     ["anchoPuente", "Ancho puente", "mm", { paso: 0.1, min: 0 }], ["zPuente", "Z puente", "mm", { paso: 0.05 }],
     ["f", "Avance", "mm/min", { paso: 10, min: 1 }], ["fz", "Bajada", "mm/min", { paso: 10, min: 1 }],
+    ["acabado", "Acabado", "mm", { paso: 0.05, min: 0 }],
+  ],
+  grabado: [
+    ["punta", "Punta", "mm", { paso: 0.05, min: 0.01 }], ["angulo", "Ángulo", "°", { paso: 5, min: 5, max: 90 }],
+    ["prof", "Profundidad", "mm", { paso: 0.05, min: 0.01 }], ["pasadas", "Pasadas", "", { paso: 1, min: 1 }],
+    ["f", "Avance", "mm/min", { paso: 10, min: 1 }], ["fz", "Bajada", "mm/min", { paso: 10, min: 1 }],
+  ],
+  vaciado: [
+    ["prof", "Profundidad", "mm", { paso: 0.1, min: 0.05 }], ["pasadas", "Pasadas", "", { paso: 1, min: 1 }],
+    ["traslape", "Traslape", "%", { paso: 5, min: 50, max: 90, esc: 100 }],
+    ["f", "Avance", "mm/min", { paso: 10, min: 1 }], ["fz", "Bajada", "mm/min", { paso: 10, min: 1 }],
   ],
   comun: [
     ["zSeguro", "Z seguro", "mm", { paso: 0.5, min: 0.5 }], ["rpm", "Husillo", "rpm", { paso: 500, min: 0 }], ["espera", "Arranque", "s", { paso: 1, min: 0 }],
@@ -36,6 +47,8 @@ export const HERRAMIENTAS = {
   pistas: { t: "Pistas", color: "var(--d-pistas)" },
   hoyos: { t: "Hoyos", color: "var(--d-hoyos)" },
   contorno: { t: "Contorno", color: "var(--d-contorno)" },
+  grabado: { t: "Grabado", color: "var(--d-grabado)" },
+  vaciado: { t: "Vaciado", color: "var(--d-vaciado)" },
   comun: { t: "Husillo y alturas", color: "var(--alloy-light)" },
 };
 
@@ -59,12 +72,28 @@ export const NOTAS = {
     max: "Los hoyos del diseño más grandes que esto no se perforan (un hoyo grande se hace aparte).",
   },
   contorno: {
-    diam: "Diámetro de la fresa de maíz: corta de lado y de punta. Una broca no sirve para el contorno.",
-    prof: "Profundidad total: el grosor de la placa y un poco más.",
+    diam: "Diámetro de la fresa de maíz: corta de lado y de punta. Una broca no sirve para el contorno. El vaciado usa la misma.",
+    prof: "Profundidad total: el grosor del material y un poco más. Sigue al grosor cuando eliges el material.",
     pasadas: "La profundidad se reparte en varias bajadas para no forzar la fresa.",
     puentes: "Pestañas que sostienen la placa para que no se suelte al terminar.",
     anchoPuente: "Largo de cada puente a lo largo del corte.",
     zPuente: "Hasta dónde baja en los puentes; lo que queda abajo sostiene la placa.",
+    f: "Velocidad al avanzar cortando.",
+    fz: "Velocidad al bajar a cortar.",
+    acabado: "Lo que el desbaste deja junto a la pieza para una última vuelta fina a toda profundidad: borde más limpio y medida más exacta. 0 = sin acabado.",
+  },
+  grabado: {
+    punta: "Ancho de la punta plana de la fresa en V.",
+    angulo: "Ángulo de la V. Con la profundidad decide el ancho de la línea grabada.",
+    prof: "Cuánto entra la punta en el material.",
+    pasadas: "La profundidad se reparte en varias bajadas.",
+    f: "Velocidad al avanzar grabando.",
+    fz: "Velocidad al bajar.",
+  },
+  vaciado: {
+    prof: "Hasta dónde se rebaja la zona, desde la superficie.",
+    pasadas: "La profundidad se reparte en varias bajadas para no forzar la fresa.",
+    traslape: "Cuánto se encima cada vuelta sobre la anterior. Desde 50 % no quedan crestas sin cortar.",
     f: "Velocidad al avanzar cortando.",
     fz: "Velocidad al bajar a cortar.",
   },
@@ -72,7 +101,7 @@ export const NOTAS = {
     zSeguro: "Altura sobre la placa para moverse de un corte a otro sin tocarla.",
     rpm: "Vueltas por minuto de la fresa.",
     espera: "Segundos de espera para que el husillo tome velocidad antes de cortar.",
-    climb: "La fresa gira a favor del avance: deja mejor borde en el cobre.",
+    climb: "Concordancia: la fresa gira a favor del avance; se calienta menos y deja mejor borde en cobre y acrílico. Sin marcar (convencional): en madera o MDF evita que la fresa jale hacia el material.",
   },
 };
 
@@ -84,6 +113,8 @@ export function resumen(g, P) {
   if (g === "pistas") return `${n(P.diam)} mm · ${P.pasadas}×`;
   if (g === "hoyos") return `Ø${n(P.broca)} mm`;
   if (g === "contorno") return `Ø${n(P.diam)} mm · ${P.puentes} puentes`;
+  if (g === "grabado") return `V ${n(P.angulo, 0)}° · ${n(P.prof)} mm`;
+  if (g === "vaciado") return `${n(P.prof)} mm · ${P.pasadas}×`;
   return `Z ${n(P.zSeguro)} · ${P.rpm} rpm`;
 }
 
@@ -130,6 +161,10 @@ export function silueta(tipo) {
 }
 const conSilueta = (tipo, svgLado) => `<div class="herr__fila">${silueta(tipo)}${svgLado}</div>`;
 
+// Nombre del material en los dibujos (lo pone la app al cambiar de material; los colores van por CSS)
+let MAT = "FR4";
+export function ponerMatDibujo(t) { MAT = t || "FR4"; }
+
 // Placa en corte: cobre, FR4 y MDF de sacrificio. Devuelve el SVG y dónde quedó cada capa.
 // El cobre se dibuja igual de grueso en todos los dibujos (a escala no se vería: mide 0.035 mm).
 const CU = 6;
@@ -150,7 +185,7 @@ export function dibujosPistas(P) {
   return conSilueta("v", cortePistas(P)) + pasadasPistas(P);
 }
 // De lado: la punta en V entra «prof» bajo el cobre; el corte mide anchoV(P) en la superficie
-function cortePistas(P) {
+function cortePistas(P, grabado = false) {
   const W = 320, H = 150, k = 200, ySup = 64, cx = 170;     // 200 px por mm: la ventana mide 1.6 mm
   const prof = Math.max(0, Math.min(P.prof, 0.4)), yTip = ySup + prof * k;
   const tanM = Math.tan(((P.angulo || 30) / 2) * Math.PI / 180);
@@ -161,9 +196,9 @@ function cortePistas(P) {
   P = { ...P, diam: anchoV(P) };
   const ancho = P.diam * k, xd = cx + Math.max(ancho / 2, med(ySup)) + 18;
   const L = capas(W, ySup, k, 1.6, H);
-  return svg(W, H, `De lado: la punta en V entra ${n(P.prof)} mm y corta ${n(P.diam)} mm de ancho`, `
+  return svg(W, H, `De lado: la punta en V ${grabado ? "graba" : "entra"} ${n(P.prof)} mm y corta ${n(P.diam)} mm de ancho`, `
     ${L.svg}${fresa}
-    ${rotulo(8, ySup - 6, "pista")}${rotulo(8, ySup + 30, "FR4", "dib__rot--claro")}
+    ${grabado ? "" : rotulo(8, ySup - 6, "pista")}${rotulo(8, ySup + 30, MAT, "dib__rot--claro")}
     ${cotaH(cx - ancho / 2, cx + ancho / 2, ySup - 16, `${n(P.diam)} mm`, "diam")}
     ${prof > 0.004 ? cotaV(xd, ySup, yTip, `${n(P.prof)} mm`, "prof") : ""}
     ${flecha(cx - 52, 8, cx - 52, 36, `${P.fz} mm/min`, "fz", "end")}
@@ -190,7 +225,8 @@ function pasadasPistas(P) {
 // HOYOS
 // ======================================================================
 export function dibujosHoyos(P, grosor) {
-  const W = 320, H = 196, k = 56, ySup = 40, cx = 132;       // 56 px por mm: la ventana mide 5.7 mm
+  // 56 px por mm (la ventana mide 5.7 mm); con material grueso se encoge para que se vea el MDF debajo
+  const W = 320, H = 196, ySup = 40, cx = 132, k = Math.min(56, (H - ySup - 26) / Math.max(grosor, P.prof, 0.1));
   const d = P.broca, w = d * k, punta = 0.3 * d;              // punta de 118°
   const yTip = Math.min(H - 4, ySup + P.prof * k), yCono = yTip - punta * k;
   const L = capas(W, ySup, k, grosor, H);
@@ -202,7 +238,7 @@ export function dibujosHoyos(P, grosor) {
   const xd = cx + w / 2 + 16;
   return conSilueta("broca", svg(W, H, `De lado: broca de ${n(d)} mm que baja ${n(P.prof)} mm en una placa de ${n(grosor)} mm`, `
     ${L.svg}${broca}
-    ${rotulo(8, ySup + 26, `FR4 ${n(grosor)} mm`, "dib__rot--claro")}${rotulo(8, L.yBot + 18, "MDF")}
+    ${rotulo(8, ySup + 26, `${MAT} ${n(grosor)} mm`, "dib__rot--claro")}${L.yBot + 18 < H ? rotulo(8, L.yBot + 18, "MDF") : ""}
     ${cotaH(cx - w / 2, cx + w / 2, 16, `Ø ${n(d)} mm`, "broca")}
     ${cotaV(xd, ySup, yTip, `${n(P.prof)} mm`, "prof")}
     ${flecha(cx - w / 2 - 36, 4, cx - w / 2 - 36, 30, `${P.fz} mm/min`, "fz", "end")}
@@ -219,7 +255,7 @@ export function dibujosContorno(P, grosor, caja) {
 }
 // De lado: la fresa de maíz en su última bajada; las líneas marcan cada pasada
 function corteContorno(P, grosor) {
-  const W = 320, H = 180, k = 56, ySup = 40, cx = 132;
+  const W = 320, H = 180, ySup = 40, cx = 132, k = Math.min(56, (H - ySup - 26) / Math.max(grosor, P.prof, 0.1));
   const w = P.diam * k, yTip = Math.min(H - 4, ySup + P.prof * k), nP = Math.max(1, P.pasadas | 0);
   const L = capas(W, ySup, k, grosor, H);
   const id = "cl-maiz";
@@ -238,7 +274,7 @@ function corteContorno(P, grosor) {
     <g clip-path="url(#${id})" class="m-helice">${red.join("")}</g></g>`;
   return svg(W, H, `De lado: fresa de ${n(P.diam)} mm, ${nP} bajadas hasta ${n(P.prof)} mm`, `
     ${L.svg}${fresa}<g class="cota" data-k="pasadas">${niveles}</g>
-    ${rotulo(8, ySup + 26, "FR4", "dib__rot--claro")}${rotulo(8, L.yBot + 18, "MDF")}
+    ${rotulo(8, ySup + 26, MAT, "dib__rot--claro")}${L.yBot + 18 < H ? rotulo(8, L.yBot + 18, "MDF") : ""}
     ${cotaH(cx - w / 2, cx + w / 2, 16, `Ø ${n(P.diam)} mm`, "diam")}
     ${cotaV(cx + w / 2 + 16, ySup, yTip, `${n(P.prof)} mm`, "prof")}
     ${escala(W - 70, H - 8, k, "1 mm")}`);
@@ -254,7 +290,8 @@ function puentesContorno(P, grosor, caja) {
   const marcas = Array.from({ length: np }, (_, i) => { const [x, y, v] = pto(((i + 0.5) * per) / np); return v ? `<rect x="${x - 3.5}" y="${y - lp / 2}" width="7" height="${lp}" class="m-puente"/>` : `<rect x="${x - lp / 2}" y="${y - 3.5}" width="${lp}" height="7" class="m-puente"/>`; }).join("");
   const [lx, ly] = np ? pto((0.5 * per) / np) : [0, 0];
   // De cerca
-  const X0 = 132, X1 = 314, kx = 20, ky = 34, ySup = 36, xc = (X0 + X1) / 2;
+  // ky: 34 px por mm mientras quepa (placa de 1.6 mm); un material grueso se encoge para caber en la ventana
+  const X0 = 132, X1 = 314, kx = 20, ySup = 36, xc = (X0 + X1) / 2, ky = Math.min(34, (H - 10 - ySup - 6) / Math.max(grosor, P.prof, 0.1));
   const yBot = ySup + grosor * ky, yMdf = H - 10, yFin = Math.min(yMdf - 2, ySup + P.prof * ky), zp = Math.abs(P.zPuente);
   const yP = Math.min(yFin, ySup + zp * ky), aw = Math.min(X1 - X0 - 20, Math.max(3, P.anchoPuente * kx)), bx = xc - aw / 2, queda = grosor - zp;
   const canal = np > 0
@@ -272,6 +309,33 @@ function puentesContorno(P, grosor, caja) {
     ${np > 0 ? `${cotaH(bx, bx + aw, ySup - 10, `${n(P.anchoPuente)} mm`, "anchoPuente")}
       ${cotaV(bx - 9, ySup, yP, `Z ${n(P.zPuente)}`, "zPuente", true)}
       ${queda > 0.01 ? cotaV(bx + aw + 9, yP, yBot, `${n(queda)} mm`, "zPuente") : ""}` : ""}`);
+}
+
+// ======================================================================
+// GRABADO: la misma V de las pistas, sobre el material del dibujo
+// ======================================================================
+export function dibujosGrabado(P) {
+  return conSilueta("v", cortePistas(P, true));
+}
+
+// ======================================================================
+// VACIADO: de lado, la zona rebajada con sus bajadas; la fresa, en la pared
+// ======================================================================
+export function dibujosVaciado(P, grosor, diam) {
+  const W = 320, H = 150, ySup = 36, x0 = 86, x1 = 270, k = Math.min(34, (H - ySup - 24) / Math.max(grosor, P.prof, 0.1));
+  const nP = Math.max(1, P.pasadas | 0), yFin = Math.min(H - 6, ySup + P.prof * k), w = Math.max(6, diam * k);
+  const L = capas(W, ySup, k, grosor, H);
+  const niveles = Array.from({ length: nP - 1 }, (_, i) => { const y = ySup + ((P.prof * (i + 1)) / nP) * k; return `<line class="dib__nivel" x1="${x0}" y1="${y}" x2="${x1}" y2="${y}"/>`; }).join("");
+  const atraviesa = P.prof >= grosor;
+  return conSilueta("maiz", svg(W, H, `De lado: se rebaja ${n(P.prof)} mm en ${nP} ${nP > 1 ? "bajadas" : "bajada"}`, `
+    ${L.svg}
+    <rect class="m-hueco" x="${x0}" y="${ySup}" width="${x1 - x0}" height="${yFin - ySup}"/>
+    <g class="cota" data-k="pasadas">${niveles}</g>
+    <rect class="m-acero" x="${x1 - w}" y="0" width="${w}" height="${yFin}" rx="1.5"/>
+    ${rotulo(8, Math.max(yFin, ySup + 12) + 16, MAT, "dib__rot--claro")}${atraviesa || L.yBot + 18 >= H ? "" : rotulo(8, L.yBot + 18, "MDF")}
+    ${cotaV(x0 + 12, ySup, yFin, `${n(P.prof)} mm`, "prof")}
+    <g class="cota" data-k="traslape">${eti((x0 + x1 - w) / 2 + 30, ySup - 12, "del centro a la pared")}</g>
+    ${escala(W - 70, H - 8, k, "1 mm")}`));
 }
 
 // ======================================================================

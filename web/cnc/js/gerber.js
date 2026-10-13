@@ -1,6 +1,6 @@
 // gerber.js - leer lo que exporta KiCad para fabricar: Gerber (RS-274X), Excellon y .gbrjob.
 //
-//   clasificar(nombre, texto) → "cobre-sup" | "cobre-inf" | "contorno" | "taladro" | "job" | "nc" | "map" | "otro"
+//   clasificar(nombre, texto) → "cobre-sup" | "cobre-inf" | "contorno" | "taladro" | "job" | "nc" | "map" | "dxf" | "svg" | "otro"
 //   leerGerber(texto)         → { items, aperturas, caja }   (mm, Y hacia arriba como en el diseño)
 //   leerTaladros(texto)       → { hoyos: [{x, y, d}], ranuras: n }
 //   dibujarGerber(ctx, g, T)  → pinta en un canvas 2D (blanco = material) con T(x, y) → [px, py] y s (px/mm)
@@ -12,6 +12,9 @@ export function clasificar(nombre, texto) {
   if (n.endsWith(".gbrjob")) return "job";
   if (/\.(nc|gcode|ngc|tap|cnc)$/.test(n)) return "nc";
   if (n.endsWith(".map")) return "map";
+  // Dibujos para cortar otros materiales (o una placa sin pistas): ver dxf.js, svg.js y vector.js
+  if (n.endsWith(".dxf") || /^\s*0\s*\r?\n\s*SECTION\b/.test(texto.slice(0, 64))) return "dxf";
+  if (n.endsWith(".svg") || /^\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE[^>]*>\s*)?<svg\b/i.test(texto.slice(0, 2000))) return "svg";
   if (/\.(drl|xln|exc)$/.test(n) || /^\s*M48/m.test(texto.slice(0, 200))) return "taladro";
   const ff = texto.match(/%TF\.FileFunction,([^*]+)\*%/)?.[1] || texto.match(/G04 #@! TF\.FileFunction,([^*]+)\*/)?.[1] || "";
   if (/^Copper/i.test(ff)) return /Bot/i.test(ff) ? "cobre-inf" : "cobre-sup";

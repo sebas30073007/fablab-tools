@@ -6,6 +6,15 @@
   --m-cobre: #D28B53; --m-cobre-borde: #A8673D; --m-fr4: #3F6E4A; --m-mdf: #C8A27A;
   --m-acero: #AEB4BB; --m-acero-osc: #737A82; --m-fuera: #DC2626;
 }
+/* Otros materiales (Placa → Material): el mismo dibujo con su color; sin capa de cobre visible */
+:root[data-mat="acrilico"] { --m-fr4: #CFE0E8; --m-cobre: #CFE0E8; --m-cobre-borde: #8FA7B3; }
+:root[data-mat="mdf"]      { --m-fr4: #A97C52; --m-cobre: #A97C52; --m-cobre-borde: #7A5634; }
+:root[data-mat="madera"]   { --m-fr4: #CFA36C; --m-cobre: #CFA36C; --m-cobre-borde: #9A7243; }
+:root[data-mat="otro"]     { --m-fr4: #9AA3AD; --m-cobre: #9AA3AD; --m-cobre-borde: #6B737C; }
+:root[data-mat="acrilico"] .dib__rot--claro, :root[data-mat="madera"] .dib__rot--claro { fill: var(--text); }
+/* Qué material: discreto, en la cabecera del widget Material */
+.mat__tipo { height: 30px; max-width: 60%; padding: 0 8px; border: 0; border-radius: var(--r-campo, 12px); background: var(--tarjeta-2); box-shadow: inset 0 0 0 1px var(--mist); font-size: 13px; font-weight: 600; cursor: pointer; }
+.mat__tipo:focus-visible { outline: 2px solid var(--d-pistas); outline-offset: 1px; }
 
 /* Material: la placa virgen vista desde arriba, con el canto al frente; cada medida va en su eje */
 .mat { display: grid; grid-template-columns: 92px minmax(0, max-content); grid-template-areas: "alto dib" "grosor ancho"; justify-content: center; align-items: center; gap: 4px 10px; margin-top: 6px; }

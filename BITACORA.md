@@ -209,3 +209,9 @@
 
 ## 2026-10-13 · Saltar la calibración en el cambio de fresa
 - En el paso «Cambiar a …» del widget Ahora hay un botón de texto discreto, «Misma fresa», junto a Empezar. Pide confirmación («¿Saltar la calibración?», Saltar / Calibrar) y, si se acepta, conserva Z0 y da el cambio por hecho (`mismaFresa` en main.js). Sirve cuando la fresa del contorno también hace los barrenos y no se movió.
+
+## 2026-10-13 · DXF, SVG y otros materiales en la CNC
+- Abrir archivos acepta `.dxf` y `.svg` (lectores `dxf.js` y `svg.js`). El dibujo entra por la misma puerta que el Edge_Cuts: `vector.js` quita duplicados, une segmentos en lazos y la capa decide la operación (grabado, vaciado, corte sobre la línea, ignorar; el resto: lazo cerrado = contorno, línea abierta = grabado). Círculos más chicos que la fresa van a Hoyos.
+- Piezas por fuera y huecos por dentro según cuántos lazos los rodean (no según el sentido del dibujo); los huecos se cortan antes que el borde de su pieza; puentes en cada pieza, ubicados por posición. Sentido de corte por material (concordancia en cobre y acrílico, convencional en MDF y madera) y vuelta de acabado opcional.
+- Trabajos nuevos Grabado (fresa en V) y Vaciado (anillos del centro a la pared); Configuración solo muestra las herramientas que usa lo abierto. Selector de material en Placa → Material (cobre, acrílico, MDF, madera, otro): llena profundidad, bajadas, avance, rpm, sentido y acabado; con material que no conduce, Z con placa de contacto y sin mapa de alturas. El gemelo pinta el material con su color.
+- Cualquier trabajo se puede omitir desde su hoja. Comparación con la versión anterior: el G-code de la PCB de ejemplo sale idéntico salvo comentarios. Detalle en `docs/cnc-dibujos.md`.

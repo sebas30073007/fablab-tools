@@ -6,11 +6,21 @@
 // de la imagen interior, en varias pasadas y con puentes. Hoyos: un taladro por
 // agujero (GRBL no tiene ciclos G81/G83: se expanden).
 //
+// Dibujos (DXF/SVG, ver vector.js) usan lo mismo: el contorno sale de la imagen de sus lazos
+// (piezas por fuera y huecos por dentro, sin importar el sentido del dibujo); el vaciado son
+// curvas de nivel hacia dentro de la zona a vaciar, del centro hacia la pared; el grabado y el
+// corte sobre la línea siguen el trazo tal cual.
+//
+// Sentido de corte (C.climb): con el husillo en M3, concordancia = el material que se queda a la
+// derecha del avance (piezas en sentido horario, huecos en antihorario). Los huecos de cada pieza
+// se cortan antes que su borde exterior, para que la pieza siga sujeta mientras se trabaja.
+//
 // Coordenadas de salida: mm de trabajo, con el origen en la esquina inferior
-// izquierda del material (X0 Y0) y Z0 en la superficie del cobre. El diseño va
+// izquierda del material (X0 Y0) y Z0 en su superficie. El diseño va
 // desplazado dentro del material: `origen` es el punto del Gerber que cae en X0 Y0.
 
 import { binaria } from "./raster.js";
+import { niveles, dentro, cajaDe, largo } from "./vector.js";
 
 // Ancho que raya una fresa en V a cierta profundidad: la punta plana más lo que abre el cono.
 // Es el «diam» que usa el CAM en pistas; punta y ángulo vienen en la caja («20° 0.1 mm»).
@@ -22,8 +32,14 @@ export const DEF = {
   comun: { zSeguro: 5, rpm: 10000, espera: 3, climb: true },
   pistas: { punta: 0.1, angulo: 20, diam: anchoV({ punta: 0.1, angulo: 20, prof: 0.1 }), prof: 0.1, pasadas: 2, traslape: 0.5, f: 120, fz: 60 },
   hoyos: { broca: 1.0, prof: 1.8, fz: 60, min: 0.6, max: 1.3 },
-  contorno: { diam: 1.0, prof: 1.85, pasadas: 4, f: 120, fz: 60, puentes: 4, anchoPuente: 3.1, zPuente: -0.9 },
+  contorno: { diam: 1.0, prof: 1.85, pasadas: 4, f: 120, fz: 60, puentes: 4, anchoPuente: 3.1, zPuente: -0.9, acabado: 0 },
+  grabado: { punta: 0.1, angulo: 20, prof: 0.2, pasadas: 1, f: 120, fz: 60 },
+  vaciado: { prof: 1, pasadas: 2, traslape: 0.5, f: 120, fz: 60 },
 };
+
+// La misma herramienta aunque cambie lo que corta («V 20° punta 0.1 · corte 0.135 mm»): se compara lo de antes del «·»
+export const igualHerr = (a, b) => String(a ?? "").split(" · ")[0].trim() === String(b ?? "").split(" · ")[0].trim();
+export const herrGrabado = (P) => `V ${P.angulo}° punta ${P.punta} · corte ${anchoV(P)} mm`;
 
 // ---------------- Transformada de distancia (Felzenszwalb–Huttenlocher) ----------------
 const INF = 1e20;
@@ -168,12 +184,13 @@ function aMM(polis, F, W, L, m, origen, climb) {
   }).filter(Boolean);
 }
 
-// Orden voraz: siempre a la trayectoria más cercana; los lazos empiezan en su punto más cercano
-function ordenar(paths, desde = [0, 0]) {
+// Orden voraz: siempre a la trayectoria más cercana; los lazos empiezan en su punto más cercano.
+// Una línea abierta «libre» (grabado, corte sobre la línea) puede recorrerse desde cualquiera de sus puntas.
+export function ordenar(paths, desde = [0, 0]) {
   const res = [], quedan = paths.slice();
   let p = desde;
   while (quedan.length) {
-    let mejor = 0, dMejor = Infinity, rot = 0;
+    let mejor = 0, dMejor = Infinity, rot = 0, inv = false;
     quedan.forEach((t, i) => {
       if (t.cerrado) {
         for (let k = 0; k < t.pts.length; k += Math.max(1, (t.pts.length / 64) | 0)) {
@@ -182,11 +199,16 @@ function ordenar(paths, desde = [0, 0]) {
         }
       } else {
         const d = (t.pts[0][0] - p[0]) ** 2 + (t.pts[0][1] - p[1]) ** 2;
-        if (d < dMejor) { dMejor = d; mejor = i; rot = 0; }
+        if (d < dMejor) { dMejor = d; mejor = i; rot = 0; inv = false; }
+        if (t.libre) {
+          const u = t.pts[t.pts.length - 1], e = (u[0] - p[0]) ** 2 + (u[1] - p[1]) ** 2;
+          if (e < dMejor) { dMejor = e; mejor = i; rot = 0; inv = true; }
+        }
       }
     });
     const t = quedan.splice(mejor, 1)[0];
     if (t.cerrado && rot) { const a = t.pts.slice(0, -1); t.pts = [...a.slice(rot), ...a.slice(0, rot), a[rot]]; }
+    if (inv) t.pts = t.pts.slice().reverse();
     res.push(t);
     p = t.pts[t.pts.length - 1];
   }
@@ -214,11 +236,88 @@ export function trayectoriasPistas(cvPistas, m, P, C, origen = origenDe(m)) {
   return todas;
 }
 
-export function trayectoriasContorno(cvInterior, m, P, C, origen = origenDe(m)) {
-  const bin = binaria(cvInterior);
+// Contorno: la curva a r (+ lo que se deja para el acabado) por fuera de lo blanco. Con acabado, cada
+// lazo lleva en «fin» la vuelta final a r exacto. «extra» son trayectos ya en mm (corte sobre la línea).
+export function trayectoriasContorno(cvInterior, m, P, C, origen = origenDe(m), extra = []) {
+  let lazos = [];
+  if (cvInterior) {
+    const bin = binaria(cvInterior);
+    const F = distancia(bin, m.W, m.H);
+    const r = (P.diam / 2) * m.s, a = Math.max(0, P.acabado || 0) * m.s;
+    const curva = (L) => aMM(curvas(F, m.W, m.H, L).filter((p) => p.pts.length > 3), F, m.W, L, m, origen, C.climb);
+    lazos = curva(r + a);
+    if (a > 0) emparejar(lazos, curva(r));
+  }
+  return ordenarPorNivel([...lazos, ...extra]);
+}
+
+// Cada lazo de desbaste con su vuelta de acabado: la más parecida en centro y largo
+function emparejar(desbaste, fino) {
+  const datos = (t) => { const c = cajaDe(t.pts); return { cx: (c.x0 + c.x1) / 2, cy: (c.y0 + c.y1) / 2, L: largo(t.pts) }; };
+  const F = fino.map((t) => ({ t, ...datos(t), libre: true }));
+  for (const t of desbaste) {
+    if (!t.cerrado) continue;
+    const d = datos(t);
+    let mejor = null, dm = Infinity;
+    for (const f of F) {
+      if (!f.libre || !f.t.cerrado) continue;
+      const e = Math.hypot(f.cx - d.cx, f.cy - d.cy) + Math.abs(f.L - d.L) * 0.2;
+      if (e < dm) { dm = e; mejor = f; }
+    }
+    if (mejor && Math.abs(mejor.L - d.L) < 0.3 * d.L + 2) { mejor.libre = false; t.fin = mejor.t.pts; }
+  }
+}
+
+// Primero lo de adentro: un lazo rodeado por k lazos va antes que los rodeados por k − 1. Par = borde de
+// una pieza (lleva puentes), impar = hueco. Dentro de cada nivel, el orden voraz de siempre.
+export function ordenarPorNivel(paths) {
+  const cerrados = paths.filter((t) => t.cerrado);
+  const nv = niveles(cerrados.map((t) => t.pts));
+  cerrados.forEach((t, i) => { t.nivel = nv[i]; t.exterior = nv[i] % 2 === 0; });
+  for (const t of paths) if (!t.cerrado) { t.nivel = 0; t.exterior = false; }
+  const max = Math.max(0, ...paths.map((t) => t.nivel));
+  const res = [];
+  let p = [0, 0];
+  for (let k = max; k >= 0; k--) {
+    const g = ordenar(paths.filter((t) => t.nivel === k), p);
+    if (g.length) { res.push(...g); p = g[g.length - 1].pts[g[g.length - 1].pts.length - 1]; }
+  }
+  return res;
+}
+
+// Vaciado: anillos a r, r + paso, … hacia dentro de lo blanco, hasta que ya no cabe la fresa.
+// El paso no pasa del radio: así no queda una cresta sin cortar en el eje de una zona angosta.
+// Devuelve [{ lazo, anillos: [[trayecto…] por k] }], una región por cada zona a vaciar.
+export function trayectoriasVaciado(cvVaciado, m, P, diam, C, origen = origenDe(m)) {
+  const bin = binaria(cvVaciado);
+  for (let i = 0; i < bin.length; i++) bin[i] = bin[i] ? 0 : 1;     // la distancia se mide a la pared
   const F = distancia(bin, m.W, m.H);
-  const L = (P.diam / 2) * m.s;
-  return ordenar(aMM(curvas(F, m.W, m.H, L).filter((p) => p.pts.length > 3), F, m.W, L, m, origen, C.climb));
+  const r = (diam / 2) * m.s, paso = Math.max(0.05, Math.min(diam * (1 - P.traslape), diam / 2)) * m.s;
+  const anillos = [];
+  for (let k = 0; k < 5000; k++) {
+    const L = r + k * paso;
+    const polis = curvas(F, m.W, m.H, L).filter((p) => p.pts.length > 3);
+    if (!polis.length) break;
+    anillos.push(aMM(polis, F, m.W, L, m, origen, C.climb));
+  }
+  if (!anillos.length) return [];
+  // Región = el lazo de k = 0 más externo que lo rodea
+  const base = anillos[0].filter((t) => t.cerrado);
+  const nv = niveles(base.map((t) => t.pts));
+  const raices = base.filter((_, i) => nv[i] === 0);
+  const regiones = raices.map((t) => ({ lazo: t.pts, caja: cajaDe(t.pts), anillos: anillos.map(() => []) }));
+  if (!regiones.length) return [];
+  const de = (t) => {
+    const p = t.pts[0];
+    return regiones.find((g) => g.lazo === t.pts) || regiones.find((g) => p[0] >= g.caja.x0 && p[0] <= g.caja.x1 && p[1] >= g.caja.y0 && p[1] <= g.caja.y1 && dentro(p, g.lazo)) || regiones[0];
+  };
+  anillos.forEach((lista, k) => lista.forEach((t) => de(t).anillos[k].push(t)));
+  return regiones;
+}
+
+// Trazos de un dibujo (mm del dibujo) → mm de trabajo
+export function trazosATrabajo(trazos, origen) {
+  return trazos.map((t) => ({ pts: t.pts.map(([x, y]) => [x - origen.x, y - origen.y]), cerrado: t.cerrado, libre: true }));
 }
 
 export function seleccionHoyos(hoyos, P, m, origen = origenDe(m)) {
@@ -234,7 +333,7 @@ const comentario = (t) => `(${String(t).replace(/[()]/g, "")})`;
 function cabecera(titulo, notas, C) {
   return [
     comentario(titulo), ...notas.map(comentario),
-    "(ORIGEN X0 Y0: ESQUINA INFERIOR IZQUIERDA DEL MATERIAL - Z0: SUPERFICIE DEL COBRE)",
+    "(ORIGEN X0 Y0: ESQUINA INFERIOR IZQUIERDA DEL MATERIAL - Z0: SUPERFICIE DEL MATERIAL)",
     "(GENERADO POR FAB LAB CNC)",
     "G21", "G90", "G17", "G94", "G54",
     `G0 Z${f4(C.zSeguro)}`,
@@ -264,40 +363,112 @@ export function gcodeHoyos(hoyos, P, C) {
   return [...out, ...pie(C)];
 }
 
+// Puentes repartidos a lo largo de un lazo: centros en mm de trabajo. Cada pieza lleva los suyos;
+// una pieza chica, menos (nunca más de la mitad de su perímetro en puentes).
+function centrosPuente(pts, P) {
+  const L = largo(pts), ancho = P.anchoPuente + P.diam;
+  if (P.puentes <= 0 || L <= 0) return [];
+  const n = Math.min(P.puentes, Math.max(Math.min(2, P.puentes), Math.round(L / 30)), Math.floor((L * 0.5) / ancho));
+  const res = [];
+  for (let k = 0; k < n; k++) {
+    let s = ((k + 0.5) * L) / n;
+    for (let i = 1; i < pts.length; i++) {
+      const [ax, ay] = pts[i - 1], [bx, by] = pts[i], d = Math.hypot(bx - ax, by - ay);
+      if (s <= d || i === pts.length - 1) { const u = d ? Math.min(1, s / d) : 0; res.push([ax + (bx - ax) * u, ay + (by - ay) * u]); break; }
+      s -= d;
+    }
+  }
+  return res;
+}
+
+// El lazo de acabado empieza donde quedó el desbaste
+function rotarHacia(pts, p) {
+  let k = 0, dm = Infinity;
+  for (let i = 0; i < pts.length - 1; i++) { const d = (pts[i][0] - p[0]) ** 2 + (pts[i][1] - p[1]) ** 2; if (d < dm) { dm = d; k = i; } }
+  const a = pts.slice(0, -1);
+  return [...a.slice(k), ...a.slice(0, k), a[k]];
+}
+
 export function gcodeContorno(paths, P, C) {
+  const exteriores = paths.filter((t) => t.exterior).length;
   const out = cabecera("CONTORNO - CORTE", [
     `FRESA DE CORTE LATERAL ${P.diam} MM - NO BROCA HELICOIDAL`,
-    `${P.pasadas} PASADAS HASTA Z-${P.prof} - ${P.puentes} PUENTES DE ${P.anchoPuente} MM A Z${P.zPuente}`,
+    `${P.pasadas} PASADAS HASTA Z-${P.prof} - ${P.puentes} PUENTES DE ${P.anchoPuente} MM A Z${P.zPuente} POR PIEZA`,
+    `${C.climb ? "CONCORDANCIA" : "CONVENCIONAL"} - HUECOS ANTES QUE BORDES${P.acabado > 0 ? ` - ACABADO ${P.acabado} MM` : ""}${exteriores > 1 ? ` - ${exteriores} PIEZAS` : ""}`,
   ], C);
-  // Los puentes van en el lazo más largo (el borde exterior)
-  const largo = (t) => t.pts.reduce((a, p, i) => (i ? a + Math.hypot(p[0] - t.pts[i - 1][0], p[1] - t.pts[i - 1][1]) : 0), 0);
-  const exterior = paths.reduce((a, t) => (!a || largo(t) > largo(a) ? t : a), null);
+  const media = (P.anchoPuente + P.diam) / 2;
   for (const t of paths) {
-    const L = largo(t);
-    const conPuentes = t === exterior && P.puentes > 0 && t.cerrado;
-    const centros = conPuentes ? Array.from({ length: P.puentes }, (_, k) => ((k + 0.5) * L) / P.puentes) : [];
-    const media = (P.anchoPuente + P.diam) / 2;
-    const enPuente = (s) => centros.some((c) => Math.abs(s - c) < media);
+    // Los puentes se ubican por posición (no por distancia recorrida) para que la vuelta de acabado
+    // los respete igual que el desbaste
+    const centros = t.exterior && t.cerrado ? centrosPuente(t.pts, P) : [];
+    const enPuente = ([x, y]) => centros.some(([cx, cy]) => (x - cx) ** 2 + (y - cy) ** 2 < media * media);
+    const recorrer = (pts, z) => {
+      const zp = Math.max(z, P.zPuente);
+      let zAct = centros.length && enPuente(pts[0]) ? zp : z;
+      out.push(`G1 Z${f4(zAct)} F${P.fz}`);
+      let primera = true;
+      for (let i = 1; i < pts.length; i++) {
+        const [ax, ay] = pts[i - 1], [bx, by] = pts[i];
+        const d = Math.hypot(bx - ax, by - ay);
+        // Re-muestrea a 0.5 mm para poder subir y bajar en los puentes
+        const n = centros.length ? Math.max(1, Math.ceil(d / 0.5)) : 1;
+        for (let q = 1; q <= n; q++) {
+          const u = q / n, px = ax + (bx - ax) * u, py = ay + (by - ay) * u;
+          const zq = centros.length && enPuente([px, py]) ? zp : z;
+          if (zq !== zAct) { out.push(`G1 X${f4(px)} Y${f4(py)}${primera ? ` F${P.f}` : ""}`, `G1 Z${f4(zq)} F${P.fz}`); zAct = zq; primera = true; continue; }
+          if (q === n || centros.length) { out.push(`G1 X${f4(px)} Y${f4(py)}${primera ? ` F${P.f}` : ""}`); primera = false; }
+        }
+      }
+    };
     const [x0, y0] = t.pts[0];
     out.push(`G0 Z${f4(C.zSeguro)}`, `G0 X${f4(x0)} Y${f4(y0)}`, "G0 Z0.5");
     for (let k = 1; k <= P.pasadas; k++) {
-      const z = (-P.prof * k) / P.pasadas;
-      const zp = Math.max(z, P.zPuente);
-      // Re-muestrea a 0.5 mm para poder subir y bajar en los puentes
-      let s = 0, zAct = enPuente(0) ? zp : z;
-      out.push(`G1 Z${f4(zAct)} F${P.fz}`);
-      let primera = true;
-      for (let i = 1; i < t.pts.length; i++) {
-        const [ax, ay] = t.pts[i - 1], [bx, by] = t.pts[i];
-        const d = Math.hypot(bx - ax, by - ay);
-        const n = conPuentes ? Math.max(1, Math.ceil(d / 0.5)) : 1;
-        for (let q = 1; q <= n; q++) {
-          const u = q / n, px = ax + (bx - ax) * u, py = ay + (by - ay) * u, sq = s + d * u;
-          const zq = conPuentes && enPuente(sq) ? zp : z;
-          if (zq !== zAct) { out.push(`G1 X${f4(px)} Y${f4(py)}${primera ? ` F${P.f}` : ""}`, `G1 Z${f4(zq)} F${P.fz}`); zAct = zq; primera = true; continue; }
-          if (q === n || conPuentes) { out.push(`G1 X${f4(px)} Y${f4(py)}${primera ? ` F${P.f}` : ""}`); primera = false; }
+      // Una línea abierta va y vuelve: cada pasada empieza donde terminó la anterior
+      const pts = !t.cerrado && k % 2 === 0 ? t.pts.slice().reverse() : t.pts;
+      recorrer(pts, (-P.prof * k) / P.pasadas);
+    }
+    if (t.fin) {
+      const fin = rotarHacia(t.fin, t.pts[t.pts.length - 1]);
+      out.push(`G1 X${f4(fin[0][0])} Y${f4(fin[0][1])} F${P.f}`);
+      recorrer(fin, -P.prof);
+    }
+    out.push(`G0 Z${f4(C.zSeguro)}`);
+  }
+  return [...out, ...pie(C)];
+}
+
+// Grabado: la fresa en V sigue cada trazo a poca profundidad (en una o más bajadas)
+export function gcodeGrabado(paths, P, C) {
+  const out = cabecera("GRABADO", [`FRESA V ${P.angulo} GRADOS PUNTA ${P.punta} MM - PROFUNDIDAD ${P.prof} MM - ${P.pasadas} PASADAS`], C);
+  for (const t of paths) {
+    const [x, y] = t.pts[0];
+    out.push(`G0 Z${f4(C.zSeguro)}`, `G0 X${f4(x)} Y${f4(y)}`, "G0 Z0.5");
+    for (let k = 1; k <= P.pasadas; k++) {
+      const pts = !t.cerrado && k % 2 === 0 ? t.pts.slice().reverse() : t.pts;
+      out.push(`G1 Z${f4((-P.prof * k) / P.pasadas)} F${P.fz}`);
+      pts.slice(1).forEach(([px, py], i) => out.push(`G1 X${f4(px)} Y${f4(py)}${i ? "" : ` F${P.f}`}`));
+    }
+  }
+  return [...out, ...pie(C)];
+}
+
+// Vaciado: región por región y bajada por bajada, del anillo de adentro hacia la pared.
+// Entre anillos sube a Z0.5; para ir a otra región, a Z seguro.
+export function gcodeVaciado(regiones, P, diam, C) {
+  const out = cabecera("VACIADO", [`FRESA ${diam} MM - PROFUNDIDAD ${P.prof} MM - ${P.pasadas} PASADAS - DEL CENTRO A LA PARED`], C);
+  let p = [0, 0];
+  for (const g of ordenar(regiones.map((r) => ({ pts: r.lazo, cerrado: true, r })), p).map((t) => t.r)) {
+    let primeraRegion = true;
+    for (let j = 1; j <= P.pasadas; j++) {
+      const z = (-P.prof * j) / P.pasadas;
+      for (let k = g.anillos.length - 1; k >= 0; k--) {
+        for (const t of ordenar(g.anillos[k].map((a) => ({ ...a, pts: a.pts.slice() })), p)) {
+          const [x, y] = t.pts[0];
+          out.push(primeraRegion ? `G0 Z${f4(C.zSeguro)}` : "G0 Z0.5", `G0 X${f4(x)} Y${f4(y)}`, "G0 Z0.5", `G1 Z${f4(z)} F${P.fz}`);
+          t.pts.slice(1).forEach(([px, py], i) => out.push(`G1 X${f4(px)} Y${f4(py)}${i ? "" : ` F${P.f}`}`));
+          p = t.pts[t.pts.length - 1];
+          primeraRegion = false;
         }
-        s += d;
       }
     }
     out.push(`G0 Z${f4(C.zSeguro)}`);

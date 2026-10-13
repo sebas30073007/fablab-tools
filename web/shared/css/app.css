@@ -39,6 +39,8 @@
   --d-pistas: var(--electric-blue);
   --d-hoyos: var(--cyber-teal);
   --d-contorno: var(--violet-core);
+  --d-grabado: #B45309;
+  --d-vaciado: #4D7C0F;
   --d-hecho: #16A34A;
   --d-atencion: #C2410C;
   --d-alarma: var(--sebs-signal);
