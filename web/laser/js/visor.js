@@ -114,10 +114,11 @@ export class Visor extends VisorBase {
     }
   }
 
-  _cuadro(t) {
+  _cuadro(t, dt) {
+    const tapa = this._animarTapa(dt);
     const q = this._q;
     if (q?.sucio && t - q.t > 70) { q.sucio = false; q.t = t; q.tex.needsUpdate = true; return true; }
-    return false;
+    return tapa;
   }
 
   // Rectángulo del diseño en la cama; en rojo si se sale del área
@@ -160,7 +161,28 @@ export class Visor extends VisorBase {
     this.sucio = true;
   }
   cruz(on) { if (this.modelo.cruz.visible !== on) { this.modelo.cruz.visible = on; this.sucio = true; } }
-  tapa(fraccion) { this.modelo.tapa.userData.abrir?.(fraccion); this.sucio = true; }
+  // Tapa: tapa(1) la abre y tapa(0) la cierra con una animación corta (≈0.9 s, suave al llegar).
+  // Devuelve una promesa que se cumple cuando termina de moverse. Con movimiento reducido, salta.
+  tapa(meta) {
+    meta = Math.max(0, Math.min(1, meta));
+    this._tapaF ??= 0;
+    if (this._tapaMeta !== meta) {
+      this._tapaMeta = meta;
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) { this._tapaF = meta; this.modelo.tapa.userData.abrir?.(meta); this.sucio = true; }
+    }
+    if (Math.abs(this._tapaF - meta) < 1e-3) return Promise.resolve();
+    return new Promise((r) => (this._tapaListo = r));
+  }
+  _animarTapa(dt) {
+    const meta = this._tapaMeta ?? 0, f = this._tapaF ?? 0;
+    if (Math.abs(meta - f) < 1e-3) return false;
+    this._tapaF = f + Math.sign(meta - f) * Math.min(Math.abs(meta - f), dt / 0.9);
+    // Suave al arrancar y al llegar (la bisagra no da golpe)
+    const x = this._tapaF, e = x * x * (3 - 2 * x);
+    this.modelo.tapa.userData.abrir?.(e);
+    if (Math.abs(meta - this._tapaF) < 1e-3) { this._tapaF = meta; this._tapaListo?.(); this._tapaListo = null; }
+    return true;
+  }
   // Anillo del botón: apagado, lista, trabajando, alarma
   luz(estado) {
     const c = { off: 0x2a2d33, on: 0xf5f7fa, run: 0x3b82f6, pausa: 0xf59e0b, alarma: 0xdc2626, fin: 0x22c55e }[estado] ?? 0x2a2d33;

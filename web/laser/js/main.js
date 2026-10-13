@@ -130,7 +130,10 @@ function actualizar() {
   visor.laser(on && ok, f);
   $("#laser-visor").hidden = !(on && ok);
   visor.luz(!s1.conectado ? "off" : e.tipo === "alarma" ? "alarma" : e.tipo === "pausa" ? "pausa" : e.tipo === "fin" ? "fin" : s1.trabajando ? "run" : "on");
-  visor.tapa(sim?.tapa ? 1 : 0);
+  // Tapa del gemelo: se abre al conectar y queda abierta para acomodar el material; se cierra
+  // justo antes de cortar y vuelve a abrirse al terminar. En simulación, abrir la tapa de verdad
+  // (acciones rápidas) también la abre aquí.
+  visor.tapa(sim?.tapa || (ok && !S.corriendo) ? 1 : 0);
   // Alarma visible desde cualquier pestaña: punto en «Inicio»
   const bi = $('.navinf__pildora [data-tab="inicio"]');
   const alarma = ok && e.tipo === "alarma";
@@ -386,6 +389,8 @@ async function cortar() {
     <p class="mono muted">${formatoTiempo(t.tiempo)} · ${t.pasos.map((p) => p.t).join(" → ")}</p>`;
   if (!(await confirmar({ titulo: `Cortar ${S.diseno.nombre}`, html, si: "Cortar" }))) return;
   S.corriendo = true; S.hecho = false; ultN = -1;
+  // Antes de cortar, la tapa se cierra (en el gemelo; en la máquina real la cierra la persona)
+  await Promise.race([visor.tapa(0), new Promise((r) => setTimeout(r, 1500))]);   // sin esperar de más si la pestaña no se dibuja
   S.prog = { h: 0, n: t.lineas.length, t0: performance.now(), acum: t.acum };
   visor.progreso("trabajo", -1);
   irA("inicio");
