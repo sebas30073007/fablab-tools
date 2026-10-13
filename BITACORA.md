@@ -215,3 +215,5 @@
 - Piezas por fuera y huecos por dentro según cuántos lazos los rodean (no según el sentido del dibujo); los huecos se cortan antes que el borde de su pieza; puentes en cada pieza, ubicados por posición. Sentido de corte por material (concordancia en cobre y acrílico, convencional en MDF y madera) y vuelta de acabado opcional.
 - Trabajos nuevos Grabado (fresa en V) y Vaciado (anillos del centro a la pared); Configuración solo muestra las herramientas que usa lo abierto. Selector de material en Placa → Material (cobre, acrílico, MDF, madera, otro): llena profundidad, bajadas, avance, rpm, sentido y acabado; con material que no conduce, Z con placa de contacto y sin mapa de alturas. El gemelo pinta el material con su color.
 - Cualquier trabajo se puede omitir desde su hoja. Comparación con la versión anterior: el G-code de la PCB de ejemplo sale idéntico salvo comentarios. Detalle en `docs/cnc-dibujos.md`.
+
+- Girar pieza 90° (solo con DXF/SVG): gira el dibujo sobre el material y recalcula las trayectorias; el botón de antes ahora dice «Girar material».

@@ -19,7 +19,7 @@ import { MapaAlturas } from "./alturas.js";
 import { clasificar, leerGerber, leerTaladros, leerJob } from "./gerber.js";
 import { leerDXF } from "./dxf.js";
 import { leerSVG } from "./svg.js";
-import { diseno } from "./vector.js";
+import { diseno, cajaDe } from "./vector.js";
 import { MATERIALES, material, derivar } from "./materiales.js";
 import { ponerMatDibujo } from "./herramientas.js";
 import { marco, imagenes, dibujoVector } from "./raster.js";
@@ -40,6 +40,7 @@ const S = {
   archivos: [],          // {nombre, tipo, texto}
   pcb: null,             // {cobre, contorno, hoyos, job, marco, imgs, miniatura, nombre}; un dibujo DXF/SVG: vector, grabado, vaciado, linea, circulos, avisos
   avisosGen: [],         // lo que avisó la última generación de trayectorias
+  giroPieza: 0,          // grados (0, 90, 180, 270) que se gira un dibujo DXF/SVG
   params: conPistasV(structuredClone(ls.get("params", null) || cam.DEF)),
   material: null,        // {tipo, ancho, alto, grosor, x, y}: el material virgen y dónde va el diseño dentro de él
   trabajos: [],          // {id, origen, nombre, herramienta, lineas, prev, estado}
@@ -252,7 +253,7 @@ function procesarArchivos() {
   } else if (dibujos.length) {
     // Un dibujo entra por la misma puerta que el Edge_Cuts: lazos → imagen interior → contorno
     const leidos = dibujos.map((a) => (a.tipo === "dxf" ? leerDXF(a.texto) : leerSVG(a.texto)));
-    const d = diseno(leidos.flatMap((l) => l.trazos), leidos.flatMap((l) => l.avisos));
+    const d = girarDiseno(diseno(leidos.flatMap((l) => l.trazos), leidos.flatMap((l) => l.avisos)), S.giroPieza);
     S.pcb = null;
     if (d.caja) {
       const pcb = {
@@ -273,6 +274,32 @@ function procesarArchivos() {
     for (const a of S.pcb?.avisos || d.avisos) log(`${dibujos.map((x) => x.nombre).join(", ")}: ${a}`, "sys");
   } else S.pcb = null;
   previsualizar();
+}
+
+// Gira el dibujo en múltiplos de 90° (antihorario) sobre su origen; la caja se vuelve a medir
+function girarDiseno(d, grados) {
+  const k = ((grados / 90) % 4 + 4) % 4;
+  if (!k || !d.caja) return d;
+  const g = ([x, y]) => (k === 1 ? [-y, x] : k === 2 ? [-x, -y] : [y, -x]);
+  const L = (pts) => pts.map(g);
+  d.contorno = d.contorno.map(L);
+  d.vaciado = d.vaciado.map(L);
+  d.grabado = d.grabado.map((t) => ({ ...t, pts: L(t.pts) }));
+  d.linea = d.linea.map((t) => ({ ...t, pts: L(t.pts) }));
+  d.circulos = d.circulos.map((c) => { const [x, y] = g([c.x, c.y]); return { ...c, x, y }; });
+  const c = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+  for (const pts of [...d.contorno, ...d.vaciado, ...d.grabado.map((t) => t.pts), ...d.linea.map((t) => t.pts)]) cajaDe(pts, c);
+  d.caja = c;
+  return d;
+}
+async function girarPieza() {
+  if (!S.pcb?.vector || disenoBloqueado()) return;
+  const habia = S.trabajos.some((t) => t.origen === "cam");
+  S.giroPieza = (S.giroPieza + 90) % 360;
+  procesarArchivos();
+  if (holgura()?.cabe === false && holgura()?.cabeCentrado) { centrarDiseno(); return; }
+  if (habia) await generar(); else refrescar();
+  anunciar(`Pieza girada ${S.giroPieza}°`);
 }
 
 // Hoyos que se taladran: los del Excellon y, en un dibujo, los círculos donde no cabe la fresa del contorno
@@ -391,7 +418,7 @@ function descargarTrabajo(id) {
   descargar(t.origen === "nc" ? `${t.nombre}.nc` : `${S.pcb?.nombre || "placa"}_${t.id}.nc`, t.lineas.join("\n") + "\n");
 }
 function nuevaPlaca() {
-  S.archivos = []; S.pcb = null; S.trabajos = []; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alinear = null; S.mapa = null; S.avisosGen = [];
+  S.archivos = []; S.pcb = null; S.trabajos = []; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alinear = null; S.mapa = null; S.avisosGen = []; S.giroPieza = 0;
   visor.ponerMalla(null); visor.limpiarSurcos(); previsualizar(); refrescar();
 }
 
@@ -883,7 +910,7 @@ const app = {
     conectar, cambiarModo, homing, desbloquear, paro, ponerEstilo,
     jog, ponerPasoJog, fijarXY, irACero, subirZ, recorrerArea,
     elegirArchivos, quitarArchivo, cargarEjemplo, generar, ponerParam, paramsPorDefecto, descargarTrabajo, nuevaPlaca,
-    ponerMaterial, ponerTipoMaterial, mat, centrarDiseno, girarMaterial, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
+    ponerMaterial, ponerTipoMaterial, mat, centrarDiseno, girarMaterial, girarPieza, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
     hoyosDiseno, gruposActivos, terminado,
     asistenteZ, asistenteZManual, asistenteAlinear, quitarAlineacion: () => { S.alinear = null; previsualizar(); refrescar(); },
     medirAlturas, exportarMapa, ponerUsarMapa: (v) => { S.usarMapa = v; },

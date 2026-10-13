@@ -354,7 +354,7 @@ function placa(pag, app) {
         <button type="button" class="btn-icono" data-bajar="${t.id}" aria-label="Descargar ${esc(t.nombre)}.nc">${ico("bajar")}</button></span>`).join("")}</span></section>` : ""}`;
 
   cablear(pag, { __irA: app.irA, abrir: acc.elegirArchivos, ejemplo: acc.cargarEjemplo, generar: acc.generar, nueva: acc.nuevaPlaca,
-    centrar: acc.centrarDiseno, girarMat: acc.girarMaterial, matNuevo: () => { acc.materialNuevo(); app.refrescar(); } });
+    centrar: acc.centrarDiseno, girarMat: acc.girarMaterial, girarPieza: acc.girarPieza, matNuevo: () => { acc.materialNuevo(); app.refrescar(); } });
   const selMat = pag.querySelector("[data-mat-tipo]");
   if (selMat) selMat.onchange = () => acc.ponerTipoMaterial(selMat.value);
   pag.querySelectorAll("[data-m]").forEach((inp) => {
@@ -407,7 +407,7 @@ function materialHTML(app) {
     ${estado}
     ${area ? `<div class="aviso">${ico("alerta")}<span>Más grande que el área de la Cubiko (145 × 110 mm).</span></div>` : ""}
     ${d ? `<div class="campos campos--2">${offset("x", "Offset izquierdo")}${offset("y", "Offset inferior")}</div>` : ""}
-    <span class="w-acc" style="margin-top:8px">${d ? btn("centrar", "Centrar", { dis: bloq }) : ""}${btn("girarMat", "Girar 90°", { dis: bloq })}${visor.hayCortes ? btn("matNuevo", "Borrar cortes del 3D") : ""}</span>
+    <span class="w-acc" style="margin-top:8px">${d ? btn("centrar", "Centrar", { dis: bloq }) : ""}${S.pcb?.vector ? btn("girarPieza", "Girar pieza 90°", { dis: bloq }) : ""}${btn("girarMat", S.pcb?.vector ? "Girar material" : "Girar 90°", { dis: bloq })}${visor.hayCortes ? btn("matNuevo", "Borrar cortes del 3D") : ""}</span>
   </section>`;
 }
 // Vista de arriba con la cota de X y la de Y, cada una del color de su eje. Devuelve el SVG y dónde
