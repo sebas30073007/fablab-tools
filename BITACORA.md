@@ -201,3 +201,8 @@
 - 12 poses en `web/img/kiwi/`, recortadas a 440 px como Fresa.
 - Tarjeta del catálogo `web/img/laser-s1.webp`: la S1 en felpa, hecha con la tarjeta de la Cubiko y una captura del gemelo 3D como referencias (sin fotos de xTool).
 - Detalle y prompts en `docs/kiwi.md`.
+
+## 2026-10-13 · Vistas Arriba y Frente sobre el trabajo
+- Arriba y Frente ya no encuadran la máquina: miran al trabajo cargado (sus trayectorias) o, sin trabajo, al material. Se ocultan las piezas que estorban (torre, techo, tapa, control, carro y cuerpo del husillo); quedan la base, la cama con lo que lleva y la fresa.
+- Movimiento acotado: Arriba sin giro; Frente con ±23° de giro y entre 45° y 84° de inclinación; acercamiento hasta 0.2× y alejamiento hasta 1.6× del encuadre; el desplazamiento no sale de la zona del trabajo. La cámara viaja con la cama, así que el trabajo queda quieto y se ve moverse la fresa. Se vuelven a encuadrar al cambiar el trabajo, el material, el cero o el tamaño del visor.
+- La vista 3D sigue igual. Piezas marcadas en cubiko.js (`userData.base`, `userData.fresa`).

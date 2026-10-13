@@ -36,6 +36,7 @@ export class Visor extends VisorBase {
       sol: { pos: [-200, 500, 300], hacia: [-72, 0, Z_FRESA], mitad: 300 },
       distancia: [45, 1600], pos: { x: -72.5, y: -55, z: -5 },
     });
+    this.controls.addEventListener("change", () => this._acotar());
   }
 
   // El surco se sube a la textura cada 70 ms como mucho
@@ -53,7 +54,7 @@ export class Visor extends VisorBase {
     s.add(m.fijo);
     const piso = new THREE.Mesh(new THREE.PlaneGeometry(2400, 2400), new THREE.ShadowMaterial({ opacity: 0.14 }));
     piso.rotation.x = -Math.PI / 2; piso.position.y = m.medidas.yPiso - 0.1; piso.receiveShadow = true; s.add(piso);
-    this.luz = m.luz; this.techo = m.techo; this.tapa = m.tapa; this._pantalla = m.pantalla;
+    this.luz = m.luz; this.techo = m.techo; this.tapa = m.tapa; this._pantalla = m.pantalla; this._fijo = m.fijo;
     pintarPantalla(this._pantalla, { conectado: false });
 
     // ---- Cama: se mueve con Y ----
@@ -116,6 +117,7 @@ export class Visor extends VisorBase {
     this._diseno = null;
     if (this._dArgs) this.ponerDiseno(...this._dArgs);
     this._aplicarGiro();
+    this._reenfocar();
     this.sucio = true;
   }
 
@@ -243,6 +245,7 @@ export class Visor extends VisorBase {
       for (const g of [this.cero, this.trayectos, this.malla]) g.position.copy(v);
       this.placa.position.set(v.x, 0, v.z);
       if (this._surco) this._surco.ult = null;
+      this._reenfocar();
       this.sucio = true;
     }
     this._oDisp = o; this._anclZ = anclado.z;
@@ -253,6 +256,14 @@ export class Visor extends VisorBase {
     this.husillo.position.y = p.z;
     // La cama: el punto (x, y) de la máquina queda bajo la fresa (three z = zFresa)
     this.cama.position.z = p.y + this.zFresa - 0;
+    // En Arriba y Frente la cámara viaja con la cama: el trabajo se queda quieto en pantalla y lo
+    // que se ve moverse es la fresa sobre él
+    const dz = this.cama.position.z - (this._camaZ ?? this.cama.position.z);
+    this._camaZ = this.cama.position.z;
+    if (dz && this._foco) {
+      this.camera.position.z += dz; this.controls.target.z += dz;
+      this._foco.limite.min.z += dz; this._foco.limite.max.z += dz;
+    }
     this.sucio = true;
   }
 
@@ -263,7 +274,7 @@ export class Visor extends VisorBase {
   // capas: [{ id, segs, color }] en coordenadas de trabajo.
   // Lo que va debajo de Z0 se dibuja sobre la superficie del cobre (no enterrado en la placa):
   // la línea dice por dónde pasa la fresa; lo hondo lo muestra el surco cuando se corta.
-  ponerTrayectos(capas) { super.ponerTrayectos(capas, (z) => Math.max(z, 0) + 0.12); }
+  ponerTrayectos(capas) { super.ponerTrayectos(capas, (z) => Math.max(z, 0) + 0.12); this._reenfocar(); }
 
   // ---------------- Mapa de alturas ----------------
   ponerMalla(mapa, exagerar = 20) {
@@ -287,16 +298,79 @@ export class Visor extends VisorBase {
   }
 
   // ---------------- Cámara ----------------
+  // 3D: la máquina completa y órbita libre, como siempre.
+  // Arriba y Frente: miran al trabajo cargado (o, si no hay, al material), con la máquina despejada
+  // (solo quedan la base, la cama con lo que lleva y la fresa) y el movimiento acotado a esa zona.
   vista(v) {
-    const centro = new THREE.Vector3(-AREA.x / 2, Z_CAMA + 30, Z_FRESA + 38);
-    // Desde arriba el husillo tapa el trabajo: se vuelve translúcido
-    this._translucido(this.carroX, v === "arriba", this.aro);
-    this.techo.visible = v !== "arriba";
-    this.tapa.visible = v !== "arriba";
-    const desde = v === "arriba" ? new THREE.Vector3(centro.x, 760, centro.z + 0.01)
-      : v === "frente" ? new THREE.Vector3(centro.x, 60, 1060)
-      : new THREE.Vector3(centro.x + 560, 470, 940);
-    this._encuadrar(v, desde, centro);
+    const foco = v === "arriba" || v === "frente";
+    this._limpio(foco);
+    const c = this.controls;
+    if (!foco) {
+      this._foco = null;
+      Object.assign(c, { enableRotate: true, minAzimuthAngle: -Infinity, maxAzimuthAngle: Infinity,
+        minPolarAngle: 0, maxPolarAngle: Math.PI / 2 - 0.02, minDistance: 45, maxDistance: 1600 });
+      const centro = new THREE.Vector3(-AREA.x / 2, Z_CAMA + 30, Z_FRESA + 38);
+      this._encuadrar(v, new THREE.Vector3(centro.x + 560, 470, 940), centro);
+      return;
+    }
+    // Caja del trabajo en el mundo; sin trabajo, la del material
+    this.scene.updateMatrixWorld(true);
+    const caja = new THREE.Box3();
+    if (this.trayectos.children.length) caja.setFromObject(this.trayectos);
+    if (caja.isEmpty()) caja.setFromObject(this.mat);
+    const centro = caja.getCenter(new THREE.Vector3()), tam = caja.getSize(new THREE.Vector3());
+    const t = Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)), a = this.camera.aspect || 1.6;
+    // Distancia para que quepa con aire: ancho contra el campo horizontal, fondo (o alto) contra el vertical
+    const ELEV = THREE.MathUtils.degToRad(20);             // Frente: un poco desde arriba para ver la placa
+    const alto = v === "arriba" ? tam.z : tam.z * Math.sin(ELEV) + Math.max(tam.y, 6);
+    const d = Math.max(20, (Math.max(tam.x / a, alto) / 2 / t) * 1.25);
+    const desde = v === "arriba"
+      ? new THREE.Vector3(centro.x, centro.y + d, centro.z + 0.01)
+      : new THREE.Vector3(centro.x, centro.y + d * Math.sin(ELEV), centro.z + d * Math.cos(ELEV));
+    // Movimiento acotado: acercarse hasta ver detalle, alejarse poco, desplazarse solo sobre la zona,
+    // Arriba sin girar y Frente girando unos grados
+    const margen = Math.max(tam.x, tam.z) * 0.2 + 5;
+    this._foco = { limite: caja.clone().expandByVector(new THREE.Vector3(margen, 0, margen)) };
+    Object.assign(c, {
+      minDistance: Math.max(12, d * 0.2), maxDistance: d * 1.6,
+      enableRotate: v === "frente",
+      minAzimuthAngle: v === "frente" ? -0.4 : -Infinity, maxAzimuthAngle: v === "frente" ? 0.4 : Infinity,
+      minPolarAngle: v === "frente" ? THREE.MathUtils.degToRad(45) : 0,
+      maxPolarAngle: v === "frente" ? THREE.MathUtils.degToRad(84) : Math.PI / 2 - 0.02,
+    });
+    this._vista = v; this._lejosUsado = this._lejos();
+    this.camera.position.copy(desde);
+    c.target.copy(centro);
+    c.update(); this.sucio = true;
+  }
+
+  // Deja solo la base, la cama y la fresa (on) o todo (off). El aro de contacto lo maneja contacto().
+  _limpio(on) {
+    for (const o of this._fijo.children) if (!o.userData.base) o.visible = !on;
+    for (const o of this.carroX.children) if (o !== this.husillo) o.visible = !on;
+    for (const o of this.husillo.children) if (!o.userData.fresa && o !== this.aro) o.visible = !on;
+    this.sucio = true;
+  }
+
+  // Si cambia el trabajo, el material o dónde está el cero, Arriba y Frente se vuelven a encuadrar
+  _reenfocar() {
+    if (!this._foco || this._reenfoque) return;
+    this._reenfoque = requestAnimationFrame(() => { this._reenfoque = 0; if (this._foco) this.vista(this._vista); });
+  }
+
+  // Al cambiar el tamaño del visor, Arriba y Frente se encuadran de nuevo (dependen de la proporción)
+  _tam() {
+    super._tam();
+    if (this._foco) this._reenfocar();
+  }
+
+  // Desplazarse en Arriba y Frente: el punto al que se mira no sale de la zona del trabajo
+  _acotar() {
+    const f = this._foco; if (!f) return;
+    const c = this.controls.target, q = c.clone().clamp(f.limite.min, f.limite.max);
+    if (q.equals(c)) return;
+    const d = q.sub(c);
+    c.add(d); this.camera.position.add(d);
   }
 
   // Encuadra la cama sobre el trabajo cargado

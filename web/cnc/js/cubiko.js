@@ -77,6 +77,8 @@ export function construirCubiko({ cx, zCama, sombra = true }) {
   for (const dx of [-42, 42]) caja(16, 1, 164, M.negro, cx + dx, yCubierta + 0.4, Z_FRESA, fijo);   // sus carros van de Z_FRESA−77 a +77
   // Franja LED (estado) y control con pantalla
   const luz = caja(72, 5, 1.2, new THREE.MeshBasicMaterial({ color: COL.ledApagado }), cx - 72, yPiso + 14, zFrente + 0.4, fijo);   // cx−108…cx−36, dentro del chaflán (cx−114)
+  // Hasta aquí, la base: en las vistas Arriba y Frente es lo único de la parte fija que sigue visible
+  for (const o of fijo.children) o.userData.base = true;
   const control = new THREE.Group(); fijo.add(control);
   redondeada(124, 48, 12, 7, M.control, control);
   const pantallaCv = document.createElement("canvas"); pantallaCv.width = 256; pantallaCv.height = 160;
@@ -170,6 +172,7 @@ export function construirCubiko({ cx, zCama, sombra = true }) {
   const fresa = cil(1.6, 18, M.acero, husillo, "y", 16); fresa.position.set(0, 9 + 3, zH);
   const punta = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3, 16), mat(0xd9a441, { metalness: 0.8, roughness: 0.3 }));
   punta.rotation.x = Math.PI; punta.position.set(0, 1.5, zH); husillo.add(punta);
+  fresa.userData.fresa = punta.userData.fresa = true;    // lo único del husillo que queda en Arriba y Frente
   const tuerca = cil(9.5, 9, M.acero, husillo, "y", 12); tuerca.position.set(0, 17.5, zH);
   const nariz = cil(13, 12, mat(0x3a3e44, { metalness: 0.5, roughness: 0.4 }), husillo, "y", 32); nariz.position.set(0, 28, zH);
   const cuerpo = redondeada(52, 58, 52, 10, M.husillo, husillo); cuerpo.position.set(0, 34 + 29, zH + 2);
