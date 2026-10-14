@@ -65,6 +65,13 @@
 .dib .cota.hl line, .dib .cota.hl polyline, .dib .cota.hl path { stroke: var(--d-actual); stroke-width: 2.4; }
 .dib .cota.hl text { fill: var(--text); font-weight: 800; }
 .dib [data-k].hl .m-acero, .dib .m-acero.hl { stroke: var(--d-actual); stroke-width: 2; }
+/* Fuera de rango: el campo, su cota y el aviso en el rojo de «no cabe» (no se genera así) */
+.dib .cota.es-fuera line, .dib .cota.es-fuera polyline { stroke: var(--m-fuera); stroke-width: 2.4; }
+.dib .cota.es-fuera text { fill: var(--m-fuera); font-weight: 800; }
+.campo.es-fuera input { box-shadow: inset 0 0 0 2px var(--m-fuera); }
+.campo.es-fuera > span:first-child { color: var(--m-fuera); }
+.aviso--fuera { background: color-mix(in srgb, var(--m-fuera) 9%, var(--tarjeta)); }
+.aviso--fuera .ico { color: var(--m-fuera); }
 .dib__escala line { stroke: var(--text-secondary); stroke-width: 1; }
 .dib .dib__rot, .dib .dib__num { font-size: 10px; }
 .dib .dib__rot--claro { fill: var(--technical-white); }

@@ -105,6 +105,50 @@ export const NOTAS = {
   },
 };
 
+// ---------------- Rangos seguros ----------------
+// Fuera de estos valores la app no genera (salvo que en Avanzado se acepte a propósito): es lo que
+// rompe fresas, raya el MDF de más o se come las pistas. g → k → (valor, grupo, grosor) → aviso o null.
+const fuera = (v, a, b, txt) => (v < a - 1e-9 || v > b + 1e-9 ? txt : null);
+export const RANGO = {
+  pistas: {
+    prof: (v, Q) => v > 0.2 ? `${n(v)} mm es demasiado: el surco mide ${n(anchoV({ ...Q, prof: v }))} mm y se come las pistas. Usa 0.05 a 0.2 mm.`
+      : fuera(v, 0.03, 0.2, `Con ${n(v)} mm la punta apenas raya y deja cobre. Usa 0.05 a 0.2 mm.`),
+    pasadas: (v) => fuera(v, 1, 6, "Usa de 1 a 6 pasadas."),
+    punta: (v) => fuera(v, 0.05, 0.5, "La punta de una fresa en V mide de 0.05 a 0.5 mm."),
+    angulo: (v) => fuera(v, 10, 90, "El ángulo de una fresa en V va de 10° a 90°."),
+    f: (v) => fuera(v, 30, 600, "Avance seguro: 30 a 600 mm/min."),
+    fz: (v) => fuera(v, 10, 300, "Bajada segura: 10 a 300 mm/min."),
+  },
+  hoyos: {
+    prof: (v, Q, g) => fuera(v, g + 0.05, g + 0.8, v > g + 0.8 ? `Entra ${n(v - g)} mm en el MDF: con ${n(g + 0.2)} mm basta.` : null),
+    fz: (v) => fuera(v, 10, 200, "Bajada segura: 10 a 200 mm/min."),
+  },
+  contorno: {
+    prof: (v, Q, g) => fuera(v, g, g + 0.8, v > g + 0.8 ? `Entra ${n(v - g)} mm en el MDF: con ${n(g + 0.25)} mm basta.` : null),
+    pasadas: (v, Q) => Q.prof / v > 0.8 + 1e-9 ? `Cada bajada sería de ${n(Q.prof / v)} mm y fuerza la fresa: usa ${Math.ceil(Q.prof / 0.5)} pasadas o más.` : fuera(v, 1, 30, "Usa de 1 a 30 pasadas."),
+    diam: (v) => fuera(v, 0.5, 3.175, "La fresa de maíz va de 0.5 a 3.175 mm."),
+    f: (v) => fuera(v, 30, 800, "Avance seguro: 30 a 800 mm/min."),
+    fz: (v) => fuera(v, 10, 300, "Bajada segura: 10 a 300 mm/min."),
+  },
+  grabado: {
+    prof: (v) => fuera(v, 0.02, 1, "Usa 0.02 a 1 mm."),
+    f: (v) => fuera(v, 30, 800, "Avance seguro: 30 a 800 mm/min."),
+  },
+  vaciado: {
+    pasadas: (v, Q) => (Q.prof / v > 1 + 1e-9 ? `Cada bajada sería de ${n(Q.prof / v)} mm: usa ${Math.ceil(Q.prof)} pasadas o más.` : null),
+    f: (v) => fuera(v, 30, 800, "Avance seguro: 30 a 800 mm/min."),
+  },
+  comun: {
+    zSeguro: (v) => fuera(v, 1, 15, "Z seguro: de 1 a 15 mm sobre la placa."),
+  },
+};
+// Los avisos de un grupo: { clave: texto }
+export function revisarRango(g, Q, grosor) {
+  const r = {};
+  for (const [k, f] of Object.entries(RANGO[g] || {})) { const t = isFinite(Q[k]) ? f(Q[k], Q, grosor) : null; if (t) r[k] = t; }
+  return r;
+}
+
 // Brocas para PCB que se consiguen (mm); 3.175 = 1/8"
 export const BROCAS = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.8, 2, 2.5, 3, 3.175];
 
@@ -199,9 +243,9 @@ function cortePistas(P, grabado = false) {
   return svg(W, H, `De lado: la punta en V ${grabado ? "graba" : "entra"} ${n(P.prof)} mm y corta ${n(P.diam)} mm de ancho`, `
     ${L.svg}${fresa}
     ${grabado ? "" : rotulo(8, ySup - 6, "pista")}${rotulo(8, ySup + 30, MAT, "dib__rot--claro")}
-    ${cotaH(cx - ancho / 2, cx + ancho / 2, ySup - 16, `${n(P.diam)} mm`, "diam")}
-    ${prof > 0.004 ? cotaV(xd, ySup, yTip, `${n(P.prof)} mm`, "prof") : ""}
-    ${flecha(cx - 52, 8, cx - 52, 36, `${P.fz} mm/min`, "fz", "end")}
+    ${cotaH(cx - ancho / 2, cx + ancho / 2, ySup - 16, `Corte ${n(P.diam)} mm`, "diam")}
+    ${prof > 0.004 ? cotaV(xd, ySup, yTip, `Profundidad ${n(P.prof)} mm`, "prof") : ""}
+    ${flecha(cx - 52, 8, cx - 52, 36, `Bajada ${P.fz} mm/min`, "fz", "end")}
     ${escala(W - 112, H - 10, 100, "0.5 mm")}`);
 }
 // De arriba: la pista y las pasadas, cada una más afuera; lo encimado se ve más oscuro
@@ -210,14 +254,14 @@ function pasadasPistas(P) {
   const nP = Math.min(8, Math.max(1, P.pasadas | 0)), paso = P.diam * (1 - P.traslape), ais = anchoAislado({ ...P, pasadas: nP });
   const k = Math.min(150, (W - xP - 40) / Math.max(ais, 0.1));     // fijo mientras quepa: si la fresa crece, se ve crecer
   const cortes = Array.from({ length: nP }, (_, i) => `<rect x="${xP + i * paso * k}" y="${y0}" width="${P.diam * k}" height="${y1 - y0}" class="m-surco"/>`).join("");
-  const enc = nP > 1 && P.traslape > 0 ? cotaH(xP + paso * k, xP + P.diam * k, y0 - 10, `${Math.round(P.traslape * 100)} %`, "traslape") : "";
+  const enc = nP > 1 && P.traslape > 0 ? cotaH(xP + paso * k, xP + P.diam * k, y0 - 10, `Traslape ${Math.round(P.traslape * 100)} %`, "traslape") : "";
   return svg(W, H, `De arriba: ${nP} pasadas junto a la pista, aíslan ${n(ais)} mm`, `
     <rect x="0" y="${y0}" width="${W}" height="${y1 - y0}" class="m-cobre"/>
     <rect x="0" y="${y0}" width="${xP}" height="${y1 - y0}" class="m-pista"/>
     ${cortes}
     ${rotulo(10, (y0 + y1) / 2 + 4, "pista")}
     ${enc}
-    ${flecha(xP + (P.diam * k) / 2, y1 - 8, xP + (P.diam * k) / 2, y0 + 10, `${P.f} mm/min`, "f")}
+    ${flecha(xP + (P.diam * k) / 2, y1 - 8, xP + (P.diam * k) / 2, y0 + 10, `Avance ${P.f} mm/min`, "f")}
     ${cotaH(xP, xP + ais * k, y1 + 12, `${nP} ${nP > 1 ? "pasadas" : "pasada"} · aísla ${n(ais)} mm`, "pasadas", true)}`);
 }
 
@@ -239,9 +283,9 @@ export function dibujosHoyos(P, grosor) {
   return conSilueta("broca", svg(W, H, `De lado: broca de ${n(d)} mm que baja ${n(P.prof)} mm en una placa de ${n(grosor)} mm`, `
     ${L.svg}${broca}
     ${rotulo(8, ySup + 26, `${MAT} ${n(grosor)} mm`, "dib__rot--claro")}${L.yBot + 18 < H ? rotulo(8, L.yBot + 18, "MDF") : ""}
-    ${cotaH(cx - w / 2, cx + w / 2, 16, `Ø ${n(d)} mm`, "broca")}
-    ${cotaV(xd, ySup, yTip, `${n(P.prof)} mm`, "prof")}
-    ${flecha(cx - w / 2 - 36, 4, cx - w / 2 - 36, 30, `${P.fz} mm/min`, "fz", "end")}
+    ${cotaH(cx - w / 2, cx + w / 2, 16, `Broca Ø ${n(d)} mm`, "broca")}
+    ${cotaV(xd, ySup, yTip, `Profundidad ${n(P.prof)} mm`, "prof")}
+    ${flecha(cx - w / 2 - 36, 4, cx - w / 2 - 36, 30, `Bajada ${P.fz} mm/min`, "fz", "end")}
     ${escala(14, H - 8, k, "1 mm")}`));
 }
 // Atraviesa si la punta sale por abajo (la salida es algo más chica que la broca, como en los .nc que ya funcionan)
@@ -275,8 +319,8 @@ function corteContorno(P, grosor) {
   return svg(W, H, `De lado: fresa de ${n(P.diam)} mm, ${nP} bajadas hasta ${n(P.prof)} mm`, `
     ${L.svg}${fresa}<g class="cota" data-k="pasadas">${niveles}</g>
     ${rotulo(8, ySup + 26, MAT, "dib__rot--claro")}${L.yBot + 18 < H ? rotulo(8, L.yBot + 18, "MDF") : ""}
-    ${cotaH(cx - w / 2, cx + w / 2, 16, `Ø ${n(P.diam)} mm`, "diam")}
-    ${cotaV(cx + w / 2 + 16, ySup, yTip, `${n(P.prof)} mm`, "prof")}
+    ${cotaH(cx - w / 2, cx + w / 2, 16, `Fresa Ø ${n(P.diam)} mm`, "diam")}
+    ${cotaV(cx + w / 2 + 16, ySup, yTip, `Profundidad ${n(P.prof)} mm`, "prof")}
     ${escala(W - 70, H - 8, k, "1 mm")}`);
 }
 // Izquierda, la placa desde arriba con sus puentes repartidos; derecha, uno de cerca a lo largo del
@@ -333,7 +377,7 @@ export function dibujosVaciado(P, grosor, diam) {
     <g class="cota" data-k="pasadas">${niveles}</g>
     <rect class="m-acero" x="${x1 - w}" y="0" width="${w}" height="${yFin}" rx="1.5"/>
     ${rotulo(8, Math.max(yFin, ySup + 12) + 16, MAT, "dib__rot--claro")}${atraviesa || L.yBot + 18 >= H ? "" : rotulo(8, L.yBot + 18, "MDF")}
-    ${cotaV(x0 + 12, ySup, yFin, `${n(P.prof)} mm`, "prof")}
+    ${cotaV(x0 + 12, ySup, yFin, `Profundidad ${n(P.prof)} mm`, "prof")}
     <g class="cota" data-k="traslape">${eti((x0 + x1 - w) / 2 + 30, ySup - 12, "del centro a la pared")}</g>
     ${escala(W - 70, H - 8, k, "1 mm")}`));
 }

@@ -10,7 +10,7 @@ import { esc, ico, mm, ls, miniJog, descargar, dialogo } from "./ui.js";
 import { aPNG, vista } from "./raster.js";
 import { anchoV, igualHerr } from "./cam.js";
 import { MATERIALES } from "./materiales.js";
-import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, resumen, atraviesa, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun, dibujosGrabado, dibujosVaciado } from "./herramientas.js";
+import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, resumen, atraviesa, revisarRango, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun, dibujosGrabado, dibujosVaciado } from "./herramientas.js";
 
 const chev = ico("chev");
 const masc = (app, k) => `<img class="w-masc" src="${app.MASC[k]}" alt="" onerror="this.remove()">`;
@@ -320,6 +320,7 @@ function placa(pag, app) {
   const cam = S.trabajos.filter((t) => t.origen === "cam");
   const nc = S.trabajos.filter((t) => t.origen === "nc");
   const GRUPOS = acc.gruposActivos();
+  const fuera = acc.paramsFuera(), cambiados = acc.paramsCambiados().length;
   const aviso = (t) => `<div class="aviso">${ico("alerta")}<span>${esc(t)}</span></div>`;
   pag.innerHTML = `${cab2("Inicio", pcb ? pcb.nombre : "PCB")}
     ${!S.archivos.length ? `<section class="w con-masc" aria-labelledby="p-arch">
@@ -339,8 +340,10 @@ function placa(pag, app) {
     ${materialHTML(app)}
     <button type="button" class="w" data-tour="config" data-ir="config">
       <span class="w-cab"><span>Configuración</span>${chev}</span>
+      <span class="w-texto">${fuera.length ? `${fuera.length} ${fuera.length === 1 ? "valor fuera" : "valores fuera"} de rango` : cambiados ? `Cambiaste ${cambiados} ${cambiados === 1 ? "valor" : "valores"}` : "Valores de la Cubiko"}</span>
       <span class="mini-herr">${GRUPOS.map((g) => `<span><span class="cuad" style="background:${HERRAMIENTAS[g].color}"></span>${HERRAMIENTAS[g].t}<b>${resumen(g, P[g])}</b></span>`).join("")}</span>
     </button>
+    ${fuera.length && !S.permitirFuera ? aviso("Corrige la configuración para poder generar.") : ""}
     ${pcb ? `<button type="button" class="btn-pill btn-pill--main btn-pill--ancho" data-acc="generar" ${S.generando ? "disabled" : ""}>${S.generando ? "Calculando…" : cam.length ? "Volver a generar" : "Generar trayectorias"}</button>
     <span class="w-sub" role="status" style="text-align:center">${S.ultimaGen && cam.length ? `Listo en ${S.ultimaGen.toFixed(1)} s` : ""}</span>
     ${previaHTML(app)}
@@ -483,6 +486,7 @@ function materialHTML(app) {
       ${medida("grosor", "Z", "Grosor", 0.1)}
       ${medida("ancho", "X", "Ancho").replace("<label ", `<label style="margin-left:${Math.max(0, dib.cx - 46).toFixed(0)}px" `)}
     </div>
+    <span class="w-sub">Mide el grosor con vernier${acc.mat().conduce ? ", con el cobre" : ""}: de él sale cuánto bajan los hoyos y el contorno.</span>
     ${estado}
     ${area ? `<div class="aviso">${ico("alerta")}<span>Más grande que el área de la Cubiko (145 × 110 mm).</span></div>` : ""}
     ${d ? `<div class="campos campos--2">${offset("x", "Offset izquierdo")}${offset("y", "Offset inferior")}</div>` : ""}
@@ -584,25 +588,39 @@ function config(pag, app) {
     if (g === "vaciado") return Q.prof >= grosor ? aviso(`Con ${+(+Q.prof).toFixed(2)} mm atraviesa el material de ${grosor} mm.`) : "";
     return "";
   };
+  // Fuera de rango: el aviso y el campo en rojo (no se genera hasta corregirlo)
+  const malos = (g, Q) => revisarRango(g, Q, grosor);
+  const extraTodo = (g, Q) => extra(g, Q) + Object.values(malos(g, Q)).map((t) => `<div class="aviso aviso--fuera">${ico("alerta")}<span>${esc(t)}</span></div>`).join("");
+  const avanzado = ls.get("configAvanzado", false);
   const seccion = (g) => {
     const H = HERRAMIENTAS[g];
     return `<section class="w herr" data-herr="${g}" data-tour="herr-${g}" aria-labelledby="h-${g}">
       <span class="w-cab"><span id="h-${g}" class="herr__t"><span class="cuad" style="background:${H.color}"></span>${H.t}</span><span class="desp__resumen" data-res>${resumen(g, P[g])}</span></span>
       <div class="herr__dib" data-dib>${dib(g, P[g])}</div>
-      <div class="pila-s" data-extra>${extra(g, P[g])}</div>
-      ${g === "hoyos" ? rango() : ""}
+      <div class="pila-s" data-extra>${extraTodo(g, P[g])}</div>
+      ${avanzado ? `${g === "hoyos" ? rango() : ""}
       <div class="campos">${CAMPOS[g].map((c) => campo(g, c)).join("")}</div>
-      ${g === "comun" ? `<label class="check"><input type="checkbox" data-p="comun.climb" ${P.comun.climb ? "checked" : ""} aria-describedby="n-comun-climb"> Fresado en concordancia${desc("comun", "climb")}</label>` : ""}
+      ${g === "comun" ? `<label class="check"><input type="checkbox" data-p="comun.climb" ${P.comun.climb ? "checked" : ""} aria-describedby="n-comun-climb"> Fresado en concordancia${desc("comun", "climb")}</label>` : ""}` : ""}
     </section>`;
   };
   const cam = S.trabajos.some((t) => t.origen === "cam");
+  const nFuera = acc.paramsFuera().length;
   pag.innerHTML = `${cab2(queEs(S), "Configuración")}
+    <div class="seg seg--ancho" role="radiogroup" aria-label="Qué se ve" data-tour="modo-config">
+      <button type="button" role="radio" data-modo-config="0" aria-checked="${!avanzado}">Básico</button>
+      <button type="button" role="radio" data-modo-config="1" aria-checked="${avanzado}">Avanzado</button>
+    </div>
+    <span class="w-sub" style="text-align:center">${avanzado ? "Los valores por defecto ya funcionan en la Cubiko. Cambia solo si sabes por qué." : "Así corta cada herramienta. Los valores ya funcionan en la Cubiko."}</span>
     ${[...GRUPOS, "comun"].map(seccion).join("")}
+    ${avanzado && nFuera ? `<label class="check" style="align-self:center"><input type="checkbox" data-permitir ${S.permitirFuera ? "checked" : ""}> Generar con valores fuera de rango</label>` : ""}
     <button type="button" class="btn-texto" data-acc="defecto" style="align-self:center">Valores por defecto</button>
     ${previaHTML(app)}
     ${S.pcb ? `<button type="button" class="btn-pill btn-pill--main btn-pill--ancho" data-acc="generar" ${S.generando ? "disabled" : ""}>${S.generando ? "Calculando…" : cam ? "Volver a generar" : "Generar trayectorias"}</button>` : ""}`;
   cablear(pag, { __irA: app.irA, generar: acc.generar, defecto: acc.paramsPorDefecto });
   pag.querySelector("[data-atras]").onclick = app.regresar;
+  pag.querySelectorAll("[data-modo-config]").forEach((b) => (b.onclick = () => { ls.set("configAvanzado", b.dataset.modoConfig === "1"); app.refrescar(); }));
+  const perm = pag.querySelector("[data-permitir]");
+  if (perm) perm.onchange = () => acc.ponerPermitirFuera(perm.checked);
   pintarPrevia(pag, app);
   tip.fuera();
   pag.addEventListener("wheel", tip.fuera, { passive: true });
@@ -623,11 +641,18 @@ function config(pag, app) {
     const repintar = () => {
       const Q = leer();
       sec.querySelector("[data-dib]").innerHTML = dib(g, Q);
-      sec.querySelector("[data-extra]").innerHTML = extra(g, Q);
+      sec.querySelector("[data-extra]").innerHTML = extraTodo(g, Q);
       sec.querySelector("[data-res]").textContent = resumen(g, Q);
+      marcar(Q);
       resaltar(sec, enfocado());
       return Q;
     };
+    const marcar = (Q) => {
+      const m = malos(g, Q);
+      sec.querySelectorAll("[data-p]").forEach((i) => { const k = i.dataset.p.split(".")[1]; i.toggleAttribute("aria-invalid", !!m[k]); i.closest("label")?.classList.toggle("es-fuera", !!m[k]); });
+      sec.querySelectorAll("svg [data-k]").forEach((e) => e.classList.toggle("es-fuera", !!m[e.dataset.k]));
+    };
+    marcar(P[g]);
     sec.querySelectorAll("[data-p]").forEach((inp) => {
       const k = inp.dataset.p.split(".")[1], lbl = inp.closest("label");
       inp.addEventListener("focus", () => { resaltar(sec, k); if (sinMouse() && NOTAS[g][k]) tip.en(NOTAS[g][k], lbl); });
@@ -637,7 +662,15 @@ function config(pag, app) {
       lbl.addEventListener("mouseleave", () => { tip.fuera(); resaltar(sec, enfocado()); });
       lbl.addEventListener("mousedown", tip.fuera);
       inp.addEventListener("input", repintar);
-      inp.addEventListener("change", () => { const Q = repintar(); if (Q[k] !== undefined && (typeof Q[k] === "boolean" || isFinite(Q[k]))) acc.ponerParam(g, k, Q[k]); });
+      inp.addEventListener("change", () => {
+        // Lo imposible no se acepta: bajo el mínimo del campo, o pasadas y puentes con decimales
+        if (inp.type === "number" && inp.value !== "") {
+          let v = +inp.value;
+          if (inp.min !== "" && v < +inp.min) v = +inp.min;
+          if (["pasadas", "puentes"].includes(k)) v = Math.round(v);
+          if (v !== +inp.value) inp.value = v;
+        }
+        const Q = repintar(); if (Q[k] !== undefined && (typeof Q[k] === "boolean" || isFinite(Q[k]))) acc.ponerParam(g, k, Q[k]); });
     });
   });
 }

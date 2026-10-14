@@ -22,7 +22,7 @@ import { leerDXF } from "./dxf.js";
 import { leerSVG } from "./svg.js";
 import { diseno, cajaDe } from "./vector.js";
 import { MATERIALES, material, derivar } from "./materiales.js";
-import { ponerMatDibujo } from "./herramientas.js";
+import { ponerMatDibujo, revisarRango, HERRAMIENTAS } from "./herramientas.js";
 import { marco, imagenes, dibujoVector } from "./raster.js";
 import * as cam from "./cam.js";
 import { $, $$, esc, ico, mm, ls, descargar, asistente, confirmar, miniJog, hoja, hojaAbierta, cerrarHojaSuperior, dialogoAbierto, cerrarDialogoSuperior, anunciar } from "./ui.js";
@@ -403,8 +403,29 @@ async function cargarEjemplo() {
   if (files.length) await abrirArchivos(files);
 }
 
+// Valores fuera de rango en lo que se va a generar: [{ g, k, t }]
+function paramsFuera() {
+  return [...gruposActivos(), "comun"].flatMap((g) => Object.entries(revisarRango(g, S.params[g], S.material.grosor)).map(([k, t]) => ({ g, k, t })));
+}
+// Lo que se cambió respecto a los valores de la Cubiko para este material
+function paramsCambiados() {
+  const D = derivar(structuredClone(cam.DEF), S.material.grosor, S.material.tipo, true);
+  return [...gruposActivos(), "comun"].flatMap((g) => Object.keys(D[g]).filter((k) => k !== "diam" || g !== "pistas").filter((k) => Math.abs(+S.params[g][k] - +D[g][k]) > 1e-6 || (typeof D[g][k] === "boolean" && S.params[g][k] !== D[g][k])).map((k) => ({ g, k })));
+}
+// La profundidad de un trabajo dicha como se entiende: cuánto entra y si atraviesa
+function profEnPalabras(z) {
+  const d = Math.max(0, -z), g = S.material.grosor;
+  if (d > g + 0.01) return `Atraviesa los ${mm(g, 1)} mm y entra ${mm(d - g, 2)} mm en el MDF`;
+  return `Entra ${mm(d, 2)} mm ${mat().conduce ? "bajo el cobre" : "en el material"}`;
+}
+
 async function generar() {
   if (!S.pcb || S.generando) return;
+  const malos = S.permitirFuera ? [] : paramsFuera();
+  if (malos.length) {
+    if (await confirmar({ titulo: "Revisa la configuración", html: `<ul class="pila-s">${malos.map((m) => `<li><b>${esc(HERRAMIENTAS[m.g].t)}</b> · ${esc(m.t)}</li>`).join("")}</ul>`, si: "Ir a Configuración", no: "Cerrar" })) irA("config");
+    return;
+  }
   S.generando = true; refrescar();
   await new Promise((r) => setTimeout(r, 40));
   const t0 = performance.now();
@@ -882,7 +903,7 @@ function abrirTrabajo(t) {
         </div>
         <div class="filas">
           <div class="fila"><span></span><span class="fila__nom">Líneas</span><span class="fila__val">${t.lineas.length}</span><span></span></div>
-          <div class="fila"><span></span><span class="fila__nom">Profundidad máxima</span><span class="fila__val">${mm(t.prev.caja.min.z, 2)} mm</span><span></span></div>
+          <div class="fila"><span></span><span class="fila__nom">Profundidad</span><span class="fila__val">${profEnPalabras(t.prev.caja.min.z)}</span><span></span></div>
         </div>
         <label class="campo" style="max-width:220px"><span>Prueba en aire: subir mm</span><input type="number" min="1" step="1" value="${S.dzAire}" data-dz></label>
         <div class="hoja__pie">
@@ -930,7 +951,7 @@ async function correrTrabajo(t, { aire }) {
   const html = aire
     ? `<p>El trabajo completo con la fresa ${S.dzAire} mm más arriba.</p>${otraZ ? `<div class="aviso">${ico("alerta")}<span>Z0 se calibró con ${esc(S.herramientaZ)}. Si pusiste otra fresa, calíbrala antes: la altura puede no coincidir.</span></div>` : ""}`
     : `<div class="pila-s">${[`Puesta: ${esc(t.herramienta)}`, mat().conduce ? "Placa pegada, MDF debajo" : "Material sujeto, MDF debajo", "Caimán quitado", "Gafas y tapa"].map((x, i) => `<label class="check"><input type="checkbox" data-chk ${i ? "" : "data-foco"}> ${x}</label>`).join("")}</div>
-       <p class="mono muted">${formatoTiempo(t.prev.tiempo)} · Z mín. ${mm(c.min.z, 2)} mm</p>
+       <p class="muted">${formatoTiempo(t.prev.tiempo)} · ${profEnPalabras(c.min.z)}</p>
        ${holgura()?.cabe === false ? `<div class="aviso">${ico("alerta")}<span>El corte se sale del material. Revísalo en Placa → Material.</span></div>` : ""}`;
   if (!(await confirmar({ titulo: aire ? `Prueba en aire · ${t.nombre}` : `Fresar ${t.nombre}`, html, si: aire ? "Probar" : "Fresar" }))) return;
   const lineas = transformar(t.lineas, { alinear: S.alinear, alturas: S.usarMapa && S.mapa?.completo && mat().conduce ? S.mapa : null, dz: aire ? S.dzAire : 0 });
@@ -1046,6 +1067,7 @@ const app = {
     conectar, cambiarModo, homing, desbloquear, paro, ponerEstilo,
     jog, ponerPasoJog, fijarXY, irACero, subirZ, recorrerArea,
     elegirArchivos, quitarArchivo, cargarEjemplo, generar, ponerParam, paramsPorDefecto, descargarTrabajo, nuevaPlaca,
+    paramsFuera, paramsCambiados, ponerPermitirFuera: (v) => { S.permitirFuera = v; refrescar(); },
     ponerMaterial, ponerTipoMaterial, mat, centrarDiseno, girarMaterial, girarPieza, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
     hoyosDiseno, gruposActivos, terminado,
     asistenteZ, asistenteZManual, asistenteAlinear, quitarAlineacion: () => { S.alinear = null; previsualizar(); refrescar(); },
