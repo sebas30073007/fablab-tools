@@ -11,8 +11,9 @@
 import "../../shared/js/iconos.js";
 import { crearNavegacion } from "../../shared/js/navegacion.js";
 import { Grbl } from "./grbl.js";
-import { SUPERFICIE } from "./grbl-sim.js";
-import { Visor, COLOR_TRABAJO, AREA } from "./visor.js";
+import { SUPERFICIE, superficieSim } from "./grbl-sim.js";
+import { Visor, COLOR_TRABAJO, AREA, ACABADO } from "./visor.js";
+import { previa } from "./previa.js";
 import { ALARMAS, ERRORES } from "./alarmas.js";
 import { leer, transformar, alineacion, formatoTiempo, tiempoAcumulado } from "./gcode.js";
 import { MapaAlturas } from "./alturas.js";
@@ -26,6 +27,7 @@ import { marco, imagenes, dibujoVector } from "./raster.js";
 import * as cam from "./cam.js";
 import { $, $$, esc, ico, mm, ls, descargar, asistente, confirmar, miniJog, hoja, hojaAbierta, cerrarHojaSuperior, dialogoAbierto, cerrarDialogoSuperior, anunciar } from "./ui.js";
 import { abrirTutorial, recorrido } from "./tutorial.js";
+import { abrirExamen } from "./examen.js";
 import { VISTAS, ahora } from "./vistas.js";
 
 const grbl = new Grbl();
@@ -41,6 +43,9 @@ const S = {
   pcb: null,             // {cobre, contorno, hoyos, job, marco, imgs, miniatura, nombre}; un dibujo DXF/SVG: vector, grabado, vaciado, linea, circulos, avisos
   avisosGen: [],         // lo que avisó la última generación de trayectorias
   giroPieza: 0,          // grados (0, 90, 180, 270) que se gira un dibujo DXF/SVG
+  sinMapa: false,        // se eligió fresar las pistas sin mapa de alturas
+  verMalla: false,       // el mapa de alturas en el 3D (mientras se mide siempre se ve)
+  paramsGen: null,       // los valores con que se generaron las trayectorias (la vista previa avisa si cambiaron)
   params: conPistasV(structuredClone(ls.get("params", null) || cam.DEF)),
   material: null,        // {tipo, ancho, alto, grosor, x, y}: el material virgen y dónde va el diseño dentro de él
   trabajos: [],          // {id, origen, nombre, herramienta, lineas, prev, estado}
@@ -212,7 +217,7 @@ async function abrirArchivos(files) {
   for (const f of files) {
     const texto = await f.text();
     const tipo = clasificar(f.name, texto);
-    if (tipo === "map") { S.mapa = MapaAlturas.deMap(texto); visor.ponerMalla(S.mapa); log(`Mapa de alturas: ${f.name}`, "sys"); continue; }
+    if (tipo === "map") { S.mapa = MapaAlturas.deMap(texto); visor.ponerMalla(S.verMalla ? S.mapa : null); log(`Mapa de alturas: ${f.name}`, "sys"); continue; }
     S.archivos = S.archivos.filter((a) => a.nombre !== f.name);
     S.archivos.push({ nombre: f.name, tipo, texto });
   }
@@ -379,6 +384,7 @@ async function generar() {
     t.prev = leer(t.lineas.join("\n")); t.estado = "pendiente";
   }
   S.trabajos = [...nuevos, ...S.trabajos.filter((t) => t.origen !== "cam")];
+  S.paramsGen = JSON.stringify(S.params);
   S.generando = false;
   S.ultimaGen = (performance.now() - t0) / 1000;
   previsualizar();
@@ -397,7 +403,44 @@ function ponerParam(g, k, v) { S.params[g][k] = v; conPistasV(S.params); ls.set(
 // Los de siempre, ajustados al material elegido (con placa de cobre son exactamente cam.DEF)
 function paramsPorDefecto() { S.params = derivar(structuredClone(cam.DEF), S.material.grosor, S.material.tipo, true); ls.set("params", S.params); refrescar(); }
 
+// ======================================================================
+// La superficie real del material. El cobre nunca está del todo plano: con el mapa de alturas (o con la
+// superficie de la simulación) se sabe dónde la fresa entra más o menos de lo que dice el G-code.
+// ======================================================================
+// Para el 3D, en coordenadas de máquina del gemelo: dónde está la superficie (null = plana en Z0)
+visor.superficie = (x, y) => {
+  if (grbl.sim) return superficieSim(x, y);
+  if (S.mapa?.completo && mat().conduce) { const w = aGemelo(grbl.est.wco); return w.z + S.mapa.z(x - w.x, y - w.y); }
+  return null;
+};
+// Para la vista previa, en mm de trabajo y respecto a Z0. Con el mapa aplicado la fresa sigue la superficie: plana.
+function superficiePrevia() {
+  if (S.usarMapa && S.mapa?.completo && mat().conduce) return { fn: null, fuente: "Con el mapa de alturas aplicado: la fresa sigue la superficie" };
+  if (S.mapa?.completo && mat().conduce) return { fn: (x, y) => S.mapa.z(x, y), fuente: "Con el mapa medido, sin aplicar: así cortaría" };
+  if (grbl.sim && S.zListo) { const w = grbl.est.wco; return { fn: (x, y) => superficieSim(x + w.x, y + w.y) - w.z, fuente: "Sobre la superficie de la simulación, que no es plana" }; }
+  return { fn: null, fuente: S.zListo || !mat().conduce ? "Superficie supuesta plana (sin mapa de alturas)" : "Superficie supuesta plana: calibra Z y mide el mapa para verla real" };
+}
+let cachePrevia = null, genId = 0;
+function vistaPrevia() {
+  if (!S.trabajos.some((t) => t.estado !== "omitido")) return null;
+  const sup = superficiePrevia();
+  const clave = [genId, S.trabajos.map((t) => t.id + t.estado).join(), JSON.stringify(S.params), JSON.stringify(S.material), sup.fuente, grbl.sim && S.zListo ? JSON.stringify(grbl.est.wco) : ""].join("|");
+  if (cachePrevia?.clave === clave) return cachePrevia.r;
+  const pcb = S.pcb, origen = pcb?.marco ? cam.origenDe(pcb.marco, S.material) : null;
+  const P = S.params, taladra = (d) => S.trabajos.some((t) => t.id === "hoyos" && t.estado !== "omitido") && d >= P.hoyos.min - 1e-6 && d <= P.hoyos.max + 1e-6;
+  const hoyos = origen ? hoyosDiseno().map((h) => ({ x: h.x - origen.x, y: h.y - origen.y, d: h.d, taladra: taladra(h.d) })) : [];
+  const r = previa({
+    trabajos: S.trabajos, P, M: S.material, conduce: mat().conduce, colores: ACABADO[S.material.tipo] || ACABADO.cobre,
+    altura: sup.fn, hoyos, diamDe,
+    cobreDiseno: pcb?.imgs?.pistas ? { cv: pcb.imgs.pistas, m: pcb.marco, origen } : null,
+  });
+  if (r) { r.fuente = sup.fuente; r.cambiado = !!S.paramsGen && S.trabajos.some((t) => t.origen === "cam") && S.paramsGen !== JSON.stringify(S.params); }
+  cachePrevia = { clave, r };
+  return r;
+}
+
 function previsualizar() {
+  genId++;
   // t.vista: el trabajo como lo verá la máquina (con la alineación); t.prev: en coordenadas del material
   for (const t of S.trabajos) t.vista = S.alinear ? leer(transformar(t.lineas, { alinear: S.alinear }).join("\n")) : t.prev;
   visor.ponerTrayectos(S.trabajos.map((t) => ({ id: t.id, segs: t.vista.segs, color: COLOR_TRABAJO[t.id] ?? COLOR_TRABAJO.archivo })));
@@ -418,7 +461,7 @@ function descargarTrabajo(id) {
   descargar(t.origen === "nc" ? `${t.nombre}.nc` : `${S.pcb?.nombre || "placa"}_${t.id}.nc`, t.lineas.join("\n") + "\n");
 }
 function nuevaPlaca() {
-  S.archivos = []; S.pcb = null; S.trabajos = []; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alinear = null; S.mapa = null; S.avisosGen = []; S.giroPieza = 0;
+  S.archivos = []; S.pcb = null; S.trabajos = []; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alinear = null; S.mapa = null; S.avisosGen = []; S.giroPieza = 0; S.sinMapa = false; S.paramsGen = null;
   visor.ponerMalla(null); visor.limpiarSurcos(); previsualizar(); refrescar();
 }
 
@@ -585,7 +628,7 @@ async function asistenteZ(trabajo, { cambio = false } = {}) {
       { titulo: "Quita el caimán", render(c) { c.innerHTML = mascImg("sonda"); } },
     ],
   });
-  if (ok) { S.zListo = true; S.herramientaZ = herr; visor.herramienta(diamDe(herr)); anunciar("Z0 fijado"); }
+  if (ok) { S.zListo = true; S.herramientaZ = herr; visor.herramienta(diamDe(herr)); rereferenciarMapa(); anunciar("Z0 fijado"); }
   refrescar();
   return ok;
 }
@@ -621,8 +664,25 @@ async function asistenteZManual(trabajo) {
       } },
     ],
   });
-  if (ok) { S.zListo = true; S.herramientaZ = herr; }
+  if (ok) { S.zListo = true; S.herramientaZ = herr; rereferenciarMapa(); }
   refrescar();
+}
+// Z0 nuevo (otra herramienta): el mapa se midió desde el Z0 anterior. El punto donde se volvió a calibrar
+// pasa a valer 0 y el resto conserva su desviación.
+function rereferenciarMapa() {
+  if (!S.mapa?.completo) return;
+  const w = grbl.est.wpos, d = S.mapa.z(w.x, w.y);
+  if (Math.abs(d) < 1e-4) return;
+  S.mapa.valores = S.mapa.valores.map((f) => f.map((v) => (v == null ? v : v - d)));
+  log(`Mapa de alturas: referido al Z0 nuevo (${d > 0 ? "−" : "+"}${Math.abs(d).toFixed(3)} mm).`, "sys");
+}
+// Cuántos puntos y cuánto tarda el mapa con la malla guardada (unos 6 s por punto)
+const MALLA_DEF = { paso: 10, prof: 2, f: 30 };
+function puntosMapa() {
+  const c = cajaTrabajos(), d = ls.get("alturas", MALLA_DEF);
+  if (!c) return null;
+  const n = Math.max(2, Math.ceil(c.ancho / d.paso) + 1) * Math.max(2, Math.ceil(c.alto / d.paso) + 1);
+  return { n, min: Math.max(1, Math.round((n * 6) / 60)) };
 }
 
 async function asistenteAlinear() {
@@ -722,18 +782,21 @@ async function medirAlturas(d) {
   const nx = Math.max(2, Math.ceil(c.ancho / d.paso) + 1), ny = Math.max(2, Math.ceil(c.alto / d.paso) + 1);
   const mapa = new MapaAlturas({ x: c.x, y: c.y, ancho: c.ancho, alto: c.alto, nx, ny });
   S.midiendo = { k: 0, n: nx * ny };
-  visor.ponerMalla(mapa); refrescar();
+  visor.ponerMalla(mapa); irA("inicio");
   await grbl.enviarVarias(["G21", "G90", "G0 Z2"]);
   for (const p of mapa.recorrido()) {
     await grbl.enviar(`G0 X${p.x.toFixed(3)} Y${p.y.toFixed(3)}`);
     const r = await grbl.sondear(`G38.2 Z-${d.prof} F${d.f}`);
-    if (!r) { log(`El sondeo falló en ${p.x.toFixed(1)}, ${p.y.toFixed(1)}.`, "sys err"); S.midiendo = null; refrescar(); return; }
+    if (!r) { log(`El sondeo falló en ${p.x.toFixed(1)}, ${p.y.toFixed(1)}.`, "sys err"); S.midiendo = null; visor.ponerMalla(S.verMalla ? S.mapa : null); refrescar(); return; }
     mapa.valores[p.j][p.i] = r.z - grbl.est.wco.z;
     await grbl.enviar("G0 Z2");
     S.midiendo.k++; visor.ponerMalla(mapa); nav.vivo?.();
   }
   await grbl.enviar(`G0 Z${S.params.comun.zSeguro}`);
-  S.mapa = mapa; S.midiendo = null;
+  S.mapa = mapa; S.midiendo = null; S.usarMapa = true;
+  // Ya medido, el 3D vuelve a verse limpio (se puede volver a mostrar en Origen → Mapa de alturas)
+  visor.ponerMalla(S.verMalla ? mapa : null);
+  log(`Mapa de alturas: ${mapa.nx * mapa.ny} puntos, diferencia ${(mapa.rango.max - mapa.rango.min).toFixed(3)} mm.`, "sys");
   anunciar("Mapa de alturas listo");
   refrescar();
 }
@@ -914,7 +977,11 @@ const app = {
     ponerMaterial, ponerTipoMaterial, mat, centrarDiseno, girarMaterial, girarPieza, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
     hoyosDiseno, gruposActivos, terminado,
     asistenteZ, asistenteZManual, asistenteAlinear, quitarAlineacion: () => { S.alinear = null; previsualizar(); refrescar(); },
-    medirAlturas, exportarMapa, ponerUsarMapa: (v) => { S.usarMapa = v; },
+    medirAlturas, exportarMapa, ponerUsarMapa: (v) => { S.usarMapa = v; refrescar(); },
+    medirMapa: () => medirAlturas(ls.get("alturas", MALLA_DEF)), sinMapa: () => { S.sinMapa = true; anunciar("Sin mapa de alturas"); refrescar(); },
+    ponerVerMalla: (v) => { S.verMalla = v; visor.ponerMalla(v ? S.mapa : null); }, puntosMapa,
+    vistaPrevia, abrirTutorial: () => abrirTutorial(app), abrirExamen: () => abrirExamen(app),
+    tutorialGuiado: () => recorrido.iniciar(app),
     abrirTrabajo, correrTrabajo, siguientePaso, siguienteTrabajo, mismaFresa,
     pausar: () => grbl.pausar(), reanudar: () => grbl.reanudar(),
     enviarComando, limpiarConsola: () => (consola.innerHTML = ""),

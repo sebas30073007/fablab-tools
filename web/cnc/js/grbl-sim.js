@@ -18,11 +18,13 @@ const AJUSTES = {
 const PLANIFICADOR = 15;
 const CLAVE = "fablab.cnc.sim";
 
-// Superficie del cobre en coordenadas de máquina (la placa ocupa casi toda la cama).
+// Superficie del cobre en coordenadas de máquina (la placa ocupa casi toda la cama). Como una placa real
+// pegada con cinta, no es plana: se inclina y ondula unas décimas, lo justo para que sin mapa de alturas
+// algunas pistas no se aíslen (el gemelo y la vista previa usan esta misma superficie).
 // SUPERFICIE.z sigue al grosor del material que se puso en la app (MDF de 2 mm + material).
 export const SUPERFICIE = { z: -36.4 };
 export function superficieSim(x, y) {
-  return SUPERFICIE.z + 0.0012 * (x + 72) - 0.0009 * (y + 55) + 0.03 * Math.sin(x / 17) * Math.cos(y / 23);
+  return SUPERFICIE.z + 0.0015 * (x + 72) - 0.0011 * (y + 55) + 0.05 * Math.sin(x / 17) * Math.cos(y / 23);
 }
 
 export class GrblSim {

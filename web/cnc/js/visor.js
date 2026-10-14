@@ -27,7 +27,7 @@ const C = {
 export const COLOR_TRABAJO = { pistas: 0x2563eb, hoyos: 0x00bfa6, contorno: 0x7c3aed, grabado: 0xb45309, vaciado: 0x4d7c0f, archivo: 0x2563eb };
 // Cómo se ve cada material: cuerpo, cara de arriba (lienzo del surco), brillo y el tono del fondo del surco
 // de poco a muy hondo. El cobre conserva la capa metálica y el sustrato verde de siempre.
-const ACABADO = {
+export const ACABADO = {
   cobre:    { cuerpo: 0x2f5e3a, cara: "#a8673d", lado: 0xa8673d, metal: 0.55, aspereza: 0.5, hondo: [[47, 94, 58], [30, 62, 40]] },
   acrilico: { cuerpo: 0xd5e3ea, cara: "#dde9ef", lado: 0xc9dbe4, metal: 0, aspereza: 0.18, hondo: [[188, 204, 214], [128, 146, 158]] },
   mdf:      { cuerpo: 0xa97c52, cara: "#b8895c", lado: 0xa97c52, metal: 0, aspereza: 0.92, hondo: [[150, 110, 72], [96, 66, 40]] },
@@ -201,7 +201,8 @@ export class Visor extends VisorBase {
   }
 
   // Puntos de la punta de la fresa en coordenadas de máquina (rastro del simulador o reportes de GRBL).
-  // Donde la punta está debajo de Z0, deja surco.
+  // Donde la punta está debajo de la superficie, deja surco. superficie(x, y) → Z de máquina de la cara del
+  // material (la pone la app: simulación o mapa de alturas); sin ella, la cara está en Z0.
   cortar(pts) {
     const s = this._surco;
     if (!s || !pts?.length) return;
@@ -221,7 +222,9 @@ export class Visor extends VisorBase {
       const ux = x - al.ox - al.dx, uy = y - al.oy - al.dy, c = Math.cos(al.ang), s = Math.sin(al.ang);
       x = al.ox + ux * c + uy * s; y = al.oy - ux * s + uy * c;
     }
-    return { x, y, p: o.z - p.z };
+    // Profundidad bajo la superficie real (mapa de alturas o simulación) si se conoce; si no, bajo Z0
+    const sup = this.superficie?.(p.x, p.y);
+    return { x, y, p: (sup ?? o.z) - p.z };
   }
   _rayar(a, b) {
     const s = this._surco, k = s.k;

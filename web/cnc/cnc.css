@@ -87,6 +87,18 @@
 .dib__pto { fill: var(--d-actual); }
 .dib__fantasma { fill: none; stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 4 3; }
 .chips-d { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Vista previa: la placa desde arriba como va a quedar (previa.js) */
+.previa { display: block; width: 100%; height: auto; margin-top: 8px; border-radius: var(--r-campo); background: #D9DDE2; cursor: zoom-in; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 12.5px; color: var(--text-secondary); }
+.leyenda > span { display: inline-flex; align-items: center; gap: 6px; }
+/* ancho fijo: si dependiera del contenido, el canvas ampliado empujaría la ventana fuera de la pantalla */
+.dlg.dlg--previa { width: min(980px, calc(100vw - 48px)); }
+.dlg--previa .dlg__cuerpo { min-width: 0; }
+.previa-zoom { width: 100%; min-width: 0; height: min(64vh, 640px); overflow: auto; background: #D9DDE2; border-radius: var(--r-campo); cursor: grab; overscroll-behavior: contain; }
+.previa-zoom.arrastrando { cursor: grabbing; }
+.previa-grande { display: block; max-width: none; }
+.previa-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.previa-ctl .mono { min-width: 3.5em; text-align: center; }
 .chip-d { display: inline-flex; align-items: baseline; gap: 3px; padding: 4px 9px; border-radius: var(--r-ctl); font-family: var(--font-mono); font-size: 12.5px; background: var(--tarjeta-2); color: var(--text-secondary); box-shadow: inset 0 0 0 1px var(--mist); }
 .chip-d small { font-size: 11px; }
 .chip-d[data-on="1"] { background: color-mix(in srgb, var(--d-hoyos) 16%, var(--tarjeta)); color: var(--text); box-shadow: none; }

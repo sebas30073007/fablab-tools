@@ -218,3 +218,10 @@
 
 - Girar pieza 90° (solo con DXF/SVG): gira el dibujo sobre el material y recalcula las trayectorias; el botón de antes ahora dice «Girar material».
 - Prueba en aire también en el paso «Cambiar a …» (antes solo aparecía con la fresa ya calibrada); la confirmación avisa con qué herramienta se calibró Z0.
+
+## 2026-10-14 · Mapa de alturas al frente, vista previa y curso recomendado
+- Pistas por defecto: 3 pasadas al 50 % (Sebastián: con 30–40 % quedaban hilos de cobre).
+- Mapa de alturas como paso recomendado: con cobre, antes de las pistas, Inicio pide «Medir el mapa de alturas» (puntos y minutos estimados) con Medir, Prueba en aire y «Sin mapa»; Origen en Inicio muestra su estado. Al terminar de medir, la malla se quita del 3D (se puede volver a ver en Origen → Mapa de alturas → Ver en el 3D). Al calibrar Z con otra herramienta, el mapa se refiere al Z0 nuevo.
+- El surco del gemelo se mide bajo la superficie real: en simulación, la de la placa simulada (ahora un poco más ondulada); con la Cubiko, la del mapa medido. Así el 3D muestra lo que no se corta.
+- Vista previa (`previa.js`): la placa desde arriba como va a quedar, desde el G-code, con el ancho de cada herramienta a su profundidad real (V más ancha entre más baja), sobre la superficie conocida. Marca en rojo el cobre del diseño que la fresa se come y en naranja los hoyos sin taladrar. En PCB y en Configuración; Ampliar abre una ventana con zoom (rueda, botones, arrastrar).
+- Inicio recomienda el Curso básico de CNC (tutorial guiado y examen) hasta aprobar el examen.

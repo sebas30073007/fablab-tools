@@ -6,7 +6,7 @@
 
 import { ALARMAS, ESTADOS } from "./alarmas.js";
 import { formatoTiempo } from "./gcode.js";
-import { esc, ico, mm, ls, miniJog, descargar } from "./ui.js";
+import { esc, ico, mm, ls, miniJog, descargar, dialogo } from "./ui.js";
 import { aPNG, vista } from "./raster.js";
 import { anchoV, igualHerr } from "./cam.js";
 import { MATERIALES } from "./materiales.js";
@@ -68,8 +68,15 @@ export function ahora(app) {
   if (!S.xyListo) return { k: "xy", cab: "Ahora", texto: "Fijar X0 Y0", sub: "Esquina inferior izquierda del material", masc: "hola", acc: [{ id: "mover", t: "Mover", main: true, ico: "mover" }] };
   const t = acc.siguienteTrabajo();
   if (!t) return { k: "fin", cab: "Ahora", texto: S.pcb?.vector ? "Pieza terminada" : "Placa terminada", masc: "placa", acc: [{ id: "nueva", t: S.pcb?.vector ? "Nueva pieza" : "Nueva placa", main: true }] };
+  if (S.midiendo) return { k: "midiendo" + S.midiendo.k, cab: "Ahora", texto: "Midiendo alturas…", sub: `${S.midiendo.k} de ${S.midiendo.n} puntos · el caimán sigue puesto`, masc: "sonda", acc: [] };
   if (!S.zListo) return { k: "z" + t.id, cab: "Ahora", texto: "Calibrar Z", sub: t.herramienta, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "zmanual", t: "Sin sonda" }] };
   if (S.herramientaZ && !igualHerr(t.herramienta, S.herramientaZ) && t.origen === "cam") return { k: "cambio" + t.id, cab: "Ahora", texto: `Cambiar a ${t.herramienta}`, sub: `para ${t.nombre}`, masc: "sonda", acc: [{ id: "paso", t: "Empezar", main: true }, { id: "aire", t: "Prueba en aire", ico: "aire" }, { id: "misma", t: "Misma fresa", texto: true }] };
+  // Antes de las pistas, el mapa de alturas: es lo que más decide que salgan parejas
+  if (t.id === "pistas" && acc.mat().conduce && !S.mapa?.completo && !S.sinMapa) {
+    const pm = acc.puntosMapa();
+    return { k: "mapa", cab: "Ahora", texto: "Medir el mapa de alturas", sub: `Recomendado: la placa nunca está del todo plana${pm ? ` · ${pm.n} puntos, unos ${pm.min} min` : ""}`, masc: "sonda",
+      acc: [{ id: "mapa", t: "Medir", main: true, ico: "capas" }, { id: "aire", t: "Prueba en aire", ico: "aire" }, { id: "sinMapa", t: "Sin mapa", texto: true }] };
+  }
   return { k: "fresar" + t.id, cab: "Ahora", texto: `Fresar ${t.nombre}`, sub: `${t.herramienta} · ${formatoTiempo(t.prev.tiempo)}`, masc: "hola", acc: [{ id: "paso", t: "Fresar", main: true, ico: "play" }, { id: "aire", t: "Prueba en aire", ico: "aire" }] };
 }
 
@@ -147,6 +154,12 @@ function inicio(pag, app) {
       <header class="cab0"><h2 tabindex="-1">CNC</h2>
         <button type="button" class="chip" data-tour="estado" data-ir="maquina" data-s="${em.s}" data-v="chip"><span class="punto" aria-hidden="true"></span><span data-v="chip-t">${esc(em.t)}</span></button></header>
       ${ahoraHTML(app, a, ps)}
+      ${!ls.get("examenAprobado", null) && !S.corriendo && !S.midiendo ? `<section class="w" aria-labelledby="w-curso" data-tour="curso">
+        <span class="w-cab"><span id="w-curso">Curso básico de CNC</span></span>
+        <span class="w-texto">Recomendado para hacer una buena PCB</span>
+        <span class="w-sub">Tutorial guiado de unos 10 min y examen de 15 preguntas con certificado</span>
+        <span class="w-acc">${btn("tutorial", "Tutorial guiado")}${btn("examen", "Examen")}</span>
+      </section>` : ""}
       <button type="button" class="w ${S.pcb ? "con-thumb" : ""}" data-tour="w-placa" data-ir="placa">
         <span class="w-cab"><span>${queEs(S)}</span>${chev}</span>
         ${S.pcb ? `<span class="w-texto">${esc(S.pcb.nombre)}</span><span class="w-sub">${mm(S.pcb.marco.placa.x1 - S.pcb.marco.placa.x0, 1)} × ${mm(S.pcb.marco.placa.y1 - S.pcb.marco.placa.y0, 1)} mm · material ${mm(S.material.ancho, 0)} × ${mm(S.material.alto, 0)}</span>
@@ -157,7 +170,7 @@ function inicio(pag, app) {
       </button>
       <button type="button" class="w" data-tour="w-origen" data-ir="origen">
         <span class="w-cab"><span>Origen</span>${chev}</span>
-        <span class="celdas celdas--col">${cel("X0 Y0", S.xyListo, S.xyListo ? (S.alinear ? "Alineada" : "Fijado") : "Pendiente")}${cel(S.zListo && S.mapa?.completo && S.usarMapa && acc.mat().conduce ? "Z0 · con mapa" : "Z0", S.zListo, S.zListo ? S.herramientaZ || "Fijado" : "Pendiente")}</span>
+        <span class="celdas celdas--col">${cel("X0 Y0", S.xyListo, S.xyListo ? (S.alinear ? "Alineada" : "Fijado") : "Pendiente")}${cel("Z0", S.zListo, S.zListo ? S.herramientaZ || "Fijado" : "Pendiente")}${S.pcb && !S.pcb.vector && acc.mat().conduce ? cel("Mapa de alturas", !!S.mapa?.completo, S.mapa?.completo ? (S.usarMapa ? "Aplicado" : "Sin aplicar") : S.sinMapa ? "Sin mapa" : "Recomendado") : ""}</span>
       </button>
       ${t.length ? `<section class="w" aria-labelledby="w-trab" data-tour="trabajos">
         <span class="w-cab"><span id="w-trab">Trabajos</span></span>
@@ -175,6 +188,7 @@ function inicio(pag, app) {
       paso: () => acc.siguientePaso(acc.siguienteTrabajo()), zmanual: () => acc.asistenteZManual(acc.siguienteTrabajo()),
       misma: () => acc.mismaFresa(acc.siguienteTrabajo()),
       aire: () => acc.correrTrabajo(acc.siguienteTrabajo(), { aire: true }),
+      mapa: acc.medirMapa, sinMapa: acc.sinMapa, tutorial: acc.tutorialGuiado, examen: acc.abrirExamen,
       pausar: () => { acc.pausar(); setTimeout(app.refrescar, 300); }, reanudar: () => { acc.reanudar(); setTimeout(app.refrescar, 300); }, paro: acc.paro,
     });
     pag.querySelectorAll("[data-trabajo]").forEach((b) => (b.onclick = () => acc.abrirTrabajo(S.trabajos.find((x) => x.id === b.dataset.trabajo))));
@@ -326,6 +340,7 @@ function placa(pag, app) {
     </button>
     ${pcb ? `<button type="button" class="btn-pill btn-pill--main btn-pill--ancho" data-acc="generar" ${S.generando ? "disabled" : ""}>${S.generando ? "Calculando…" : cam.length ? "Volver a generar" : "Generar trayectorias"}</button>
     <span class="w-sub" role="status" style="text-align:center">${S.ultimaGen && cam.length ? `Listo en ${S.ultimaGen.toFixed(1)} s` : ""}</span>
+    ${previaHTML(app)}
     <details class="desp" data-tour="imagen" data-imagen>
       <summary><img class="desp__mini" src="${pcb.miniatura}" alt=""><span>Imagen</span><span class="desp__resumen">${Math.round(pcb.marco.dpi)} dpi</span>${chev}</summary>
       <div class="desp__cuerpo">
@@ -363,6 +378,7 @@ function placa(pag, app) {
     inp.addEventListener("blur", () => resaltar(pag, null));
   });
   pag.querySelector("[data-atras]").onclick = app.regresar;
+  pintarPrevia(pag, app);
   pag.querySelectorAll("[data-quitar]").forEach((b) => (b.onclick = () => acc.quitarArchivo(b.dataset.quitar)));
   pag.querySelectorAll("[data-bajar]").forEach((b) => (b.onclick = () => acc.descargarTrabajo(b.dataset.bajar)));
   if (pcb) {
@@ -379,6 +395,66 @@ function placa(pag, app) {
     pag.querySelectorAll("[data-img]").forEach((b) => (b.onclick = () => { img = b.dataset.img; pag.querySelectorAll("[data-img]").forEach((x) => x.setAttribute("aria-checked", x === b)); pintar(); }));
     pag.querySelector("[data-png]").onclick = async () => descargar(`${pcb.nombre}_${img}_${Math.round(pcb.marco.dpi)}dpi.png`, await aPNG(pcb.imgs[img]));
   }
+}
+
+// ---- Vista previa: la placa desde arriba como va a quedar (previa.js); Ampliar abre una ventana con zoom ----
+function previaHTML(app) {
+  const r = app.acc.vistaPrevia();
+  if (!r) return "";
+  const { S } = app, cobre = app.acc.mat().conduce;
+  const aviso = (t) => `<div class="aviso">${ico("alerta")}<span>${esc(t)}</span></div>`;
+  const muestra = (color, t) => `<span><span class="cuad" style="background:${color}"></span>${t}</span>`;
+  return `<section class="w" aria-labelledby="p-prev" data-tour="previa">
+    <span class="w-cab"><span id="p-prev">Vista previa</span><button type="button" class="btn-texto" data-ampliar style="min-height:32px">Ampliar</button></span>
+    <canvas class="previa" data-previa role="img" aria-label="Vista desde arriba de cómo quedará: ${cobre ? "cobre que se queda, " : ""}lo fresado, lo que atraviesa y los hoyos"></canvas>
+    <span class="leyenda">${muestra("var(--m-cobre)", cobre ? "Cobre" : S.material.tipo === "otro" ? "Material" : esc(app.acc.mat().t))}${muestra("var(--m-fr4)", "Fresado")}${muestra("#1A1815", "Atraviesa")}${r.cortaCobre > 0.02 ? muestra("#DC2626", "Corta el diseño") : ""}</span>
+    <span class="w-sub">${esc(r.fuente)}</span>
+    ${r.cambiado ? aviso("Cambiaste valores: vuelve a generar para ver el resultado con ellos.") : ""}
+    ${r.cortaCobre > 0.02 ? aviso(`La fresa entra en el cobre del diseño (${r.cortaCobre.toFixed(2)} mm², en rojo).`) : ""}
+    ${r.sinTaladrar ? `<span class="w-sub">${r.sinTaladrar} ${r.sinTaladrar === 1 ? "hoyo queda" : "hoyos quedan"} sin taladrar (anillos naranja)</span>` : ""}
+  </section>`;
+}
+function pintarPrevia(pag, app) {
+  const cv = pag.querySelector("[data-previa]");
+  if (!cv) return;
+  const r = app.acc.vistaPrevia();
+  const dpr = devicePixelRatio || 1, w = cv.clientWidth || 320, k = (w * dpr) / r.cv.width;
+  cv.width = Math.round(w * dpr); cv.height = Math.max(1, Math.round(r.cv.height * k));
+  const x = cv.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(r.cv, 0, 0, cv.width, cv.height);
+  cv.onclick = pag.querySelector("[data-ampliar]").onclick = () => ampliarPrevia(app);
+}
+function ampliarPrevia(app) {
+  const r = app.acc.vistaPrevia();
+  if (!r) return;
+  dialogo({ titulo: "Vista previa", clase: "dlg--previa", contenido(c, d) {
+    d.meta(`${mm(r.caja.x1 - r.caja.x0, 1)} × ${mm(r.caja.y1 - r.caja.y0, 1)} mm`);
+    c.innerHTML = `<div class="previa-zoom" data-z tabindex="0" aria-label="Vista previa; rueda o botones para acercar, arrastra para mover"></div>
+      <div class="previa-ctl"><button type="button" class="btn-icono" data-menos aria-label="Alejar">−</button><span class="mono" data-pct></span>
+        <button type="button" class="btn-icono" data-mas aria-label="Acercar">+</button><button type="button" class="btn-texto" data-ajustar>Ajustar</button>
+        <span class="w-sub">${esc(r.fuente)}</span></div>`;
+    const z = c.querySelector("[data-z]"), pct = c.querySelector("[data-pct]");
+    const img = document.createElement("canvas"); img.width = r.cv.width; img.height = r.cv.height; img.getContext("2d").drawImage(r.cv, 0, 0);
+    img.className = "previa-grande"; img.style.width = "100%"; z.appendChild(img);
+    let e = 1;
+    const ajuste = () => Math.min(z.clientWidth / img.width, z.clientHeight / img.height);
+    const poner = (nuevo, cx = z.clientWidth / 2, cy = z.clientHeight / 2) => {
+      nuevo = Math.min(2, Math.max(ajuste(), nuevo));
+      const px = (z.scrollLeft + cx) / e, py = (z.scrollTop + cy) / e;
+      e = nuevo; img.style.width = `${img.width * e}px`; img.style.height = `${img.height * e}px`;
+      z.scrollLeft = px * e - cx; z.scrollTop = py * e - cy;
+      pct.textContent = `${(e / ajuste()).toFixed(1)}×`;
+    };
+    requestAnimationFrame(() => { e = ajuste(); poner(e); });
+    c.querySelector("[data-mas]").onclick = () => poner(e * 1.6);
+    c.querySelector("[data-menos]").onclick = () => poner(e / 1.6);
+    c.querySelector("[data-ajustar]").onclick = () => poner(ajuste());
+    z.addEventListener("wheel", (ev) => { ev.preventDefault(); const b = z.getBoundingClientRect(); poner(e * (ev.deltaY < 0 ? 1.25 : 0.8), ev.clientX - b.left, ev.clientY - b.top); }, { passive: false });
+    let arr = null;
+    z.addEventListener("pointerdown", (ev) => { if (ev.pointerType !== "mouse") return; arr = { x: ev.clientX, y: ev.clientY, l: z.scrollLeft, t: z.scrollTop }; z.setPointerCapture(ev.pointerId); z.classList.add("arrastrando"); });
+    z.addEventListener("pointermove", (ev) => { if (!arr) return; z.scrollLeft = arr.l - (ev.clientX - arr.x); z.scrollTop = arr.t - (ev.clientY - arr.y); });
+    const soltar = () => { arr = null; z.classList.remove("arrastrando"); };
+    z.addEventListener("pointerup", soltar); z.addEventListener("pointercancel", soltar);
+  } });
 }
 
 // ---- Material: la placa virgen con el diseño encima, a escala; cada medida en su eje ----
@@ -520,9 +596,11 @@ function config(pag, app) {
   pag.innerHTML = `${cab2(queEs(S), "Configuración")}
     ${[...GRUPOS, "comun"].map(seccion).join("")}
     <button type="button" class="btn-texto" data-acc="defecto" style="align-self:center">Valores por defecto</button>
+    ${previaHTML(app)}
     ${S.pcb ? `<button type="button" class="btn-pill btn-pill--main btn-pill--ancho" data-acc="generar" ${S.generando ? "disabled" : ""}>${S.generando ? "Calculando…" : cam ? "Volver a generar" : "Generar trayectorias"}</button>` : ""}`;
   cablear(pag, { __irA: app.irA, generar: acc.generar, defecto: acc.paramsPorDefecto });
   pag.querySelector("[data-atras]").onclick = app.regresar;
+  pintarPrevia(pag, app);
   tip.fuera();
   pag.addEventListener("wheel", tip.fuera, { passive: true });
 
@@ -583,7 +661,7 @@ function origen(pag, app) {
       <span class="w-sub">${sig ? `${superficie(app)} · siguiente trabajo: ${esc(sig.nombre)} · ${esc(sig.herramienta)}` : superficie(app)}</span>
       <span class="w-acc">${btn("sonda", "Calibrar con la sonda", { main: S.xyListo && !S.zListo, icono: "sonda", dis })}${btn("zmanual", "Sin sonda", { dis })}</span>
       <span class="filas" style="margin-top:8px"><button type="button" class="fila fila--sep" data-tour="mapa" data-ir="alturas">
-        ${ico("capas")}<span class="fila__nom">Mapa de alturas<small>${!acc.mat().conduce ? "Solo sobre cobre" : r ? (S.usarMapa ? "Se aplica al fresar" : "Sin aplicar") : "Opcional · si la placa no está plana"}</small></span>
+        ${ico("capas")}<span class="fila__nom">Mapa de alturas<small>${!acc.mat().conduce ? "Solo sobre cobre" : r ? (S.usarMapa ? "Se aplica al fresar" : "Sin aplicar") : "Recomendado para las pistas"}</small></span>
         <span class="fila__val">${r ? `${mm(r.max - r.min, 2)} mm` : "Sin medir"}</span>${chev}</button></span>
     </section>
     <button type="button" class="w" data-tour="fina" data-ir="fina">
@@ -664,6 +742,7 @@ function alturas(pag, app) {
       ${r && S.mapa.completo ? `<span class="w-cifra">${mm(r.max - r.min, 3)}<small>mm</small></span><span class="w-sub mono">de ${mm(r.min, 3)} a ${mm(r.max, 3)}</span>` : `<span class="w-texto muted">Sin medir</span>`}
       ${S.midiendo ? `<span class="progreso"><i data-v="barra" style="width:${(S.midiendo.k / S.midiendo.n) * 100}%"></i></span><span class="w-sub" data-v="cuenta">${S.midiendo.k} de ${S.midiendo.n}</span>` : ""}
       <label class="check" style="margin-top:6px"><input type="checkbox" data-usar ${S.usarMapa ? "checked" : ""}> Aplicar al fresar</label>
+      <label class="check"><input type="checkbox" data-ver ${S.verMalla ? "checked" : ""}> Ver en el 3D</label>
     </section>
     <section class="w" aria-labelledby="a-cfg">
       <span class="w-cab"><span id="a-cfg">Malla</span></span>
@@ -678,6 +757,7 @@ function alturas(pag, app) {
     </section>`;
   pag.querySelectorAll("[data-h]").forEach((i) => (i.onchange = () => { d[i.dataset.h] = +i.value; ls.set("alturas", d); pag.querySelector('[data-v="malla"]').textContent = malla(); }));
   pag.querySelector("[data-usar]").onchange = (e) => acc.ponerUsarMapa(e.target.checked);
+  pag.querySelector("[data-ver]").onchange = (e) => acc.ponerVerMalla(e.target.checked);
   cablear(pag, { __irA: app.irA, medir: () => acc.medirAlturas(d), importar: acc.elegirArchivos, exportar: acc.exportarMapa });
   pag.querySelector('[data-acc="importar"]').setAttribute("aria-label", "Importar .map");
   pag.querySelector('[data-acc="exportar"]').setAttribute("aria-label", "Descargar .map");

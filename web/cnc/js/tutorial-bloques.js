@@ -131,6 +131,8 @@ export const BLOQUES = [
       titulo: "Sigue el asistente", texto: ["En simulación, mantén pulsado <b>Mantén para simular el toque</b> para probar la sonda.", "Luego baja la fresa con Z− hasta unos 5 mm de la placa."],
       hazlo: (app) => app.grbl.enviarVarias(["G90", "G53 G0 Z-31"]), hazloTexto: "Acércala por mí",
       hazloSi: (app) => hojaAbierta() && app.grbl.est.estado === "Idle" && app.grbl.est.mpos.z > -30 },
+    { tipo: "señala", objetivo: ahora("mapa"), antes: irInicio, luego: true, masc: "lupa", si: (app) => !!document.querySelector('[data-tour="ahora"] [data-acc="mapa"]'),
+      titulo: "Mapa de alturas", texto: ["Recomendado en cada placa: la sonda toca una rejilla de puntos y la app corrige Z mientras fresa.", "Sin él, donde la placa queda más baja las pistas no se aíslan. En la simulación también: la placa virtual no es plana. Míralo en la Vista previa de PCB."] },
   ] },
 
   // ------------------------------------------------------------------
@@ -150,7 +152,7 @@ export const BLOQUES = [
 
   // ------------------------------------------------------------------
   { id: "mas", titulo: "Extras", pasos: [
-    { tipo: "señala", objetivo: '[data-tour="mapa"]', antes: (app) => { if (app.vistaActual !== "origen" && !hojaAbierta()) app.irA("origen", { foco: false }); }, masc: "lupa", titulo: "Mapa de alturas (opcional)",
+    { tipo: "señala", objetivo: '[data-tour="mapa"]', antes: (app) => { if (app.vistaActual !== "origen" && !hojaAbierta()) app.irA("origen", { foco: false }); }, masc: "lupa", titulo: "Mapa de alturas",
       texto: "Está dentro de Z0, en Origen. Si la placa no está perfectamente plana, la sonda mide una rejilla de puntos y la app corrige Z mientras fresa." },
     { tipo: "señala", objetivo: '[data-tour="fina"]', masc: "lupa", titulo: "Calibración fina (opcional)",
       texto: "Si el material quedó chueco al pegarlo, o si lo moviste después de fresar los hoyos, aquí se corrige el giro." },
