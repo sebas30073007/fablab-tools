@@ -2,9 +2,9 @@
 // accion: "desbloquear" ($X) · "homing" ($H) · null (solo leer)
 
 export const ALARMAS = {
-  1: { t: "Final de carrera tocado", d: "Un eje llegó al interruptor de límite. La posición ya no es confiable.", accion: "homing",
-       pasos: ["Desbloquea", "Aleja el eje del extremo con el jog", "Haz homing antes de volver a trabajar"] },
-  2: { t: "Movimiento fuera del área", d: "El programa pidió ir más allá del recorrido de la máquina. No se movió nada.", accion: "desbloquear",
+  1: { t: "Final de carrera tocado", d: "El pitido: un eje llegó al interruptor del extremo. La posición ya no es confiable.", accion: "desbloquear",
+       pasos: ["Desbloquea", "Aleja el eje del extremo con pasos de 1 mm", "Haz homing antes de volver a trabajar"] },
+  2: { t: "Movimiento fuera del área", d: "Se pidió ir más allá del recorrido de la máquina. No se movió nada.", accion: "desbloquear",
        pasos: ["Revisa que el cero de trabajo (X0 Y0) esté donde crees", "Revisa que la pieza quepa en el área"] },
   3: { t: "Reset con la máquina en movimiento", d: "Se reinició mientras los ejes se movían; pudieron perderse pasos.", accion: "homing",
        pasos: ["Haz homing para recuperar la posición", "Verifica el cero de trabajo antes de seguir"] },

@@ -58,7 +58,10 @@ export function ahora(app) {
   if (e === "Alarm" && S.alarma != null) {
     const a = ALARMAS[S.alarma] || { t: `Alarma ${S.alarma}`, pasos: [], accion: "desbloquear" };
     const h = a.accion === "homing";
-    return { k: `alarma${S.alarma}`, tipo: "alarma", cab: `ALARM:${S.alarma}`, texto: a.t, pasos: a.pasos, masc: "alerta",
+    // Final de carrera: qué eje y hacia dónde alejarlo
+    let pasos = a.pasos;
+    if (S.alarma === 1 && S.tope?.length) pasos = [pasos[0], `Aleja ${S.tope.map((x) => `${x.eje} con ${x.eje}${x.sale}`).join(" y ")}, pasos de 1 mm`, ...pasos.slice(2)];
+    return { k: `alarma${S.alarma}`, tipo: "alarma", cab: `ALARM:${S.alarma}`, texto: a.t, sub: a.d, pasos, masc: "alerta",
       acc: [{ id: h ? "homing" : "desbloquear", t: h ? "Homing" : "Desbloquear", main: true, ico: h ? "casa" : "candado" }, { id: h ? "desbloquear" : "homing", t: h ? "Desbloquear" : "Homing" }] };
   }
   if (e === "Home") return { k: "homing", cab: "Ahora", texto: "Homing…", masc: "fresando", acc: [] };
@@ -170,7 +173,7 @@ function inicio(pag, app) {
       </button>
       <button type="button" class="w" data-tour="w-origen" data-ir="origen">
         <span class="w-cab"><span>Origen</span>${chev}</span>
-        <span class="celdas celdas--col">${cel("X0 Y0", S.xyListo, S.xyListo ? (S.alinear ? "Alineada" : "Fijado") : "Pendiente")}${cel("Z0", S.zListo, S.zListo ? S.herramientaZ || "Fijado" : "Pendiente")}${S.pcb && !S.pcb.vector && acc.mat().conduce ? cel("Mapa de alturas", !!S.mapa?.completo, S.mapa?.completo ? (S.usarMapa ? "Aplicado" : "Sin aplicar") : S.sinMapa ? "Sin mapa" : "Recomendado") : ""}</span>
+        <span class="celdas celdas--col">${cel("X0 Y0", S.xyListo && !S.revisarOrigen, S.xyListo ? (S.revisarOrigen ? "Revisar" : S.alinear ? "Alineada" : "Fijado") : "Pendiente")}${cel("Z0", S.zListo, S.zListo ? S.herramientaZ || "Fijado" : "Pendiente")}${S.pcb && !S.pcb.vector && acc.mat().conduce ? cel("Mapa de alturas", !!S.mapa?.completo, S.mapa?.completo ? (S.usarMapa ? "Aplicado" : "Sin aplicar") : S.sinMapa ? "Sin mapa" : "Recomendado") : ""}</span>
       </button>
       ${t.length ? `<section class="w" aria-labelledby="w-trab" data-tour="trabajos">
         <span class="w-cab"><span id="w-trab">Trabajos</span></span>

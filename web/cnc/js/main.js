@@ -83,7 +83,7 @@ $("#btn-mas").onclick = () => accionesRapidas();
 async function conectar(modo = S.modo) {
   if (grbl.conectado) { await grbl.desconectar(); refrescar(); return; }
   if (modo !== S.modo) ponerModo(modo);
-  S.homed = false; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alarma = null;
+  S.homed = false; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alarma = null; S.revisarOrigen = false; S.tope = null;
   if (modo === "sim") grbl.conectarSim(); else await grbl.conectar();
   refrescar();
 }
@@ -99,9 +99,21 @@ async function homing() {
   // La máquina gobierna: tras el ok se espera su reporte de posición (en la Cubiko real, 0,0,0)
   // para que el gemelo quede en casa con ella, sin animación de por medio.
   if (r.ok) { S.homed = true; await grbl.esperarQuieto(5000); visor.saltar(); anunciar("Homing hecho"); }
+  // El recorrido ($130-132) sirve para no llegar a los topes; si no llegó al conectar, se pide ahora
+  if (r.ok && grbl.ajustes[130] == null) await grbl.enviar("$$", { callado: true, origen: "auto" });
   refrescar();
 }
 async function desbloquear() {
+  // Tras un límite (ALARM:1 o 2) GRBL no acepta nada hasta un reset suave
+  if ([1, 2].includes(S.alarma)) {
+    await new Promise((ok) => {
+      const fin = () => { grbl.removeEventListener("reset", fin); clearTimeout(t); ok(); };
+      const t = setTimeout(fin, 2500);
+      grbl.addEventListener("reset", fin);
+      grbl.tiempoReal("\x18");
+    });
+    await new Promise((r) => setTimeout(r, 300));
+  }
   await grbl.enviar("$X");
   S.alarma = null; refrescar();
 }
@@ -118,6 +130,12 @@ grbl.addEventListener("cambio", () => { if (!pendiente) { pendiente = true; requ
 grbl.addEventListener("alarma", (e) => {
   const n = e.detail.codigo;
   if ([1, 3, 6, 7, 8, 9, 10].includes(n)) S.homed = false;
+  if ([1, 3].includes(n) && (S.xyListo || S.zListo)) S.revisarOrigen = true;
+  // Qué tope se tocó y hacia dónde alejarse: hacia el centro del recorrido
+  if (n === 1) {
+    const p = aGemelo(grbl.est.mpos), R = recorridoMaq();
+    S.tope = [...(grbl.est.pines || "")].filter((c) => "XYZ".includes(c)).map((c) => ({ eje: c, sale: p[c.toLowerCase()] > -R[c.toLowerCase()] / 2 ? "−" : "+" }));
+  } else S.tope = null;
   S.alarma = n;
   anunciar(`Alarma ${n}. ${ALARMAS[n]?.t || ""}`);
   if (!hojaAbierta() && nav.actual !== "inicio") irA("inicio"); else refrescar();
@@ -194,9 +212,53 @@ function jog(x, y, z) {
   grbl.jog(x * pasoJog, y * pasoJog, z * pasoJog, f);
 }
 function ponerPasoJog(p) { pasoJog = p; ls.set("pasoJog", p); }
+
+// ----- El recorrido de la máquina. En el marco del gemelo: X −145…0, Y −110…0, Z −40…0 ($130-132 si GRBL los dio).
+// Sin homing la posición no vale, así que no se revisa nada.
+const HOLGURA_TOPE = 0.5;   // mm que se dejan antes del final de carrera
+function recorridoMaq() { const a = grbl.ajustes; return { x: a[130] || AREA.x, y: a[131] || AREA.y, z: a[132] || AREA.z }; }
+const ejes = ["x", "y", "z"];
+// Cuánto se sale una caja de trabajo ({min, max} en mm de trabajo) por cada lado; [] si cabe
+function fueraDelRecorrido(caja, dz = 0) {
+  if (!S.homed || !grbl.listo || !caja || !isFinite(caja.min.x)) return [];
+  const w = aGemelo(grbl.est.wco), R = recorridoMaq(), fuera = [];
+  for (const e of ejes) {
+    const lo = w[e] + caja.min[e] + (e === "z" ? dz : 0), hi = w[e] + caja.max[e] + (e === "z" ? dz : 0);
+    if (hi > 0.01) fuera.push({ eje: e.toUpperCase(), lado: "+", mm: hi });
+    if (lo < -R[e] - 0.01) fuera.push({ eje: e.toUpperCase(), lado: "−", mm: -R[e] - lo });
+  }
+  return fuera;
+}
+const textoFuera = (f) => f.map((x) => x.eje === "Z"
+  ? (x.lado === "+" ? `Z sube ${mm(x.mm, 1)} mm más de lo que llega la máquina` : `Z baja ${mm(x.mm, 1)} mm más de lo que llega la máquina: Z0 está muy abajo`)
+  : `Se pasa ${mm(x.mm, 1)} mm del tope de ${x.eje}${x.lado}`);
+grbl.recortarJog = (dx, dy, dz) => {
+  if (!S.homed) return [dx, dy, dz];
+  const p = aGemelo(grbl.est.mpos), R = recorridoMaq(), d = { x: dx, y: dy, z: dz }, tope = [];
+  for (const e of ejes) {
+    if (!d[e]) continue;
+    const meta = Math.min(-HOLGURA_TOPE, Math.max(-R[e] + HOLGURA_TOPE, p[e] + d[e]));
+    let v = meta - p[e];
+    if (Math.sign(v) !== Math.sign(d[e]) || Math.abs(v) < 0.001) v = 0;
+    if (Math.abs(v) < Math.abs(d[e]) - 0.001) tope.push(e.toUpperCase());
+    d[e] = v;
+  }
+  if (tope.length) { log(`Tope: ${tope.join(", ")} no ${tope.length > 1 ? "avanzan" : "avanza"} más en esa dirección.`, "sys"); anunciar(`Tope de ${tope.join(" y ")}`); }
+  return [d.x, d.y, d.z];
+};
+// Después de un final de carrera la posición se recupera con homing; el origen conviene revisarlo
+async function revisarOrigen() {
+  if (!S.revisarOrigen) return true;
+  const ok = await confirmar({ titulo: "Revisa el origen",
+    html: "<p>Hubo una alarma de posición. Con <b>Ir a X0 Y0</b> en Origen, mira que la fresa quede sobre la esquina del material.</p>",
+    si: "Ya lo revisé", no: "Ir a Origen" });
+  if (ok) { S.revisarOrigen = false; refrescar(); } else irA("origen");
+  return ok;
+}
+
 async function fijarXY() {
   const r = await grbl.enviar("G10 L20 P1 X0 Y0");
-  if (r.ok) { S.xyListo = true; S.alinear = null; previsualizar(); anunciar("X0 Y0 fijado"); refrescar(); }
+  if (r.ok) { S.xyListo = true; S.alinear = null; S.revisarOrigen = false; previsualizar(); anunciar("X0 Y0 fijado"); refrescar(); }
 }
 async function irACero() {
   const z = S.zListo ? S.params.comun.zSeguro : Math.max(grbl.est.wpos.z, 0);
@@ -777,7 +839,10 @@ async function asistenteBorde() {
 async function medirAlturas(d) {
   const c = cajaTrabajos(); if (!c) return;
   if (!mat().conduce) { await confirmar({ titulo: "Solo sobre cobre", html: `<p>El mapa se mide tocando el material con la sonda, y el ${esc(mat().t.toLowerCase())} no conduce.</p>`, si: "Entendido", no: "Cerrar" }); return; }
+  if (!S.xyListo) { await confirmar({ titulo: "Primero fija X0 Y0", html: "<p>La malla se mide sobre tu placa, a partir de su esquina.</p>", si: "Entendido", no: "Cerrar" }); return; }
   if (!S.zListo) { await confirmar({ titulo: "Primero calibra Z", html: "<p>El mapa se mide desde Z0.</p>", si: "Entendido", no: "Cerrar" }); return; }
+  const fuera = fueraDelRecorrido({ min: { x: c.x, y: c.y, z: -d.prof }, max: { x: c.x + c.ancho, y: c.y + c.alto, z: 2 } });
+  if (fuera.length) { await confirmar({ titulo: "La malla no cabe en la máquina", html: `<ul class="pila-s">${textoFuera(fuera).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`, si: "Entendido", no: "Cerrar" }); return; }
   if (!(await confirmar({ titulo: "Medir alturas", html: "<p>Caimán en la fresa y cable en la placa hasta que termine.</p>", si: "Empezar" }))) return;
   const nx = Math.max(2, Math.ceil(c.ancho / d.paso) + 1), ny = Math.max(2, Math.ceil(c.alto / d.paso) + 1);
   const mapa = new MapaAlturas({ x: c.x, y: c.y, ancho: c.ancho, alto: c.alto, nx, ny });
@@ -845,6 +910,13 @@ async function correrTrabajo(t, { aire }) {
   if (S.corriendo) return;       // un trabajo a la vez
   if (!S.xyListo || !S.zListo) {
     if (await confirmar({ titulo: `Falta ${!S.xyListo ? "X0 Y0" : "Z0"}`, html: "<p>Se fija en Origen.</p>", si: "Ir a Origen", no: "Cerrar" })) irA("origen");
+    return;
+  }
+  if (!(await revisarOrigen())) return;
+  // Que no llegue a un final de carrera: con este origen, ¿cabe en el recorrido?
+  const fuera = fueraDelRecorrido((t.vista || t.prev).caja, aire ? S.dzAire : 0);
+  if (fuera.length) {
+    if (await confirmar({ titulo: "No cabe en la máquina", html: `<ul class="pila-s">${textoFuera(fuera).map((x) => `<li>${esc(x)}</li>`).join("")}</ul><p>Mueve la placa hacia el centro de la cama y vuelve a fijar X0 Y0${fuera.some((x) => x.eje === "Z") ? " y Z0" : ""}.</p>`, si: "Ir a Origen", no: "Cerrar" })) irA("origen");
     return;
   }
   if (!aire && S.herramientaZ && !cam.igualHerr(t.herramienta, S.herramientaZ) && t.origen === "cam") {

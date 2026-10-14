@@ -200,7 +200,11 @@ export class Grbl extends Serie {
     });
   }
 
+  // recortarJog (lo pone la app): recorta el paso para no llegar al final de carrera
   jog(dx, dy, dz, f) {
+    if (this.recortarJog) [dx, dy, dz] = this.recortarJog(dx, dy, dz);
+    const r3 = (v) => Math.round(v * 1000) / 1000;
+    dx = r3(dx); dy = r3(dy); dz = r3(dz);
     const p = [dx && `X${dx}`, dy && `Y${dy}`, dz && `Z${dz}`].filter(Boolean).join("");
     if (!p) return;
     return this.enviar(`$J=G21G91${p}F${f}`);
