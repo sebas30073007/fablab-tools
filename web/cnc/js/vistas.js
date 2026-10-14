@@ -783,15 +783,15 @@ function alturas(pag, app) {
     <section class="w" aria-labelledby="a-cfg">
       <span class="w-cab"><span id="a-cfg">Malla</span></span>
       <div class="campos" style="margin-top:6px">
-        <label class="campo"><span>Separación mm</span><input type="number" step="1" min="3" data-h="paso" value="${d.paso}"></label>
-        <label class="campo"><span>Bajar hasta mm</span><input type="number" step="0.5" data-h="prof" value="${d.prof}"></label>
-        <label class="campo"><span>Sondeo mm/min</span><input type="number" step="5" data-h="f" value="${d.f}"></label>
+        <label class="campo"><span>Separación mm</span><input type="number" step="1" min="3" data-h="paso" value="${d.paso}"><small class="muted">Distancia entre puntos</small></label>
+        <label class="campo"><span>Bajar hasta mm</span><input type="number" step="0.5" min="0.5" data-h="prof" value="${d.prof}"><small class="muted">Lo más que baja bajo Z0</small></label>
+        <label class="campo"><span>Sondeo mm/min</span><input type="number" step="5" min="5" data-h="f" value="${d.f}"><small class="muted">Velocidad al bajar</small></label>
       </div>
       <span class="w-sub" data-v="malla" style="margin-top:6px">${malla()}</span>
       ${acc.mat().conduce ? "" : `<div class="aviso">${ico("alerta")}<span>Se mide tocando el material con la sonda: el ${esc(acc.mat().t.toLowerCase())} no conduce.</span></div>`}
       <span class="w-acc">${btn("medir", "Medir", { main: true, icono: "sonda", dis: !grbl.listo || !c || !!S.midiendo || !!S.corriendo || !acc.mat().conduce })}${btn("importar", ".map", { icono: "abrir" })}${btn("exportar", ".map", { icono: "bajar", dis: !S.mapa })}</span>
     </section>`;
-  pag.querySelectorAll("[data-h]").forEach((i) => (i.onchange = () => { d[i.dataset.h] = +i.value; ls.set("alturas", d); pag.querySelector('[data-v="malla"]').textContent = malla(); }));
+  pag.querySelectorAll("[data-h]").forEach((i) => (i.onchange = () => { if (!isFinite(+i.value) || +i.value < +i.min) { i.value = d[i.dataset.h]; return; } d[i.dataset.h] = +i.value; ls.set("alturas", d); pag.querySelector('[data-v="malla"]').textContent = malla(); }));
   pag.querySelector("[data-usar]").onchange = (e) => acc.ponerUsarMapa(e.target.checked);
   pag.querySelector("[data-ver]").onchange = (e) => acc.ponerVerMalla(e.target.checked);
   cablear(pag, { __irA: app.irA, medir: () => acc.medirAlturas(d), importar: acc.elegirArchivos, exportar: acc.exportarMapa });

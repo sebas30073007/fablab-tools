@@ -65,6 +65,11 @@
 .dib .cota.hl line, .dib .cota.hl polyline, .dib .cota.hl path { stroke: var(--d-actual); stroke-width: 2.4; }
 .dib .cota.hl text { fill: var(--text); font-weight: 800; }
 .dib [data-k].hl .m-acero, .dib .m-acero.hl { stroke: var(--d-actual); stroke-width: 2; }
+/* Mapa de alturas: la malla sobre la placa; cada punto se llena al tocarlo */
+.malla { display: block; width: auto; max-width: 100%; height: auto; max-height: 150px; margin: 0 auto; }
+.malla__placa { fill: color-mix(in srgb, var(--m-cobre) 55%, var(--tarjeta)); stroke: var(--m-cobre-borde); stroke-width: 1; }
+.malla__p { fill: var(--tarjeta); stroke: var(--text-secondary); stroke-width: 1.4; }
+.malla__p.on { fill: var(--d-actual); stroke: var(--d-actual); }
 /* Fuera de rango: el campo, su cota y el aviso en el rojo de «no cabe» (no se genera así) */
 .dib .cota.es-fuera line, .dib .cota.es-fuera polyline { stroke: var(--m-fuera); stroke-width: 2.4; }
 .dib .cota.es-fuera text { fill: var(--m-fuera); font-weight: 800; }

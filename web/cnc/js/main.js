@@ -652,16 +652,10 @@ const FIG_SONDA = `<svg viewBox="0 0 320 130" role="img" aria-label="Caimán en 
   <path d="M248 52c18-12 36-2 36 18v34" stroke="#111317" stroke-width="2.5"/><circle cx="284" cy="104" r="4" fill="#111317"/></svg>`;
 const mascImg = (k, ancho = 150) => `<img src="${MASC[k]}" alt="" width="${ancho}" style="align-self:center;height:auto" onerror="this.remove()">`;
 
-async function asistenteZ(trabajo, { cambio = false } = {}) {
-  const herr = trabajo?.herramienta || "la fresa";
+// Paso «Conecta la sonda»: se toca la placa con el caimán y Siguiente se habilita al ver el contacto
+function pasoSonda() {
   let probado = false, vio = false;
-  const ok = await asistente({
-    titulo: cambio ? "Cambio de fresa" : "Calibrar Z",
-    pasos: [
-      { titulo: cambio ? `Pon ${herr}` : `¿${herr} puesta?`, render(c) {
-        c.innerHTML = `${cambio ? "<p>La fresa ya subió. Cambia la herramienta y apriétala.</p>" : ""}${mascImg("hola")}`;
-      } },
-      { titulo: "Conecta la sonda", render(c, api) {
+  return { titulo: "Conecta la sonda", render(c, api) {
         c.innerHTML = `<div class="figura">${FIG_SONDA}</div>
           ${mat().conduce ? "" : `<p>El ${esc(mat().t.toLowerCase())} no conduce: pon encima una placa de contacto metálica, con el cable de la sonda en ella.</p>`}
           <p>Toca la placa con el caimán para probar.</p>
@@ -679,7 +673,22 @@ async function asistenteZ(trabajo, { cambio = false } = {}) {
         const id = setInterval(tick, 80); api.alLimpiar(() => clearInterval(id));
         const b = c.querySelector("[data-tocar]");
         if (b) { const on = () => grbl.sim?.tocar(true), off = () => grbl.sim?.tocar(false); b.onpointerdown = on; b.onpointerup = off; b.onpointerleave = off; }
+  } };
+}
+const pasoQuitarCaiman = () => ({ titulo: "Quita el caimán", render(c) { c.innerHTML = mascImg("sonda"); } });
+
+async function asistenteZ(trabajo, { cambio = false } = {}) {
+  const herr = trabajo?.herramienta || "la fresa";
+  // Antes de las pistas sobre cobre, el mapa de alturas va en el mismo asistente: el caimán ya está puesto
+  const conMapa = !cambio && mat().conduce && trabajo?.id === "pistas" && !S.mapa?.completo;
+  const mapaPaso = conMapa ? pasoMapa({ zOk: true }) : null;
+  const ok = await asistente({
+    titulo: cambio ? "Cambio de fresa" : "Calibrar Z",
+    pasos: [
+      { titulo: cambio ? `Pon ${herr}` : `¿${herr} puesta?`, render(c) {
+        c.innerHTML = `${cambio ? "<p>La fresa ya subió. Cambia la herramienta y apriétala.</p>" : ""}${mascImg("hola")}`;
       } },
+      pasoSonda(),
       { titulo: "Acerca la fresa a unos 5 mm", render(c, api) {
         c.innerHTML = `<div data-jog></div><p class="mono muted" data-z></p>
           <div class="aviso" data-aviso hidden>${ico("alerta")}<span>Hay contacto antes de bajar: el caimán no debe tocar la placa.</span></div>`;
@@ -708,12 +717,159 @@ async function asistenteZ(trabajo, { cambio = false } = {}) {
           return false;
         });
       } },
-      { titulo: "Quita el caimán", render(c) { c.innerHTML = mascImg("sonda"); } },
+      ...(mapaPaso ? [mapaPaso] : []),
+      pasoQuitarCaiman(),
     ],
   });
-  if (ok) { S.zListo = true; S.herramientaZ = herr; visor.herramienta(diamDe(herr)); rereferenciarMapa(); anunciar("Z0 fijado"); }
+  if (ok) {
+    S.zListo = true; S.herramientaZ = herr; visor.herramienta(diamDe(herr));
+    // Un mapa medido aquí ya está referido a este Z0
+    if (!mapaPaso?.medido) rereferenciarMapa();
+    anunciar("Z0 fijado");
+  }
   refrescar();
   return ok;
+}
+
+// ======================================================================
+// Mapa de alturas: la sonda toca una malla de puntos sobre lo que se va a cortar
+// ======================================================================
+function leerMalla() {
+  const d = { ...MALLA_DEF, ...ls.get("alturas", MALLA_DEF) };
+  return { paso: Math.max(3, +d.paso || MALLA_DEF.paso), prof: Math.max(0.5, Math.abs(+d.prof) || MALLA_DEF.prof), f: Math.max(5, +d.f || MALLA_DEF.f) };
+}
+function nuevaMalla(d) {
+  const c = cajaTrabajos(); if (!c) return null;
+  return new MapaAlturas({ x: c.x, y: c.y, ancho: c.ancho, alto: c.alto, nx: Math.max(2, Math.ceil(c.ancho / d.paso) + 1), ny: Math.max(2, Math.ceil(c.alto / d.paso) + 1) });
+}
+// Por qué no se puede medir ahora; null si se puede
+function impedimentoMapa(d, zOk = S.zListo) {
+  const c = cajaTrabajos();
+  if (!c) return "Primero genera las trayectorias.";
+  if (!mat().conduce) return `El ${mat().t.toLowerCase()} no conduce: el mapa solo se mide sobre cobre.`;
+  if (!grbl.listo || S.corriendo) return "La máquina no está lista.";
+  if (!S.homed) return "Primero haz homing.";
+  if (!S.xyListo) return "Primero fija X0 Y0: la malla va sobre tu placa.";
+  if (!zOk) return "Primero calibra Z: el mapa se mide desde Z0.";
+  const fuera = fueraDelRecorrido({ min: { x: c.x, y: c.y, z: -d.prof }, max: { x: c.x + c.ancho, y: c.y + c.alto, z: 2 } });
+  if (fuera.length) return `${textoFuera(fuera).join(". ")}.`;
+  return null;
+}
+// Mide los puntos que faltan. Lo ya medido se conserva: tras una falla se reintenta desde ese punto.
+// Devuelve "ok", "cancelado" o { falla: punto }
+async function medirPuntos(mapa, d, { cancelado = () => false, alPunto = () => {} } = {}) {
+  if (grbl.est.estado === "Alarm") { await grbl.enviar("$X"); await new Promise((r) => setTimeout(r, 250)); }
+  const n = mapa.nx * mapa.ny;
+  S.midiendo = { k: mapa.valores.flat().filter((v) => v != null).length, n };
+  visor.ponerMalla(mapa);
+  await grbl.enviarVarias(["G21", "G90", "G0 Z2"]);
+  const fin = () => { S.midiendo = null; visor.ponerMalla(S.verMalla ? S.mapa : null); refrescar(); };
+  for (const p of mapa.recorrido()) {
+    if (mapa.valores[p.j][p.i] != null) continue;
+    if (cancelado()) { await grbl.enviar("G0 Z2"); fin(); return "cancelado"; }
+    await grbl.enviar(`G0 X${p.x.toFixed(3)} Y${p.y.toFixed(3)}`);
+    const r = await grbl.sondear(`G38.2 Z-${d.prof} F${d.f}`);
+    if (!r) {
+      // ALARM:5: se desbloquea y la fresa vuelve a Z2 para poder reintentar
+      log(`El sondeo falló en ${p.x.toFixed(1)}, ${p.y.toFixed(1)}.`, "sys err");
+      await new Promise((ok) => setTimeout(ok, 250));
+      if (grbl.est.estado === "Alarm") await grbl.enviar("$X");
+      await grbl.enviarVarias(["G90", "G0 Z2"]);
+      S.alarma = null; fin();
+      return { falla: p };
+    }
+    mapa.valores[p.j][p.i] = r.z - grbl.est.wco.z;
+    await grbl.enviar("G0 Z2");
+    S.midiendo.k++; visor.ponerMalla(mapa); alPunto(); nav.vivo?.();
+  }
+  await grbl.enviar(`G0 Z${S.params.comun.zSeguro}`);
+  S.mapa = mapa; S.usarMapa = true; S.sinMapa = false;
+  fin();
+  log(`Mapa de alturas: ${n} puntos, diferencia ${(mapa.rango.max - mapa.rango.min).toFixed(3)} mm.`, "sys");
+  anunciar("Mapa de alturas listo");
+  return "ok";
+}
+// La malla sobre la placa: un punto por toque; los ya medidos, llenos
+function figMalla(mapa) {
+  const k = 260 / Math.max(mapa.ancho, mapa.alto, 1), w = mapa.ancho * k, h = mapa.alto * k, m = 10;
+  const pts = [];
+  for (let j = 0; j < mapa.ny; j++) for (let i = 0; i < mapa.nx; i++) {
+    const p = mapa.punto(i, j), on = mapa.valores[j][i] != null;
+    pts.push(`<circle cx="${m + (p.x - mapa.x) * k}" cy="${m + h - (p.y - mapa.y) * k}" r="4" class="malla__p${on ? " on" : ""}"/>`);
+  }
+  return `<svg class="malla" viewBox="0 0 ${w + 2 * m} ${h + 2 * m}" role="img" aria-label="Malla de ${mapa.nx} por ${mapa.ny} puntos sobre la placa">
+    <rect x="${m}" y="${m}" width="${w}" height="${h}" rx="3" class="malla__placa"/>${pts.join("")}</svg>`;
+}
+// El paso del asistente que mide el mapa. zOk: Z0 ya se fijó en este mismo asistente.
+function pasoMapa({ zOk = false } = {}) {
+  let mapa = null, estado = "listo", cancelar = false;
+  const paso = { medido: false, titulo: "Mapa de alturas", render(c, api) {
+    const d = leerMalla();
+    if (!mapa || (estado === "listo" && !mapa.valores.flat().some((v) => v != null))) mapa = nuevaMalla(d);
+    const campo = (k, t, paso, ayuda) => `<label class="campo"><span>${t}</span><span class="u"><input type="number" step="${paso}" min="${k === "paso" ? 3 : 0.5}" data-h="${k}" value="${d[k]}"><i>${k === "f" ? "mm/min" : "mm"}</i></span><small class="muted">${ayuda}</small></label>`;
+    c.innerHTML = `<p data-txt></p>
+      <div class="figura" data-fig></div>
+      <span class="progreso" data-prog hidden><i></i></span>
+      <div class="resultado" data-r hidden role="status"></div>
+      <details class="desp" data-av><summary><span></span><span>Avanzado</span><span></span>${ico("chev")}</summary>
+        <div class="desp__cuerpo campos">${campo("paso", "Separación", 1, "Distancia entre puntos")}${campo("prof", "Bajar hasta", 0.5, "Lo más que baja bajo Z0 buscando la placa")}${campo("f", "Sondeo", 5, "Velocidad al bajar")}</div></details>
+      <div class="fila-wrap" style="justify-content:center"><button type="button" class="btn-pill btn-pill--suave" data-cancelar hidden>Cancelar</button>
+        <button type="button" class="btn-texto" data-sin>Sin mapa</button></div>`;
+    const $c = (s) => c.querySelector(s), r = $c("[data-r]");
+    const decir = (t) => { r.hidden = !t; r.textContent = t || ""; };
+    const pintar = () => {
+      if (!mapa) { $c("[data-txt]").textContent = "Primero genera las trayectorias."; $c("[data-fig]").innerHTML = ""; return; }
+      const n = mapa.nx * mapa.ny, k = mapa.valores.flat().filter((v) => v != null).length, min = Math.max(1, Math.round(((n - k) * 6) / 60));
+      $c("[data-txt]").innerHTML = estado === "hecho" ? "Listo. Ahora sí puedes quitar el caimán."
+        : `Deja el caimán puesto. La sonda toca <b>${n} puntos</b> sobre tu placa${k < n ? `, unos ${min} min` : ""}.`;
+      $c("[data-fig]").innerHTML = figMalla(mapa);
+      const pr = $c("[data-prog]"); pr.hidden = estado !== "midiendo"; pr.querySelector("i").style.width = `${(k / n) * 100}%`;
+      $c("[data-cancelar]").hidden = estado !== "midiendo";
+      $c("[data-sin]").hidden = estado !== "listo";
+      $c("[data-av]").hidden = estado === "hecho";
+      c.querySelectorAll("[data-h]").forEach((i) => (i.disabled = estado === "midiendo"));
+      const atras = c.parentElement?.querySelector("[data-atras]"); if (atras) atras.disabled = estado === "midiendo";
+    };
+    c.querySelectorAll("[data-h]").forEach((i) => (i.onchange = () => {
+      const v = +i.value;
+      if (!isFinite(v) || v < +i.min) i.value = d[i.dataset.h];
+      else { d[i.dataset.h] = v; ls.set("alturas", d); }
+      if (!mapa?.valores.flat().some((x) => x != null)) mapa = nuevaMalla(d);
+      pintar();
+    }));
+    $c("[data-cancelar]").onclick = () => { cancelar = true; decir("Cancelando al terminar este punto…"); };
+    $c("[data-sin]").onclick = () => { S.sinMapa = true; anunciar("Sin mapa de alturas"); api.siguiente(); };
+    if (estado === "hecho") { api.boton("Siguiente"); decir(`Diferencia ${mm(mapa.rango.max - mapa.rango.min, 2)} mm · el mapa se aplica al fresar`); }
+    else api.boton(mapa?.valores.flat().some((v) => v != null) ? "Reintentar" : "Medir");
+    pintar();
+    api.alSiguiente(async () => {
+      if (estado === "hecho") return true;
+      const imp = impedimentoMapa(d, zOk || S.zListo);
+      if (imp) { decir(imp); return false; }
+      if (grbl.contacto) { decir("Hay contacto antes de empezar: el caimán no debe tocar la placa."); return false; }
+      mapa ??= nuevaMalla(d);
+      estado = "midiendo"; cancelar = false; decir(""); pintar();
+      const res = await medirPuntos(mapa, d, { cancelado: () => cancelar, alPunto: pintar });
+      if (res === "ok") {
+        estado = "hecho"; paso.medido = true; api.boton("Siguiente");
+        decir(`Diferencia ${mm(mapa.rango.max - mapa.rango.min, 2)} mm · el mapa se aplica al fresar`);
+      } else if (res === "cancelado") {
+        estado = "listo"; mapa = nuevaMalla(d); api.boton("Medir"); decir("Cancelado. Puedes medir de nuevo o seguir sin mapa.");
+      } else {
+        estado = "listo"; api.boton("Reintentar");
+        decir(`La sonda no tocó en ${mm(res.falla.x, 1)}, ${mm(res.falla.y, 1)}. Revisa el caimán en la fresa y el cable en el cobre. Si la placa está muy chueca, sube «Bajar hasta» en Avanzado. Lo medido se conserva.`);
+      }
+      pintar();
+      return false;
+    });
+  } };
+  return paso;
+}
+async function asistenteMapa() {
+  const d = leerMalla(), imp = impedimentoMapa(d);
+  if (imp) { await confirmar({ titulo: "Mapa de alturas", html: `<p>${esc(imp)}</p>`, si: "Entendido", no: "Cerrar" }); return; }
+  await asistente({ titulo: "Mapa de alturas", pasos: [pasoSonda(), pasoMapa(), pasoQuitarCaiman()] });
+  refrescar();
 }
 
 async function sondaZ(grosor) {
@@ -857,35 +1013,6 @@ async function asistenteBorde() {
   refrescar();
 }
 
-async function medirAlturas(d) {
-  const c = cajaTrabajos(); if (!c) return;
-  if (!mat().conduce) { await confirmar({ titulo: "Solo sobre cobre", html: `<p>El mapa se mide tocando el material con la sonda, y el ${esc(mat().t.toLowerCase())} no conduce.</p>`, si: "Entendido", no: "Cerrar" }); return; }
-  if (!S.xyListo) { await confirmar({ titulo: "Primero fija X0 Y0", html: "<p>La malla se mide sobre tu placa, a partir de su esquina.</p>", si: "Entendido", no: "Cerrar" }); return; }
-  if (!S.zListo) { await confirmar({ titulo: "Primero calibra Z", html: "<p>El mapa se mide desde Z0.</p>", si: "Entendido", no: "Cerrar" }); return; }
-  const fuera = fueraDelRecorrido({ min: { x: c.x, y: c.y, z: -d.prof }, max: { x: c.x + c.ancho, y: c.y + c.alto, z: 2 } });
-  if (fuera.length) { await confirmar({ titulo: "La malla no cabe en la máquina", html: `<ul class="pila-s">${textoFuera(fuera).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`, si: "Entendido", no: "Cerrar" }); return; }
-  if (!(await confirmar({ titulo: "Medir alturas", html: "<p>Caimán en la fresa y cable en la placa hasta que termine.</p>", si: "Empezar" }))) return;
-  const nx = Math.max(2, Math.ceil(c.ancho / d.paso) + 1), ny = Math.max(2, Math.ceil(c.alto / d.paso) + 1);
-  const mapa = new MapaAlturas({ x: c.x, y: c.y, ancho: c.ancho, alto: c.alto, nx, ny });
-  S.midiendo = { k: 0, n: nx * ny };
-  visor.ponerMalla(mapa); irA("inicio");
-  await grbl.enviarVarias(["G21", "G90", "G0 Z2"]);
-  for (const p of mapa.recorrido()) {
-    await grbl.enviar(`G0 X${p.x.toFixed(3)} Y${p.y.toFixed(3)}`);
-    const r = await grbl.sondear(`G38.2 Z-${d.prof} F${d.f}`);
-    if (!r) { log(`El sondeo falló en ${p.x.toFixed(1)}, ${p.y.toFixed(1)}.`, "sys err"); S.midiendo = null; visor.ponerMalla(S.verMalla ? S.mapa : null); refrescar(); return; }
-    mapa.valores[p.j][p.i] = r.z - grbl.est.wco.z;
-    await grbl.enviar("G0 Z2");
-    S.midiendo.k++; visor.ponerMalla(mapa); nav.vivo?.();
-  }
-  await grbl.enviar(`G0 Z${S.params.comun.zSeguro}`);
-  S.mapa = mapa; S.midiendo = null; S.usarMapa = true;
-  // Ya medido, el 3D vuelve a verse limpio (se puede volver a mostrar en Origen → Mapa de alturas)
-  visor.ponerMalla(S.verMalla ? mapa : null);
-  log(`Mapa de alturas: ${mapa.nx * mapa.ny} puntos, diferencia ${(mapa.rango.max - mapa.rango.min).toFixed(3)} mm.`, "sys");
-  anunciar("Mapa de alturas listo");
-  refrescar();
-}
 function exportarMapa() { if (S.mapa) descargar("mapa.map", S.mapa.aMap()); }
 
 // ======================================================================
@@ -1071,8 +1198,8 @@ const app = {
     ponerMaterial, ponerTipoMaterial, mat, centrarDiseno, girarMaterial, girarPieza, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
     hoyosDiseno, gruposActivos, terminado,
     asistenteZ, asistenteZManual, asistenteAlinear, quitarAlineacion: () => { S.alinear = null; previsualizar(); refrescar(); },
-    medirAlturas, exportarMapa, ponerUsarMapa: (v) => { S.usarMapa = v; refrescar(); },
-    medirMapa: () => medirAlturas(ls.get("alturas", MALLA_DEF)), sinMapa: () => { S.sinMapa = true; anunciar("Sin mapa de alturas"); refrescar(); },
+    medirAlturas: asistenteMapa, exportarMapa, ponerUsarMapa: (v) => { S.usarMapa = v; refrescar(); },
+    medirMapa: asistenteMapa, sinMapa: () => { S.sinMapa = true; anunciar("Sin mapa de alturas"); refrescar(); },
     ponerVerMalla: (v) => { S.verMalla = v; visor.ponerMalla(v ? S.mapa : null); }, puntosMapa,
     vistaPrevia, abrirTutorial: () => abrirTutorial(app), abrirExamen: () => abrirExamen(app),
     tutorialGuiado: () => recorrido.iniciar(app),
