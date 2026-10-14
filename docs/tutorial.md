@@ -6,7 +6,7 @@ El botón **Tutorial** de la barra abre una ventana con tres opciones:
 |---|---|---|---|
 | **Manual de uso** | Una página con los 6 pasos de Inicio (Máquina, Archivos, Trayectorias, X0 Y0, Z0, Fresar), más «Antes» (exportar de KiCad, fijar la placa) y «Al terminar» (acabado). Cada uno con imagen y checks; se puede imprimir. | `web/cnc/js/manual.js` | `web/img/manual/<id>.webp` |
 | **Tutorial guiado** (recomendado para la primera PCB) | Fresa lleva al estudiante por los mismos 6 pasos y fabrican una placa en simulación. | `web/cnc/js/tutorial-bloques.js` | poses de Fresa en `web/img/fresa/` |
-| **Examen y certificado** | 15 preguntas al azar de un banco de 30; se aprueba con 80 % (12 de 15) y se repite sin límite. Al aprobar, el estudiante escribe su nombre y descarga el certificado en PDF. | `web/cnc/js/examen.js` | Fresa `celebra` y el símbolo del Fab Lab |
+| **Examen y certificado** | 15 preguntas al azar de un banco de 32; se aprueba con 80 % (12 de 15) y se repite sin límite. Al aprobar, el estudiante escribe su nombre y descarga el certificado en PDF. | `web/cnc/js/examen.js` | Fresa `celebra` y el símbolo del Fab Lab |
 
 - **Los 6 pasos son los mismos en tres lugares:** `pasos()` en `vistas.js` (la franja de pasos de «Ahora» y la página Pasos), `MANUAL.pasos` y los bloques con `paso: 1…6`. Si cambia uno, cambian los tres.
 - **Motor:** `web/cnc/js/tutorial.js`.
@@ -44,17 +44,18 @@ El botón **Tutorial** de la barra abre una ventana con tres opciones:
 
 ## Bloques
 
-Cada bloque es un capítulo independiente. Cuando cambie una parte de la interfaz, se rehace solo el bloque que la explica. Son 29 tarjetas en total.
+Cada bloque es un capítulo independiente. Cuando cambie una parte de la interfaz, se rehace solo el bloque que la explica.
 
 | Bloque | Paso | Explica | Pide |
 |---|---|---|---|
 | `bienvenida` | — | tipos de tarjeta, qué es una CNC, gemelo 3D y vistas, los 6 pasos, Ahora y PARO | — |
 | `maquina` | 1 | X/Y/Z, bloqueo al encender, origen de máquina | Simulación, Homing |
 | `archivos` | 2 | archivos de KiCad, fresado de aislamiento | Ejemplo |
-| `tray` | 3 | imagen en blanco y negro, parámetros, un trabajo por herramienta | Placa, Generar |
+| `tray` | 3 | grosor con vernier, «Valores de la Cubiko» (no tocar; lo fuera de rango bloquea Generar), profundidad de pistas 0.1 mm, imagen en blanco y negro, un trabajo por herramienta | Placa, Configuración, Generar |
 | `xy` | 4 | cero de trabajo, mover los ejes | Mover, llevar a la esquina, Fijar X0 Y0 |
-| `z` | 5 | la sonda (circuito caimán–placa) | Empezar y el asistente de Z |
+| `z` | 5 | la sonda (circuito caimán–placa) y el mapa de alturas, que se mide en el mismo asistente con el caimán puesto | Empezar, el asistente de Z y Medir el mapa |
 | `fresar` | 6 | prueba en aire, «En curso», qué sigue con una placa real | Prueba en aire, Probar, PARO |
+| `alarma` | — | el pitido del final de carrera y cómo salir | Provocar una alarma (fuera del área, en simulación), Desbloquear |
 | `mas` | — | Mapa de alturas y Calibración fina (en Origen), dónde volver al tutorial | — |
 | `fin` | — | cierre | Hacer el examen, Manual o Terminar |
 
@@ -76,9 +77,9 @@ Los objetivos se buscan por atributos que no dependen del estilo. **Si cambias u
   | Barra | `tutorial` · `paro` |
   | Visor | `visor` · `coords` · `vistas` |
   | Panel | `mas` |
-  | Inicio | `ahora` (con `pasos`, la franja que abre los 6 pasos) · `estado` · `w-placa` (PCB) · `w-origen` · `trabajos` |
-  | PCB | `material` · `config` · `imagen` |
-  | Configuración | `herr-pistas` · `herr-hoyos` · `herr-contorno` · `herr-comun` |
+  | Inicio | `ahora` (con `pasos`, la franja que abre los 6 pasos) · `estado` · `w-placa` (PCB) · `w-origen` · `trabajos` · `curso` |
+  | PCB | `material` · `config` · `previa` · `imagen` |
+  | Configuración | `modo-config` (Básico · Avanzado) · `herr-pistas` · `herr-hoyos` · `herr-contorno` · `herr-comun` |
   | Origen | `mapa` · `fina` |
   | Mover | `posicion` · `pad` |
 

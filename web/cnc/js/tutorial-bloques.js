@@ -39,6 +39,8 @@ const ahora = (acc) => [`[data-tour="ahora"] [data-acc="${acc}"]`, '[data-tour="
 const conectada = (app) => app.grbl.listo;
 const enInicio = (app) => app.vistaActual === "inicio";
 const irInicio = (app) => { if (!enInicio(app) && !hojaAbierta()) app.irA("inicio", { foco: false }); };
+// El asistente de Calibrar Z va en su paso «Mapa de alturas»
+const enPasoMapa = () => hojaAbierta() && document.querySelector(".hoja .asis__tit")?.textContent === "Mapa de alturas";
 
 // La placa cabe si, desde donde está la fresa, el trabajo no se sale del recorrido
 // (tras el homing todo el recorrido de la Cubiko es negativo)
@@ -93,17 +95,22 @@ export const BLOQUES = [
       titulo: "Abre la PCB", texto: "Adentro está el material, la configuración de las herramientas y la imagen de la placa.", pista: "Pulsa PCB",
       hazlo: (app) => app.irA("placa") },
     { tipo: "señala", objetivo: '[data-tour="material"]', luego: true, si: (app) => app.vistaActual === "placa", titulo: "Material",
-      texto: ["La placa virgen que vas a pegar. Escribe su ancho (X) y su alto (Y), junto a su eje en el dibujo, y su grosor (Z).", "El diseño se dibuja encima a escala: si no cabe, se ve en rojo. Los offsets lo mueven desde la esquina."] },
+      texto: ["La placa virgen que vas a pegar. Escribe su ancho (X) y su alto (Y), junto a su eje en el dibujo.", "<b>Mide el grosor (Z) con el vernier</b>, con el cobre incluido: de él sale cuánto bajan los hoyos y el contorno. Si el diseño no cabe, se ve en rojo."] },
     { tipo: "señala", objetivo: '[data-tour="config"]', luego: true, si: (app) => app.vistaActual === "placa", titulo: "Configuración",
-      texto: ["La herramienta de cada trabajo: fresa en V para pistas, broca para hoyos y fresa de maíz para el contorno.", "Adentro, cada valor tiene un dibujo que cambia contigo. Los valores por defecto ya funcionan en la Cubiko."] },
-    { tipo: "señala", objetivo: '[data-tour="imagen"]', luego: true, si: (app) => app.vistaActual === "placa", titulo: "Imagen en blanco y negro",
+      texto: ["La herramienta de cada trabajo: fresa en V para pistas, broca para hoyos y fresa de maíz para el contorno.", "Debe decir <b>Valores de la Cubiko</b>: ya funcionan, no los cambies. Si un valor se sale de lo seguro, se pone en rojo y no deja generar."] },
+    { tipo: "pulsa", objetivo: '[data-tour="config"]', luego: true, si: (app) => app.vistaActual === "placa", hasta: (app) => app.vistaActual === "config",
+      titulo: "Mira cómo corta", texto: "Entra a Configuración.", pista: "Pulsa Configuración", hazlo: (app) => app.irA("config") },
+    { tipo: "señala", objetivo: '[data-tour="herr-pistas"]', luego: true, si: (app) => app.vistaActual === "config", masc: "lupa", titulo: "Profundidad de las pistas",
+      texto: ["La fresa en V entra <b>0.1 mm</b>: menos que una hoja de papel. Solo hay que atravesar el cobre, que mide 0.035 mm.", "Más hondo, la V abre un surco más ancho y se come las pistas. Por eso los cambios se hacen solo en <b>Avanzado</b>."] },
+    { tipo: "señala", objetivo: '[data-tour="imagen"]', luego: true, si: (app) => !!app.S.pcb && ["placa", "config"].includes(app.vistaActual),
+      antes: (app) => { if (app.vistaActual !== "placa" && !hojaAbierta()) app.irA("placa", { foco: false }); }, titulo: "Imagen en blanco y negro",
       texto: "Así lee la app tu diseño, a 1000 puntos por pulgada: lo blanco es cobre que se queda. Ábrela para revisar: si dos pistas se ven unidas aquí, saldrán unidas en la placa." },
     { tipo: "pulsa", objetivo: ['.pag [data-acc="generar"]', ...ahora("generar")], hasta: (app) => app.S.trabajos.length > 0 && !app.S.generando,
       titulo: "Genera las trayectorias", texto: "La app calcula por dónde pasa la fresa en cada trabajo.", pista: "Pulsa Generar",
       hazlo: (app) => app.acc.generar() },
     { tipo: "señala", objetivo: '[data-tour="trabajos"]', luego: true, si: (app) => app.S.trabajos.length > 0,
       antes: (app) => { irInicio(app); document.querySelector('[data-vista="arriba"]')?.click(); }, titulo: "Un trabajo por herramienta",
-      texto: ["<b>Pistas</b> con la fresa fina, <b>Hoyos</b> con la broca de 1 mm y <b>Contorno</b> con la fresa de 1 mm. Cada uno con su tiempo.", "En el 3D, desde arriba, con los mismos colores: azul pistas, verde agua hoyos, violeta contorno."] },
+      texto: ["<b>Pistas</b> con la fresa en V, <b>Hoyos</b> con la broca de 1 mm y <b>Contorno</b> con la fresa de maíz de 1 mm. Cada uno con su tiempo.", "En el 3D, desde arriba, con los mismos colores: azul pistas, verde agua hoyos, violeta contorno."] },
   ] },
 
   // ------------------------------------------------------------------
@@ -127,12 +134,16 @@ export const BLOQUES = [
     { tipo: "pulsa", objetivo: ahora("paso"), antes: irInicio, si: (app) => !app.S.zListo, hasta: (app) => hojaAbierta() || app.S.zListo,
       titulo: "Calibra Z", texto: "Se abre un asistente paso a paso.", pista: "Pulsa Empezar",
       hazlo: (app) => app.acc.asistenteZ(app.acc.siguienteTrabajo()) },
-    { tipo: "espera", masc: "sonda", hasta: (app) => app.S.zListo,
-      titulo: "Sigue el asistente", texto: ["En simulación, mantén pulsado <b>Mantén para simular el toque</b> para probar la sonda.", "Luego baja la fresa con Z− hasta unos 5 mm de la placa."],
+    { tipo: "espera", masc: "sonda", hasta: (app) => app.S.zListo || enPasoMapa(),
+      titulo: "Sigue el asistente", texto: ["En simulación, mantén pulsado <b>Mantén para simular el toque</b> para probar la sonda.", "Luego baja la fresa con Z− hasta unos 5 mm de la placa y pulsa <b>Bajar y tocar</b>."],
       hazlo: (app) => app.grbl.enviarVarias(["G90", "G53 G0 Z-31"]), hazloTexto: "Acércala por mí",
       hazloSi: (app) => hojaAbierta() && app.grbl.est.estado === "Idle" && app.grbl.est.mpos.z > -30 },
-    { tipo: "señala", objetivo: ahora("mapa"), antes: irInicio, luego: true, masc: "lupa", si: (app) => !!document.querySelector('[data-tour="ahora"] [data-acc="mapa"]'),
-      titulo: "Mapa de alturas", texto: ["Recomendado en cada placa: la sonda toca una rejilla de puntos y la app corrige Z mientras fresa.", "Sin él, donde la placa queda más baja las pistas no se aíslan. En la simulación también: la placa virtual no es plana. Míralo en la Vista previa de PCB."] },
+    { tipo: "espera", masc: "lupa", luego: true, si: () => enPasoMapa(), hasta: (app) => app.S.zListo || !!app.S.mapa?.completo,
+      titulo: "Mapa de alturas", texto: ["<b>Deja el caimán puesto.</b> La sonda toca una rejilla de puntos y la app corrige Z mientras fresa: la placa nunca está del todo plana.", "Sin él, donde la placa queda más baja las pistas no se aíslan. Pulsa <b>Medir</b> y espera a que se llenen los puntos."],
+      hazlo: () => document.querySelector('.hoja [data-sig]')?.click(), hazloTexto: "Mídelo por mí",
+      hazloSi: (app) => enPasoMapa() && !app.S.midiendo && !app.S.mapa?.completo },
+    { tipo: "espera", masc: "sonda", luego: true, si: (app) => !app.S.zListo, hasta: (app) => app.S.zListo,
+      titulo: "Quita el caimán", texto: "Ahora sí: el mapa está listo. Pulsa Siguiente y Listo para cerrar el asistente." },
   ] },
 
   // ------------------------------------------------------------------
@@ -151,9 +162,23 @@ export const BLOQUES = [
   ] },
 
   // ------------------------------------------------------------------
+  // El pitido del final de carrera: qué es y cómo salir (en simulación se practica con un movimiento fuera del área)
+  { id: "alarma", titulo: "Alarmas", si: (app) => conectada(app) && !app.S.corriendo, pasos: [
+    { tipo: "info", masc: "alerta", titulo: "El pitido del tope",
+      texto: ["Cada eje tiene un interruptor en sus extremos: el <b>final de carrera</b>. Si la fresa llega ahí, suena un pitido y la máquina se bloquea.",
+        "La app ya no deja mover ni fresar más allá de los topes. Si aun así pasa, la tarjeta de Inicio se pone roja y te dice qué hacer."] },
+    { tipo: "espera", antes: irInicio, hasta: (app) => app.grbl.est.estado === "Alarm",
+      titulo: "Provoca una alarma", texto: "En simulación, pide un movimiento fuera del área. Con la máquina real no lo hagas a propósito.",
+      hazlo: (app) => app.grbl.enviarVarias(["G90", "G53 G0 X10"]), hazloTexto: "Provócala" },
+    { tipo: "pulsa", objetivo: ahora("desbloquear"), antes: irInicio, luego: true, hasta: (app) => app.grbl.est.estado !== "Alarm",
+      titulo: "Lee y desbloquea", texto: ["Arriba dice qué pasó y por qué; abajo, los pasos.", "Con un tope de verdad: <b>Desbloquear</b>, aleja el eje 1 mm con el jog y haz <b>Homing</b>. Luego revisa X0 Y0."], pista: "Pulsa Desbloquear",
+      hazlo: (app) => app.acc.desbloquear() },
+  ] },
+
+  // ------------------------------------------------------------------
   { id: "mas", titulo: "Extras", pasos: [
     { tipo: "señala", objetivo: '[data-tour="mapa"]', antes: (app) => { if (app.vistaActual !== "origen" && !hojaAbierta()) app.irA("origen", { foco: false }); }, masc: "lupa", titulo: "Mapa de alturas",
-      texto: "Está dentro de Z0, en Origen. Si la placa no está perfectamente plana, la sonda mide una rejilla de puntos y la app corrige Z mientras fresa." },
+      texto: "Se mide al calibrar Z antes de las pistas. Si cambias la placa o quieres repetirlo, está aquí, en Origen." },
     { tipo: "señala", objetivo: '[data-tour="fina"]', masc: "lupa", titulo: "Calibración fina (opcional)",
       texto: "Si el material quedó chueco al pegarlo, o si lo moviste después de fresar los hoyos, aquí se corrige el giro." },
     { tipo: "señala", objetivo: '[data-tour="tutorial"]', titulo: "Cuando quieras",

@@ -1,6 +1,6 @@
 // examen.js - el examen del Curso básico de CNC y su certificado.
 //
-// 30 preguntas sobre lo que enseña el recorrido guiado; cada intento toma 15 al azar y en
+// 32 preguntas sobre lo que enseña el recorrido guiado; cada intento toma 15 al azar y en
 // orden aleatorio (también las opciones). Se aprueba con 80 % (12 de 15) y se puede repetir
 // sin límite. Al aprobar, el estudiante escribe su nombre y descarga el certificado en PDF.
 //
@@ -103,10 +103,18 @@ export const PREGUNTAS = [
     ok: "Recorrer el borde de cada pista quitando el cobre de alrededor para aislarla",
     no: ["Cubrir las pistas con una capa aislante", "Taladrar a lo largo de las pistas", "Cortar la placa en dos capas"],
     por: "Las pistas quedan separadas del resto del cobre por un canal." },
-  { q: "¿Cuándo conviene medir un mapa de alturas?",
-    ok: "Cuando la placa no está perfectamente plana: la app corrige Z mientras fresa",
-    no: ["Para encontrar X0 Y0 sin mover la fresa", "Para que los hoyos salgan más rectos", "Para no tener que hacer homing"],
-    por: "La sonda mide una rejilla de puntos y la app ajusta Z en cada zona." },
+  { q: "¿Cuándo se mide el mapa de alturas?",
+    ok: "En cada placa de cobre, al calibrar Z antes de las pistas, con el caimán todavía puesto",
+    no: ["Solo si la placa se ve chueca", "Después de fresar, para revisar", "Antes del homing, para que la máquina sepa dónde está"],
+    por: "La placa nunca está del todo plana: la sonda mide una rejilla de puntos y la app ajusta Z en cada zona." },
+  { q: "Las pistas salieron anchas y se comieron unas a otras. ¿Qué es lo más probable?",
+    ok: "Se cambió la profundidad de pistas: la V entra más y abre un surco más ancho",
+    no: ["Faltó la prueba en aire", "La broca de los hoyos era muy grande", "El avance F era muy lento"],
+    por: "Con la fresa en V, el ancho del corte crece con la profundidad. Los valores de la Cubiko (0.1 mm) ya funcionan." },
+  { q: "Suena un pitido y la máquina se bloquea con «Final de carrera tocado». ¿Qué haces?",
+    ok: "Desbloquear, alejar el eje 1 mm del extremo y hacer homing; luego revisar X0 Y0",
+    no: ["Apagar y prender la máquina y seguir fresando", "Hacer homing sin desbloquear", "Seguir: el pitido solo avisa"],
+    por: "La fresa llegó al interruptor del extremo del eje; la posición ya no es confiable hasta el homing." },
   { q: "La placa quedó con una burbuja bajo la cinta y no usas mapa de alturas. ¿Qué esperas?",
     ok: "Donde la placa está más alta corta de más, y donde está más baja no llega a quitar el cobre",
     no: ["Todo sale igual: Z0 ya se calibró", "Solo cambia el tiempo del trabajo", "La máquina se detiene con una alarma"],
