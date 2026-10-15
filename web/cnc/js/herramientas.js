@@ -63,6 +63,7 @@ export const NOTAS = {
     traslape: "Cuánto se encima cada pasada sobre la anterior.",
     f: "Velocidad al avanzar cortando.",
     fz: "Velocidad al bajar a cortar.",
+    orilla: "Las pasadas también corren por dentro del borde de la placa: no queda un anillo de cobre suelto entre tu diseño y el contorno.",
   },
   hoyos: {
     broca: "Diámetro de la broca: todos los hoyos del rango salen de este tamaño. Solo perfora hacia abajo; no corta de lado.",

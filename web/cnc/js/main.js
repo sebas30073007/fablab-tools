@@ -23,7 +23,7 @@ import { leerSVG } from "./svg.js";
 import { diseno, cajaDe } from "./vector.js";
 import { MATERIALES, material, derivar } from "./materiales.js";
 import { ponerMatDibujo, revisarRango, HERRAMIENTAS } from "./herramientas.js";
-import { marco, imagenes, dibujoVector } from "./raster.js";
+import { marco, imagenes, dibujoVector, pistasConOrilla } from "./raster.js";
 import * as cam from "./cam.js";
 import { $, $$, esc, ico, mm, ls, descargar, asistente, confirmar, miniJog, hoja, hojaAbierta, cerrarHojaSuperior, dialogoAbierto, cerrarDialogoSuperior, anunciar } from "./ui.js";
 import { abrirTutorial, recorrido } from "./tutorial.js";
@@ -452,7 +452,8 @@ async function generar() {
     if (chicos > 0) S.avisosGen.push(`${chicos} ${chicos === 1 ? "círculo más chico" : "círculos más chicos"} que la fresa quedan fuera del rango de Hoyos.`);
   } else {
     if (pcb.imgs.pistas) {
-      const paths = cam.trayectoriasPistas(pcb.imgs.pistas, m, P.pistas, P.comun, origen);
+      const img = P.pistas.orilla !== false ? (pcb.imgs.pistasOrilla ??= pistasConOrilla(pcb.imgs.pistas, pcb.imgs.interior)) : pcb.imgs.pistas;
+      const paths = cam.trayectoriasPistas(img, m, P.pistas, P.comun, origen);
       nuevos.push({ id: "pistas", origen: "cam", nombre: "Pistas", herramienta: `V ${P.pistas.angulo}° punta ${P.pistas.punta} · corte ${P.pistas.diam} mm`, lineas: cam.gcodePistas(paths, P.pistas, P.comun) });
     }
     const hoyos = cam.seleccionHoyos(pcb.hoyos || [], P.hoyos, m, origen);

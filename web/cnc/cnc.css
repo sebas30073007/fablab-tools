@@ -106,9 +106,9 @@
 /* ancho fijo: si dependiera del contenido, el canvas ampliado empujaría la ventana fuera de la pantalla */
 .dlg.dlg--previa { width: min(980px, calc(100vw - 48px)); }
 .dlg--previa .dlg__cuerpo { min-width: 0; }
-.previa-zoom { width: 100%; min-width: 0; height: min(64vh, 640px); overflow: auto; background: #D9DDE2; border-radius: var(--r-campo); cursor: grab; overscroll-behavior: contain; }
+.previa-zoom { display: flex; width: 100%; min-width: 0; height: min(64vh, 640px); overflow: auto; background: #D9DDE2; border-radius: var(--r-campo); cursor: grab; overscroll-behavior: contain; }
 .previa-zoom.arrastrando { cursor: grabbing; }
-.previa-grande { display: block; max-width: none; }
+.previa-grande { display: block; flex: none; max-width: none; margin: auto; }   /* centrada; con zoom, el margen se vuelve 0 y se desplaza */
 .previa-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
 .previa-ctl .mono { min-width: 3.5em; text-align: center; }
 .chip-d { display: inline-flex; align-items: baseline; gap: 3px; padding: 4px 9px; border-radius: var(--r-ctl); font-family: var(--font-mono); font-size: 12.5px; background: var(--tarjeta-2); color: var(--text-secondary); box-shadow: inset 0 0 0 1px var(--mist); }

@@ -34,6 +34,18 @@ function lienzo(W, H, fondo) {
   return { cv, ctx };
 }
 
+// Pistas con la orilla: fuera de la placa cuenta como cobre. Así las pasadas también corren por dentro
+// del borde y no queda un anillo de cobre suelto entre el relleno de KiCad y el contorno.
+export function pistasConOrilla(pistas, interior) {
+  const { cv, ctx } = lienzo(pistas.width, pistas.height, "#000");
+  ctx.drawImage(pistas, 0, 0);
+  const img = ctx.getImageData(0, 0, cv.width, cv.height), d = img.data;
+  const din = interior.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, cv.width, cv.height).data;
+  for (let i = 0; i < d.length; i += 4) if (din[i] < 128) d[i] = d[i + 1] = d[i + 2] = 255;
+  ctx.putImageData(img, 0, 0);
+  return cv;
+}
+
 export function imagenes(pcb, m) {
   const out = {};
   if (pcb.cobre) {

@@ -600,6 +600,7 @@ function config(pag, app) {
       <div class="pila-s" data-extra>${extraTodo(g, P[g])}</div>
       ${avanzado ? `${g === "hoyos" ? rango() : ""}
       <div class="campos">${CAMPOS[g].map((c) => campo(g, c)).join("")}</div>
+      ${g === "pistas" ? `<label class="check"><input type="checkbox" data-p="pistas.orilla" ${P.pistas.orilla !== false ? "checked" : ""} aria-describedby="n-pistas-orilla"> Limpiar la orilla${desc("pistas", "orilla")}</label>` : ""}
       ${g === "comun" ? `<label class="check"><input type="checkbox" data-p="comun.climb" ${P.comun.climb ? "checked" : ""} aria-describedby="n-comun-climb"> Fresado en concordancia${desc("comun", "climb")}</label>` : ""}` : ""}
     </section>`;
   };

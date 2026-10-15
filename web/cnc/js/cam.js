@@ -30,7 +30,7 @@ export function anchoV({ punta, angulo, prof }) {
 
 export const DEF = {
   comun: { zSeguro: 5, rpm: 10000, espera: 3, climb: true },
-  pistas: { punta: 0.1, angulo: 20, diam: anchoV({ punta: 0.1, angulo: 20, prof: 0.1 }), prof: 0.1, pasadas: 3, traslape: 0.5, f: 120, fz: 60 },   // 3 × 50 %: menos no limpia (quedan hilos de cobre)
+  pistas: { punta: 0.1, angulo: 20, diam: anchoV({ punta: 0.1, angulo: 20, prof: 0.1 }), prof: 0.1, pasadas: 3, traslape: 0.5, f: 120, fz: 60, orilla: true },   // 3 × 50 %: menos no limpia (quedan hilos de cobre); orilla: también por dentro del borde
   hoyos: { broca: 1.0, prof: 1.8, fz: 60, min: 0.6, max: 1.3 },
   contorno: { diam: 1.0, prof: 1.85, pasadas: 4, f: 120, fz: 60, puentes: 4, anchoPuente: 3.1, zPuente: -0.9, acabado: 0 },
   grabado: { punta: 0.1, angulo: 20, prof: 0.2, pasadas: 1, f: 120, fz: 60 },
