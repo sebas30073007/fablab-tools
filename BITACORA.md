@@ -225,3 +225,6 @@
 - El surco del gemelo se mide bajo la superficie real: en simulación, la de la placa simulada (ahora un poco más ondulada); con la Cubiko, la del mapa medido. Así el 3D muestra lo que no se corta.
 - Vista previa (`previa.js`): la placa desde arriba como va a quedar, desde el G-code, con el ancho de cada herramienta a su profundidad real (V más ancha entre más baja), sobre la superficie conocida. Marca en rojo el cobre del diseño que la fresa se come y en naranja los hoyos sin taladrar. En PCB y en Configuración; Ampliar abre una ventana con zoom (rueda, botones, arrastrar).
 - Inicio recomienda el Curso básico de CNC (tutorial guiado y examen) hasta aprobar el examen.
+
+## 2026-10-14 · Ejemplo: placa del curso de KiCad v2
+- El botón Ejemplo carga la v2 de `course-docs/pcb/kicad-basics-course`, exportada por Sebastián desde KiCad: una sola cara, buzzer en GPIO10, botón en GPIO0, J1 en orden Qwiic y sin cobre debajo del módulo ni sobre la antena. La v1 tenía el buzzer y un LED en los pines del UART (GPIO20/21).
