@@ -10,7 +10,8 @@ body { margin: 0; font-family: var(--font-sans); font-size: 14px; line-height: 2
 .hub-intro h1 { margin: 0 0 var(--space-sm); font-size: 32px; line-height: 40px; font-weight: 800; letter-spacing: -0.01em; }
 .hub-intro p { margin: 0; font-size: 16px; line-height: 24px; color: var(--alloy); max-width: 56ch; }
 
-.catalogo { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: var(--space-lg); }
+/* Cuadrícula pareja: cada máquina con la misma tarjeta; caben 3 por renglón en escritorio */
+.catalogo { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: var(--space-lg); }
 .maquina { display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-lg); background: var(--technical-white); border: 1px solid var(--technical-white); border-radius: var(--radius-lg); color: inherit; text-decoration: none; }
 .maquina--activa { grid-row: span 1; }
 .maquina--activa:hover { border-color: var(--accent); }
@@ -29,8 +30,6 @@ body { margin: 0; font-family: var(--font-sans); font-size: 14px; line-height: 2
 .hub-cartela { margin-top: auto; }
 
 @media (max-width: 900px) {
-  .catalogo { grid-template-columns: 1fr 1fr; }
-  .maquina--activa { grid-column: 1 / -1; }
   .hub { padding: var(--space-xl) var(--space-lg); }
   .hub-barra { padding: 0 var(--space-lg); }
 }
