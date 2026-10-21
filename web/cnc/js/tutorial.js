@@ -16,9 +16,8 @@ import { htmlVideo, verVideo } from "./videos.js";
 
 const reducido = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MASC_TIPO = { info: "explica", "señala": "senala", pulsa: "senala", espera: "hola" };
-// Tres clases de tarjeta, cada una con su ícono: concepto (centrada), interfaz y acción (junto al objetivo)
+// Tres clases de tarjeta: concepto (centrada), interfaz y acción (junto al objetivo). Sin etiqueta: una idea por tarjeta
 const CLASE = { info: "info", "señala": "interfaz", pulsa: "accion", espera: "accion" };
-const CHIP = { info: ["info", "Concepto"], interfaz: ["interfaz", "Interfaz"], accion: ["clic", "Tu turno"] };
 
 // ======================================================================
 // Ventana: elegir
@@ -208,7 +207,6 @@ class Recorrido {
     // condición aún no se cumpla); se recalcula en cada tarjeta, sin contar las transiciones breves
     const n = p.breve ? 0 : vistas.size;
     const total = n + b.pasos.slice(this.pi + 1).filter((x) => !x.breve && (x.luego || this._valido(b, x))).length;
-    const [icoChip, txtChip] = CHIP[clase];
     this.pop.className = `tour__pop tour__pop--${clase}` + (this.modo === "centro" ? " tour__pop--centro" : p.img || p.video ? " tour__pop--ancho" : "") + (p.video ? " tour__pop--video" : "");
     this.pop.innerHTML = `
       <div class="tour__cab">
@@ -219,17 +217,16 @@ class Recorrido {
       <div class="tour__cuerpo">
         ${p.video ? `<div class="tour__fig tour__fig--video">${htmlVideo(p.video)}</div>` : masc && app.MASC[masc] ? `<img class="tour__masc" src="${app.MASC[masc]}" alt="" onerror="this.remove()">` : ""}
         <div class="tour__main">
-          <span class="tour__chip tour__chip--${clase}">${ico(icoChip)}${txtChip}</span>
           <h3 class="tour__tit" id="tour-tit" tabindex="-1">${esc(p.titulo)}</h3>
           <div id="tour-txt">${textos.map((t) => `<p class="tour__txt">${t}</p>`).join("")}
             ${p.img && !p.video ? `<div class="tour__fig"><img src="${p.img}" alt="" onerror="this.parentElement.remove()"></div>` : ""}
-            ${p.pista && (pulsable || p.tipo === "espera") ? `<div class="tour__pista">${ico("clic")}${esc(p.pista)}</div>` : ""}</div>
+            ${p.pista && (pulsable || p.tipo === "espera") ? `<div class="tour__pista">${esc(p.pista)}</div>` : ""}</div>
         </div>
       </div>
       <div class="tour__pie">
         ${p.fin ? `<button type="button" class="btn-texto" data-terminar>Terminar</button>` : `<button type="button" class="btn-texto" data-salir>Salir</button>`}
         ${this.hist.length > 1 && p.tipo !== "espera" && !p.fin ? `<button type="button" class="btn-texto" data-atras>Atrás</button>` : ""}
-        <span class="tour__cuenta" aria-hidden="true">${n && total > 1 ? `${Array.from({ length: total }, (_, k) => `<i class="${k < n ? "on" : ""}"></i>`).join("")}<span>${n} de ${total}</span>` : ""}</span>
+        <span class="tour__cuenta" aria-hidden="true">${n && total > 1 ? `<span>${n} de ${total}</span>` : ""}</span>
         ${ofreceHazlo ? `<button type="button" class="btn-pill btn-pill--suave" data-hazlo>${esc(p.hazloTexto || "Hazlo por mí")}</button>` : ""}
         ${p.fin ? `<button type="button" class="btn-pill btn-pill--suave" data-manual>Manual</button><button type="button" class="btn-pill btn-pill--main" data-examen>Hacer el examen</button>` : ""}
         ${conSig && !p.fin ? `<button type="button" class="btn-pill btn-pill--main" data-sig>Siguiente</button>` : ""}

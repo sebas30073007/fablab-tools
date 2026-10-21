@@ -32,7 +32,7 @@
 //   hazlo(app)   «Hazlo por mí»: lo mismo que pulsar el objetivo. hazloSi(app) decide si se ofrece.
 //   pista     texto corto de qué pulsar (para «pulsa»/«espera»)
 
-import { hojaAbierta } from "./ui.js";
+import { hojaAbierta, dialogoAbierto } from "./ui.js";
 
 const fig = (id) => `../img/manual/${id}.webp`;
 // Un botón de «Ahora»; si desaparece mientras la máquina trabaja, se sigue señalando el widget
@@ -56,145 +56,144 @@ export const BLOQUES = [
   // ------------------------------------------------------------------
   { id: "bienvenida", titulo: "Introducción", pasos: [
     { tipo: "info", masc: "hola", titulo: "Hola, soy Fresa",
-      texto: ["Vamos a fabricar juntos una placa, en simulación: nada se mueve de verdad.",
-        "Verás tres tipos de tarjeta: <b>Concepto</b> (ⓘ) explica una idea, <b>Interfaz</b> te muestra una parte de la pantalla y puedes tocarla para explorar, y <b>Tu turno</b> (clic) es una acción que haces tú.",
-        "Sales cuando quieras con <b>Salir</b> o con Esc."] },
+      texto: "Vamos a fabricar una placa en simulación: nada se mueve de verdad." },
     { tipo: "info", masc: "explica", titulo: "¿Qué es una CNC?", img: fig("fresar"),
-      texto: "Una máquina que mueve una herramienta que gira, la <b>fresa</b>, siguiendo coordenadas. En una PCB quita el cobre que sobra y deja tus pistas." },
+      texto: "Mueve una <b>fresa</b> que gira y quita el cobre que sobra: quedan tus pistas." },
     { tipo: "señala", objetivo: '[data-tour="visor"]', lado: "dentro", titulo: "El gemelo 3D",
-      texto: ["Es la Cubiko tal como está ahora: la fresa, la placa y las trayectorias.", "Con los botones de abajo cambias el punto de vista: <b>Arriba</b> para ver las trayectorias, <b>Frente</b> para ver la altura de la fresa."] },
+      texto: "Es la Cubiko tal como está ahora. Abajo cambias la vista." },
     { tipo: "señala", objetivo: '[data-tour="ahora"]', antes: irInicio, titulo: "Los 6 pasos",
-      texto: ["Arriba dice en qué paso vas y abajo trae el botón de lo que sigue. Tocando «Paso 1 de 6» ves los seis: Máquina, Archivos, Trayectorias, X0 Y0, Z0 y Fresar.", "Este tutorial y el manual siguen esos mismos pasos. El <b>PARO</b> rojo (o Esc) detiene todo."] },
+      texto: "En qué paso vas y el botón de lo que sigue." },
   ] },
 
   // ------------------------------------------------------------------
   { id: "maquina", paso: 1, titulo: "Máquina", pasos: [
     { tipo: "info", masc: "explica", video: "encender", titulo: "Con la Cubiko real",
-      texto: ["El botón ON/OFF y el paro rojo están en el costado derecho; el USB y la corriente, atrás en ese mismo lado.", "Aquí lo hacemos en simulación."] },
+      texto: "ON/OFF y paro rojo en el costado derecho; USB y corriente, atrás." },
     { tipo: "pulsa", objetivo: ahora("sim"), antes: irInicio, hasta: (app) => app.grbl.conectado,
-      titulo: "Conecta en simulación", texto: "Con la Cubiko real pulsarías Conectar y elegirías su puerto USB.", pista: "Pulsa Simulación",
+      titulo: "Conecta en simulación", texto: "Con la Cubiko real pulsarías Conectar.", pista: "Pulsa Simulación",
       hazlo: (app) => app.acc.conectar("sim") },
     { tipo: "espera", breve: true, hasta: conectada, titulo: "Conectando…", texto: "Un momento." },
     { tipo: "señala", objetivo: '[data-tour="coords"]', titulo: "X, Y, Z",
-      texto: ["Dónde está la punta de la fresa, en milímetros.", "<b>X</b> izquierda y derecha · <b>Y</b> adelante y atrás (en la Cubiko se mueve la cama) · <b>Z</b> arriba y abajo."] },
+      texto: "Dónde está la punta de la fresa, en milímetros." },
     { tipo: "pulsa", objetivo: ahora("homing"), antes: irInicio, hasta: (app) => app.S.homed,
-      video: "homing", titulo: "Homing", texto: ["Al encender, la máquina no sabe dónde está y arranca bloqueada.", "Con el homing busca sus topes y desde ahí lo sabe: es su <b>origen de máquina</b>. Se hace cada vez que la enciendes."], pista: "Pulsa Homing",
+      video: "homing", titulo: "Homing", texto: "Busca sus topes para saber dónde está. Cada vez que la enciendes.", pista: "Pulsa Homing",
       hazlo: (app) => app.acc.homing() },
   ] },
 
   // ------------------------------------------------------------------
   { id: "archivos", paso: 2, titulo: "Archivos", si: conectada, pasos: [
     { tipo: "info", masc: "archivos", img: fig("exportar"), titulo: "Lo que necesitas de KiCad",
-      texto: ["El Gerber del cobre (<b>F.Cu</b>), el del contorno (<b>Edge.Cuts</b>) y el archivo de taladros (<b>.drl</b>). Puedes abrir la carpeta completa: lo que no sirve se ignora.",
-        "Con eso se hace el <b>fresado de aislamiento</b>: la fresa recorre el borde de cada pista y quita el cobre de alrededor."] },
+      texto: "<b>F.Cu</b>, <b>Edge.Cuts</b> y el <b>.drl</b>. Puedes abrir la carpeta completa." },
     { tipo: "pulsa", objetivo: ahora("ejemplo"), antes: irInicio, hasta: (app) => !!app.S.pcb || app.S.trabajos.length > 0,
-      titulo: "Abre la placa de ejemplo", texto: "Es la placa del curso básico de KiCad. Con la tuya pulsarías Abrir archivos.", pista: "Pulsa Ejemplo",
+      titulo: "Abre la placa de ejemplo", texto: "La del curso básico de KiCad.", pista: "Pulsa Ejemplo",
       hazlo: (app) => app.acc.cargarEjemplo() },
   ] },
 
   // ------------------------------------------------------------------
   { id: "tray", paso: 3, titulo: "Trayectorias", si: conectada, pasos: [
     { tipo: "pulsa", objetivo: '[data-tour="w-placa"]', antes: irInicio, si: (app) => !!app.S.pcb && !app.S.trabajos.length, hasta: (app) => app.vistaActual === "placa",
-      titulo: "Abre la PCB", texto: "Adentro está el material, la configuración de las herramientas y la imagen de la placa.", pista: "Pulsa PCB",
+      titulo: "Abre el archivo", texto: "Aquí ajustas el material y las herramientas.", pista: "Pulsa Archivo",
       hazlo: (app) => app.irA("placa") },
     { tipo: "señala", objetivo: '[data-tour="material"]', luego: true, si: (app) => app.vistaActual === "placa", titulo: "Material",
-      texto: ["La placa virgen que vas a pegar. Escribe su ancho (X) y su alto (Y), junto a su eje en el dibujo.", "<b>Mide el grosor (Z) con el vernier</b>, con el cobre incluido: de él sale cuánto bajan los hoyos y el contorno. Si el diseño no cabe, se ve en rojo."] },
+      texto: "Mide el grosor con vernier, con el cobre incluido." },
     { tipo: "señala", objetivo: '[data-tour="config"]', luego: true, si: (app) => app.vistaActual === "placa", titulo: "Configuraciones de CNC",
-      texto: ["La herramienta de cada trabajo: fresa en V para pistas, broca para hoyos y fresa de maíz para el contorno.", "Debe decir <b>Valores de la Cubiko</b>: ya funcionan, no los cambies. Si un valor se sale de lo seguro, se pone en rojo y no deja generar."] },
+      texto: "Debe decir <b>Valores de la Cubiko</b>: ya funcionan." },
     { tipo: "pulsa", objetivo: '[data-tour="config"]', luego: true, si: (app) => app.vistaActual === "placa", hasta: (app) => app.vistaActual === "config",
-      titulo: "Mira cómo corta", texto: "Entra a Configuraciones de CNC.", pista: "Pulsa Configuraciones de CNC", hazlo: (app) => app.irA("config") },
+      titulo: "Mira cómo corta", texto: "Cada herramienta, dibujada con sus valores.", pista: "Pulsa Configuraciones de CNC", hazlo: (app) => app.irA("config") },
     { tipo: "señala", objetivo: '[data-tour="herr-pistas"]', luego: true, si: (app) => app.vistaActual === "config", masc: "lupa", titulo: "Profundidad de las pistas",
-      texto: ["La fresa en V entra <b>0.1 mm</b>: menos que una hoja de papel. Solo hay que atravesar el cobre, que mide 0.035 mm.", "Más hondo, la V abre un surco más ancho y se come las pistas. Por eso no se cambia sin una razón."] },
+      texto: "La V entra <b>0.1 mm</b>: lo justo para atravesar el cobre." },
     { tipo: "señala", objetivo: '[data-tour="imagen"]', luego: true, si: (app) => !!app.S.pcb && ["placa", "config"].includes(app.vistaActual),
       antes: (app) => { if (app.vistaActual !== "placa" && !hojaAbierta()) app.irA("placa", { foco: false }); }, titulo: "Imagen en blanco y negro",
-      texto: "Así lee la app tu diseño, a 1000 puntos por pulgada: lo blanco es cobre que se queda. Ábrela para revisar: si dos pistas se ven unidas aquí, saldrán unidas en la placa." },
+      texto: "Si dos pistas se ven unidas aquí, saldrán unidas en la placa." },
     { tipo: "pulsa", objetivo: ['.pag [data-acc="generar"]', ...ahora("generar")], hasta: (app) => app.S.trabajos.length > 0 && !app.S.generando,
-      titulo: "Genera las trayectorias", texto: "La app calcula por dónde pasa la fresa en cada trabajo.", pista: "Pulsa Generar",
+      titulo: "Genera las trayectorias", texto: "La app calcula por dónde pasa la fresa.", pista: "Pulsa Generar",
       hazlo: (app) => app.acc.generar() },
-    { tipo: "señala", objetivo: '[data-tour="trabajos"]', luego: true, si: (app) => app.S.trabajos.length > 0,
+    // Al generar se abre la vista previa: se mira y se cierra antes de seguir
+    { tipo: "espera", luego: true, si: () => dialogoAbierto(), hasta: () => !dialogoAbierto(), titulo: "Vista previa",
+      texto: "Así quedará la placa. Ciérrala con la ✕ para seguir." },
+    { tipo: "info", masc: "explica", luego: true, si: (app) => app.S.trabajos.length > 0,
       antes: (app) => { irInicio(app); document.querySelector('[data-vista="arriba"]')?.click(); }, titulo: "Un trabajo por herramienta",
-      texto: ["<b>Pistas</b> con la fresa en V, <b>Hoyos</b> con la broca de 1 mm y <b>Contorno</b> con la fresa de maíz de 1 mm. Cada uno con su tiempo.", "En el 3D, desde arriba, con los mismos colores: azul pistas, verde agua hoyos, violeta contorno."] },
+      texto: "Pistas con la V, hoyos con la broca y contorno con la de maíz." },
   ] },
 
   // ------------------------------------------------------------------
   { id: "xy", paso: 4, titulo: "X0 Y0", si: (app) => conectada(app) && app.S.trabajos.length > 0, pasos: [
     { tipo: "info", masc: "explica", video: "sujetador", titulo: "La placa, sujeta",
-      texto: ["Antes del cero, la placa va al centro de la cama con los dos sujetadores, apretados con la llave Allen de 3 mm.", "Sin tapa: la máquina se mueve, pero el husillo no enciende."] },
+      texto: "Al centro de la cama, con los dos sujetadores y la llave Allen de 3 mm." },
     { tipo: "info", masc: "explica", video: "xy", si: (app) => !app.S.xyListo, titulo: "Cero de trabajo",
-      texto: ["El homing dice dónde está la máquina. Tú dices dónde está tu placa: su <b>cero de trabajo</b>.", "X0 Y0 va en la esquina inferior izquierda de la placa; Z0, en la superficie del cobre."] },
+      texto: "X0 Y0 va en la esquina de adelante a la izquierda de la placa." },
     { tipo: "pulsa", objetivo: ahora("mover"), antes: irInicio, si: (app) => !app.S.xyListo, hasta: (app) => app.vistaActual === "mover",
-      titulo: "Ve a Mover", texto: "Aquí se mueve la fresa a mano.", pista: "Pulsa Mover", hazlo: (app) => app.irA("mover") },
+      titulo: "Ve a Mover", texto: "Aquí mueves la fresa a mano.", pista: "Pulsa Mover", hazlo: (app) => app.irA("mover") },
     { tipo: "espera", si: (app) => !app.S.xyListo, hasta: cabeLaPlaca,
-      titulo: "Lleva la fresa a la esquina", texto: ["Hacia adelante y a la izquierda, sobre donde iría la esquina de la placa. Mira el 3D.", "Cada toque mueve lo que diga el paso: 10 mm para llegar, 0.1 mm para afinar. También con las flechas del teclado."], pista: "Usa X− y Y−",
+      titulo: "Lleva la fresa a la esquina", texto: "Pasos de 10 mm para llegar y de 0.1 mm para afinar.", pista: "Usa X− y Y−",
       hazlo: (app) => app.grbl.enviarVarias(["G90", "G53 G0 X-125 Y-102"]), hazloTexto: "Llévala por mí" },
     { tipo: "pulsa", objetivo: '[data-acc="fijar"]', si: (app) => app.vistaActual === "mover", luego: true, hasta: (app) => app.S.xyListo,
-      titulo: "Fija X0 Y0", texto: "Desde aquí se miden todos los trabajos: las trayectorias del 3D se acomodan sobre la placa.", pista: "Pulsa Fijar X0 Y0 aquí",
+      titulo: "Fija X0 Y0", texto: "Desde aquí se miden todos los trabajos.", pista: "Pulsa Fijar X0 Y0 aquí",
       hazlo: (app) => app.acc.fijarXY() },
   ] },
 
   // ------------------------------------------------------------------
   { id: "z", paso: 5, titulo: "Z0", si: (app) => conectada(app) && app.S.xyListo, pasos: [
     { tipo: "info", masc: "sonda", video: "sonda", si: (app) => !app.S.zListo, titulo: "Z0 con la sonda",
-      texto: ["El caimán va en la fresa y el cable en el cobre. Cuando se tocan, se cierra el circuito y la máquina sabe que llegó.", "Así Z0 queda justo en la superficie, aunque la placa no mida exactamente lo mismo cada vez."] },
+      texto: "Caimán en la fresa, horquilla en el sujetador: al tocar el cobre, la máquina lo sabe." },
     { tipo: "pulsa", objetivo: ahora("paso"), antes: irInicio, si: (app) => !app.S.zListo, hasta: (app) => hojaAbierta() || app.S.zListo,
-      titulo: "Calibra Z", texto: "Se abre un asistente paso a paso.", pista: "Pulsa Empezar",
+      titulo: "Calibra Z", texto: "Se abre un asistente.", pista: "Pulsa Empezar",
       hazlo: (app) => app.acc.asistenteZ(app.acc.siguienteTrabajo()) },
     { tipo: "espera", masc: "sonda", hasta: (app) => app.S.zListo || enPasoMapa(),
-      titulo: "Sigue el asistente", texto: ["En simulación, mantén pulsado <b>Mantén para simular el toque</b> para probar la sonda.", "Luego baja la fresa con Z− hasta unos 5 mm de la placa y pulsa <b>Bajar y tocar</b>."],
+      titulo: "Sigue el asistente", texto: "Baja a unos 5 mm de la placa y pulsa <b>Bajar y tocar</b>.",
       hazlo: (app) => app.grbl.enviarVarias(["G90", "G53 G0 Z-31"]), hazloTexto: "Acércala por mí",
       hazloSi: (app) => hojaAbierta() && app.grbl.est.estado === "Idle" && app.grbl.est.mpos.z > -30 },
     { tipo: "espera", masc: "lupa", luego: true, si: () => enPasoMapa(), hasta: (app) => app.S.zListo || !!app.S.mapa?.completo,
-      video: "mapa", titulo: "Mapa de alturas", texto: ["<b>Deja el caimán puesto.</b> La sonda toca una rejilla de puntos y la app corrige Z mientras fresa: la placa nunca está del todo plana.", "Sin él, donde la placa queda más baja las pistas no se aíslan. Pulsa <b>Medir</b> y espera a que se llenen los puntos."],
+      video: "mapa", titulo: "Mapa de alturas", texto: "Deja el caimán puesto y pulsa <b>Medir</b>: la placa nunca está del todo plana.",
       hazlo: () => document.querySelector('.hoja [data-sig]')?.click(), hazloTexto: "Mídelo por mí",
       hazloSi: (app) => enPasoMapa() && !app.S.midiendo && !app.S.mapa?.completo },
     { tipo: "espera", masc: "sonda", luego: true, si: (app) => !app.S.zListo, hasta: (app) => app.S.zListo,
-      video: "quitarCaiman", titulo: "Quita la sonda", texto: ["Ahora sí: el mapa está listo. Suelta el caimán, saca la horquilla y desconecta el cable.", "Luego pulsa Siguiente y Listo para cerrar el asistente."] },
+      video: "quitarCaiman", titulo: "Quita la sonda", texto: "Caimán, horquilla y cable: nada se queda sobre la cama." },
   ] },
 
   // ------------------------------------------------------------------
   { id: "fresar", paso: 6, titulo: "Fresar", si: (app) => conectada(app) && app.S.zListo, pasos: [
     { tipo: "info", masc: "explica", video: "ponerTapa", titulo: "Pon la tapa",
-      texto: "Tiene un sensor: sin la tapa puesta el husillo no enciende." },
+      texto: "Sin la tapa, el husillo no enciende." },
     { tipo: "pulsa", objetivo: ahora("aire"), antes: irInicio, hasta: (app) => hojaAbierta() || !!app.S.corriendo,
-      titulo: "Prueba en aire", texto: "Antes de cortar de verdad, siempre: el mismo trabajo, pero 5 mm más arriba. Así ves el recorrido completo sin tocar la placa.", pista: "Pulsa Prueba en aire",
+      titulo: "Prueba en aire", texto: "El mismo trabajo, 5 mm más arriba. Siempre antes de cortar.", pista: "Pulsa Prueba en aire",
       hazlo: (app) => app.acc.correrTrabajo(app.acc.siguienteTrabajo(), { aire: true }) },
-    { tipo: "espera", hasta: (app) => !!app.S.corriendo, titulo: "Confirma", texto: "La hoja dice qué se va a hacer.", pista: "Pulsa Probar" },
+    { tipo: "espera", hasta: (app) => !!app.S.corriendo, titulo: "Confirma", texto: "Revisa lo que dice la hoja.", pista: "Pulsa Probar" },
     { tipo: "señala", objetivo: '[data-tour="ahora"]', masc: "fresando", luego: true, si: (app) => !!app.S.corriendo, titulo: "En curso",
-      texto: "Cuánto lleva, cuánto falta y qué sigue. Mira el 3D: la fresa recorre las pistas." },
+      texto: "Cuánto lleva y cuánto falta." },
     { tipo: "pulsa", objetivo: '[data-tour="paro"]', luego: true, si: (app) => !!app.S.corriendo, hasta: (app) => !app.S.corriendo,
-      video: "paro", titulo: "Practica el PARO", texto: "Párala ahora, para que sepas dónde está cuando lo necesites. La posición se conserva.", pista: "Pulsa PARO",
+      video: "paro", titulo: "Practica el PARO", texto: "Párala ahora, para saber dónde está.", pista: "Pulsa PARO",
       hazlo: (app) => app.acc.paro() },
     { tipo: "info", masc: "explica", video: "cambiar", titulo: "Con una placa real",
-      texto: ["Deja que la prueba termine y luego pulsa Fresar. Al acabar las pistas, la app te pide la broca y volver a calibrar Z; después, la fresa del contorno.", "Revisa los checks del manual antes de cada trabajo."] },
+      texto: "Al cambiar de fresa, la app te pide calibrar Z otra vez." },
   ] },
 
   // ------------------------------------------------------------------
   // El pitido del final de carrera: qué es y cómo salir (en simulación se practica con un movimiento fuera del área)
   { id: "alarma", titulo: "Alarmas", si: (app) => conectada(app) && !app.S.corriendo, pasos: [
     { tipo: "info", masc: "alerta", titulo: "El pitido del tope",
-      texto: ["Cada eje tiene un interruptor en sus extremos: el <b>final de carrera</b>. Si la fresa llega ahí, suena un pitido y la máquina se bloquea.",
-        "La app ya no deja mover ni fresar más allá de los topes. Si aun así pasa, la tarjeta de Inicio se pone roja y te dice qué hacer."] },
+      texto: "Si un eje llega a su tope, suena un pitido y la máquina se bloquea." },
     { tipo: "espera", antes: irInicio, hasta: (app) => app.grbl.est.estado === "Alarm",
-      titulo: "Provoca una alarma", texto: "En simulación, pide un movimiento fuera del área. Con la máquina real no lo hagas a propósito.",
+      titulo: "Provoca una alarma", texto: "En simulación, pide un movimiento fuera del área.",
       hazlo: (app) => app.grbl.enviarVarias(["G90", "G53 G0 X10"]), hazloTexto: "Provócala" },
     { tipo: "pulsa", objetivo: ahora("desbloquear"), antes: irInicio, luego: true, hasta: (app) => app.grbl.est.estado !== "Alarm",
-      titulo: "Lee y desbloquea", texto: ["Arriba dice qué pasó y por qué; abajo, los pasos.", "Con un tope de verdad: <b>Desbloquear</b>, aleja el eje 1 mm con el jog y haz <b>Homing</b>. Luego revisa X0 Y0."], pista: "Pulsa Desbloquear",
+      titulo: "Lee y desbloquea", texto: "Desbloquear, alejar el eje 1 mm y hacer Homing.", pista: "Pulsa Desbloquear",
       hazlo: (app) => app.acc.desbloquear() },
   ] },
 
   // ------------------------------------------------------------------
   { id: "mas", titulo: "Extras", pasos: [
     { tipo: "señala", objetivo: '[data-tour="mapa"]', antes: (app) => { if (app.vistaActual !== "origen" && !hojaAbierta()) app.irA("origen", { foco: false }); }, masc: "lupa", titulo: "Mapa de alturas",
-      texto: "Se mide al calibrar Z antes de las pistas. Si cambias la placa o quieres repetirlo, está aquí, en Origen." },
+      texto: "Para repetirlo, está aquí." },
     { tipo: "señala", objetivo: '[data-tour="fina"]', masc: "lupa", titulo: "Calibración fina (opcional)",
-      texto: "Si el material quedó chueco al pegarlo, o si lo moviste después de fresar los hoyos, aquí se corrige el giro." },
+      texto: "Corrige el giro si la placa quedó chueca." },
     { tipo: "señala", objetivo: '[data-tour="tutorial"]', titulo: "Cuando quieras",
-      texto: ["Aquí vuelves al tutorial, al manual con los checks de cada paso y al examen.", "Las acciones rápidas (+) y la Consola están abajo del panel."] },
+      texto: "Aquí vuelves al tutorial, al manual y al examen." },
   ] },
 
   // ------------------------------------------------------------------
   { id: "fin", titulo: "Final", pasos: [
     { tipo: "info", masc: "celebra", titulo: "¡Lo lograste!", fin: true,
-      texto: ["Ya conoces los 6 pasos: máquina, archivos, trayectorias, X0 Y0, Z0 y fresar.", "Para tu certificado del Curso básico de CNC, responde el examen: 15 preguntas, apruebas con 80 %."] },
+      texto: "Para tu certificado, responde el examen: 15 preguntas, apruebas con 80 %." },
   ] },
 ];

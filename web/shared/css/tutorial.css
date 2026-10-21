@@ -214,3 +214,8 @@ body.con-hoja .tour--libre .tour__cuerpo { grid-template-columns: minmax(0, 1fr)
   .tour__pop--video .tour__cuerpo, .tour__pop--video.tour__pop--centro .tour__cuerpo { grid-template-columns: minmax(0, 1fr); }
   .tour__pop--video .tour__cuerpo > .tour__fig--video { max-width: 240px; justify-self: center; }
 }
+
+/* Pregunta con video: el video a la izquierda y la pregunta con sus opciones a un lado */
+.ex-con-video { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.ex-con-video .ex-video { margin: 0; width: 100%; max-width: 340px; }
+@media (max-width: 720px) { .ex-con-video { grid-template-columns: minmax(0, 1fr); } .ex-con-video .ex-video { max-width: 260px; justify-self: center; } }

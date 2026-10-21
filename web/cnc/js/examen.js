@@ -211,11 +211,11 @@ function preguntar(c, d, app, lista, i, resp) {
   d.titulo(`Pregunta ${i + 1} de ${lista.length}`); d.meta("");
   d.atras(null);
   c.innerHTML = `<div class="ex-prog" aria-hidden="true">${lista.map((_, k) => `<i class="${k < i ? "on" : k === i ? "actual" : ""}"></i>`).join("")}</div>
-    ${p.video ? `<div class="ex-video">${htmlVideo(p.video)}</div>` : ""}
+    <div class="${p.video ? "ex-con-video" : ""}">${p.video ? `<div class="ex-video">${htmlVideo(p.video)}</div>` : ""}
     <fieldset class="ex-preg">
       <legend>${esc(p.q)}</legend>
       ${p.ops.map((o, k) => `<label class="ex-op"><input type="radio" name="ex-op" value="${k}"><span>${esc(o)}</span></label>`).join("")}
-    </fieldset>
+    </fieldset></div>
     <div class="ex-pie">
       <button type="button" class="btn-texto" data-salir>Salir del examen</button>
       <span style="flex:1"></span>
