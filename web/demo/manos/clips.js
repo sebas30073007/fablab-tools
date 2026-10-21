@@ -70,7 +70,8 @@ function cablesSonda() {
 // Sonda puesta (Z0 y mapa): conector, horquilla bajo el sujetador y caimán en la fresa
 function sondaPuesta(abre = 0.7) { conectorPuesto(); horquillaPuesta(); cub.husillo.updateMatrixWorld(true); caimanEn(mordida(), abre); cablesSonda(); }
 // Después del mapa: el caimán queda en la base; la horquilla, en el sujetador
-function sondaGuardada() { conectorPuesto(); horquillaPuesta(); caimanEn(REPOSO_CAIMAN, 0); cablesSonda(); }
+// Después de quitarla, la sonda ya no está: el tornillo del sujetador queda apretado sobre la placa
+function sondaGuardada() { suj.der.tornillo.position.y = 0; }
 
 // ---------------- Recorridos de la fresa ----------------
 // Esquina de X0 Y0: adelante a la izquierda de la placa (en coordenadas de cama)
@@ -149,13 +150,15 @@ const alReves = (kf, d) => kf.map((k) => ({ ...k, t: d - k.t })).reverse();
 
 // Placa con las dos manos: las yemas de los dedos en las orillas de los costados, desde arriba e inclinadas 45°
 // (nada queda debajo de la placa). plan() da los momentos: { t, agarra | suelta | lejos }.
+// Las manos toman la placa de los costados: palma hacia adentro, dedos hacia abajo y un poco al frente, las
+// yemas contra el canto. Así quedan arriba de la placa y no tapan el cobre ni se cruzan.
 const manosPlaca = (plan) => ["der", "izq"].map((lado) => {
-  const s = lado === "der" ? 1 : -1, r = [-45, 60 * s, 0];
+  const s = lado === "der" ? 1 : -1, r = [-70, -90 * s, 0];
   return {
     lado, ancla: "middle-finger-tip",
-    kf: plan().map((k) => k.agarra ? { t: k.t, en: "placa", pos: [53 * s, 7, 22], rot: r, pose: "pinzaAbierta" }
-      : k.suelta ? { t: k.t, en: "placa", pos: [70 * s, 30, 30], rot: r, pose: "relajada" }
-      : { t: k.t, pos: [230 * s, 170, 220], rot: [-30, 70 * s, 0], pose: "relajada" }),
+    kf: plan().map((k) => k.agarra ? { t: k.t, en: "placa", pos: [(PLACA.ancho / 2 + 4) * s, 0.8, 8], rot: r, pose: "relajada" }
+      : k.suelta ? { t: k.t, en: "placa", pos: [(PLACA.ancho / 2 + 22) * s, 25, 8], rot: r, pose: "plana" }
+      : { t: k.t, pos: [200 * s, 200, 180], rot: [-50, -70 * s, 0], pose: "relajada" }),
   };
 });
 
@@ -234,7 +237,7 @@ export const CLIPS = [
   // ===== Placa =====
   {
     id: "ponerPlaca", nombre: "Pon la placa", paso: "Placa", duracion: 7,
-    camara: [{ t: 0, pos: [260, 260, 560], mira: [0, 10, 80] }, { t: 4, pos: [200, 210, 440], mira: [0, 0, 25] }, { t: 7, pos: [170, 200, 400], mira: [0, 0, 15] }],
+    camara: [{ t: 0, pos: [120, 330, 560], mira: [0, 20, 90] }, { t: 4, pos: [90, 300, 470], mira: [0, 0, 25] }, { t: 7, pos: [80, 290, 440], mira: [0, 0, 15] }],
     senal: { pos: camaBase(PLACA.bx, 2, PLACA.bz + 45), t0: 4.6, t1: 6.2, r: 1.4 },
     subtitulos: [[0, "Tómala de las orillas, con el cobre hacia arriba"], [2.0, "Ponla al centro de la cama"], [4.2, "Plana: que no quede nada debajo"]],
     placa: [{ t: 0, p: [0, 60, 240] }, { t: 2.2, p: [0, 36, 70] }, { t: 3.6, p: [0, 4, PLACA.bz] }, { t: 3.9, p: [0, 4, PLACA.bz] }, { t: 4.1, p: [0, 0, PLACA.bz] }],
@@ -319,18 +322,25 @@ export const CLIPS = [
     id: "homing", nombre: "Homing", paso: "Máquina", duracion: 8,
     camara: [{ t: 0, pos: [430, 300, 620], mira: [0, 40, -40] }, { t: 8, pos: [320, 250, 540], mira: [10, 40, -40] }],
     senal: null,
-    subtitulos: [[0, "En la app, pulsa Homing"], [0.9, "Primero sube Z"], [2.3, "Luego busca los topes de X y de Y"], [6.2, "Listo: ya sabe dónde está. Manos fuera mientras se mueve"]],
+    subtitulos: [[0, "En la app, pulsa Homing"], [0.8, "Primero Z: sube hasta su tope"], [1.9, "Se aleja un poco y vuelve a tocar, más despacio"], [3.2, "Luego X y Y juntos, igual: dos toques"],
+                 [6.6, "Listo: ya sabe dónde está. Manos fuera mientras se mueve"]],
     manos: [],
     alTiempo(t) {
       sinTapa();
-      cub.husillo.position.y = 12 + 28 * suave(t, 0.8, 2.2);
-      cub.carroX.position.x = -25 + 97.5 * suave(t, 2.2, 4.2);
-      cub.mesa.position.z = Z_FRESA - 70 + 70 * suave(t, 4.2, 6.0);
+      // dos toques por eje: rápido hasta el tope, se aleja 3 mm, lento hasta tocar otra vez y se aleja 1 mm
+      const toques = (t0, de, a) => {
+        const s = Math.sign(a - de);
+        const kf = [{ t: t0, p: [de] }, { t: t0 + 1.1, p: [a] }, { t: t0 + 1.35, p: [a - 3 * s] }, { t: t0 + 2.15, p: [a] }, { t: t0 + 2.35, p: [a - s] }];
+        return kfLineal(kf, t)[0];
+      };
+      cub.husillo.position.y = toques(0.6, 14, 40);
+      cub.carroX.position.x = toques(3.2, 15, -72.5);               // X: tope a la izquierda
+      cub.mesa.position.z = toques(3.2, Z_FRESA - 45, Z_FRESA - 110);  // Y: la cama hasta atrás
     },
   },
   // ===== X0 Y0 =====
   (() => {
-    const kf = [], ini = [72.5, -55, 40], [ex, ez] = ESQ;
+    const kf = [], ini = [-71.5, 54, 39], [ex, ez] = ESQ;   // donde terminó el homing
     let t = jog(kf, 0.8, ini, [ex + 2.5, ini[1], 40], 10, 0);
     t = jog(kf, t, kf[kf.length - 1].p, [ex + 2.5, ez - 2.5, 40], 10, 1);
     const tZ = t + 0.3;
@@ -438,28 +448,40 @@ export const CLIPS = [
     };
   })(),
   {
-    id: "quitarCaiman", nombre: "Quita el caimán", paso: "Z0", duracion: 7,
-    camara: [{ t: 0, pos: [-210, 130, 160], mira: [-30, 25, -20] }, { t: 2.4, pos: [-260, 200, 300], mira: [20, 5, 40] }, { t: 7, pos: [-270, 220, 340], mira: [40, -5, 70] }],
-    senal: { pos: new V(ESQ[0], H_SONDA + 12.5, Z_FRESA), t0: 0.2, t1: 1.6, r: 0.8 },
-    subtitulos: [[0, "Mapa listo: quita el caimán antes de fresar"], [1.6, "Apriétalo, sácalo hacia ti y déjalo fuera de la cama"], [4.8, "La horquilla se queda en el sujetador"]],
+    id: "quitarCaiman", nombre: "Quita la sonda", paso: "Z0", duracion: 12,
+    camara: [{ t: 0, pos: [-210, 130, 160], mira: [-30, 25, -20] }, { t: 3.0, pos: [190, 110, 170], mira: [55, 5, 10] }, { t: 6.4, pos: [180, 100, 160], mira: [60, 5, 10] },
+             { t: 7.4, pos: [-120, 290, 380], mira: [lv.x - 30, lv.y - 30, lv.z + 30] }, { t: 12, pos: [-80, 300, 460], mira: [60, 90, 40] }],
+    senal: [{ pos: new V(ESQ[0], H_SONDA + 12.5, Z_FRESA), t0: 0.2, t1: 1.4, r: 0.8 }, { pos: lv, t0: 7.4, t1: 8.4, r: 0.7 }],
+    subtitulos: [[0, "Mapa listo: quita la sonda antes de fresar"], [1.4, "Suelta el caimán de la fresa"], [3.2, "Afloja el tornillo y saca la horquilla"],
+                 [6.6, "Desconecta el conector de «Leveling»"], [9.4, "Y llévate el cable: no debe quedar nada sobre la cama"]],
     manos: [{
       lado: "der",
       kf: [
         { t: 0, pos: [200, 150, 230], rot: [-30, 0, -20], pose: "relajada" },
-        { t: 1.2, agarra: "caiman", palma: PALMA_CAIMAN, cierre: 0, pose: "pinzaAbierta", aleja: 30 },
-        { t: 1.6, agarra: "caiman", palma: PALMA_CAIMAN }, { t: 1.9, agarra: "caiman", palma: PALMA_CAIMAN }, { t: 4.4, agarra: "caiman", palma: ABAJO },
-        { t: 4.9, agarra: "caiman", palma: ABAJO, cierre: 0, pose: "pinzaAbierta", aleja: 16 },
-        { t: 6.2, pos: [230, 170, 60], rot: [-30, 60, -20], pose: "relajada" },
+        { t: 1.0, agarra: "caiman", palma: PALMA_CAIMAN, cierre: 0, pose: "pinzaAbierta", aleja: 30 },
+        { t: 1.4, agarra: "caiman", palma: PALMA_CAIMAN }, { t: 1.7, agarra: "caiman", palma: PALMA_CAIMAN }, { t: 2.9, agarra: "caiman", palma: ABAJO },
+        { t: 3.3, agarra: "caiman", palma: ABAJO, cierre: 0, pose: "pinzaAbierta", aleja: 20 },
+        { t: 4.4, pos: [200, 160, 200], rot: [-30, 30, -20], pose: "relajada", alto: true },
+        { t: 6.4, agarra: "conector", palma: ARRIBA, cierre: 0, pose: "pinzaAbierta", aleja: 16 },
+        { t: 6.9, agarra: "conector", palma: ARRIBA }, { t: 11, agarra: "conector", palma: ARRIBA },
       ],
     }],
     alTiempo(t) {
       sinTapa();
       fresaSobre(ESQ[0], ESQ[1], H_SONDA);
-      conectorPuesto(); horquillaPuesta();
       cub.husillo.updateMatrixWorld(true);
-      const destino = mordida(), q = suave(t, 1.9, 4.4);
-      const p = curvaCaiman(destino, 1 - q);
-      caimanEn(p, 0.7 + 0.3 * suave(t, 1.6, 2.0) - suave(t, 2.6, 3.0));
+      // el cable completo sale al final, de la mano del conector
+      const fuera = new V(150, -40, 330).multiplyScalar(suave(t, 9.0, 11.0));
+      // caimán: de la fresa a un lado de la cama
+      const q = suave(t, 1.7, 2.9);
+      caimanEn(curvaCaiman(mordida(), 1 - q).add(fuera), 0.7 + 0.3 * suave(t, 1.4, 1.7) - suave(t, 2.6, 2.9));
+      // horquilla: la llave afloja y la horquilla sale hacia el frente
+      allenEn(suj.der, t, { t0: 3.2, t1: 3.8, t2: 5.0, t3: 5.6, vueltas: -0.6, sube: (g) => 0.8 + 1.0 * g });
+      const f = horquillaFin(), sale = suave(t, 4.8, 6.0);
+      horquillaEn(f.clone().add(new V(20 * sale, -6 * sale, 45 * sale)).add(fuera));
+      // conector: sale de Leveling hacia adentro y luego se va con la mano
+      const c = lv.clone().add(new V(3 - 20 * suave(t, 7.0, 7.8), 0, 0));
+      conectorEn(c.lerp(new V(lv.x - 60, lv.y - 50, lv.z + 260), suave(t, 8.2, 11.0)));
       cablesSonda();
     },
   },
@@ -537,7 +559,7 @@ export const CLIPS = [
     camara: [{ t: 0, pos: [66 + 80, 62, 54.75 + 82], mira: [62, 4, 54.75] }, { t: 3.0, pos: [66 + 70, 58, 54.75 + 72], mira: [62, 4, 54.75] },
              { t: 3.8, pos: [180, 210, 380], mira: [0, 0, 35] }, { t: 12, pos: [200, 230, 430], mira: [0, 10, 65] }],
     senal: null,
-    subtitulos: [[0, "Afloja los dos sujetadores y saca la horquilla"], [3.6, "Retíralos de la orilla"], [5.0, "Desliza la placa un poco hacia ti"], [7.8, "Tómala de las orillas y sácala"]],
+    subtitulos: [[0, "Afloja los dos sujetadores con la llave Allen"], [3.6, "Retíralos de la orilla"], [5.0, "Desliza la placa un poco hacia ti"], [7.8, "Tómala de las orillas y sácala"]],
     placa: [{ t: 0, p: [0, 0, PLACA.bz] }, { t: 5.4, p: [0, 0, PLACA.bz] }, { t: 7.0, p: [0, 0, PLACA.bz + 12] }, { t: 9.0, p: [0, 0, PLACA.bz + 12] }, { t: 10.6, p: [0, 50, PLACA.bz + 180] }, { t: 12, p: [0, 70, PLACA.bz + 260] }],
     manos: (() => {
       // la derecha desliza la placa con el índice y luego, con la izquierda, la levanta de las orillas
@@ -557,12 +579,8 @@ export const CLIPS = [
       sinTapa();
       fresaSobre(0, -45, 40);              // husillo arriba y cama adelante: hay lugar para las manos
       pintarPlaca(SURCO_COMPLETO, 0);
-      allenEn(suj.der, t, { t0: 0.2, t1: 0.8, t2: 2.6, t3: 3.2, vueltas: -1.5, sube: (g) => 0.8 + 1.4 * g });
+      allenEn(suj.der, t, { t0: 0.2, t1: 0.8, t2: 2.6, t3: 3.2, vueltas: -1.5, sube: (g) => 2.2 * g });
       suj.izq.tornillo.position.y = 2.2 * suave(t, 0.8, 2.6);
-      // la horquilla sale hacia el frente cuando el tornillo ya está flojo
-      conectorPuesto(); caimanEn(REPOSO_CAIMAN, 0);
-      const f = horquillaFin(); horquillaEn(f.clone().add(new V(25 * suave(t, 2.6, 3.4), -8 * suave(t, 2.6, 3.4), 40 * suave(t, 2.0, 3.2))));
-      cablesSonda();
       // los sujetadores se hacen hacia afuera 9 mm (lo que deja su ranura)
       const sale = suave(t, 3.6, 4.6) * 9;
       suj.der.grupo.position.x = SUJ.der.bx + sale; suj.der.tornillo.position.x = SUJ.der.bx + sale - ROSCA_SUJ.der[0];
