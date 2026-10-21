@@ -1,0 +1,116 @@
+[
+ {
+  "id": "usb",
+  "nombre": "Conecta el USB",
+  "paso": "Máquina",
+  "duracion": 7.0
+ },
+ {
+  "id": "encender",
+  "nombre": "Enciende",
+  "paso": "Máquina",
+  "duracion": 9.5
+ },
+ {
+  "id": "quitarTapa",
+  "nombre": "Quita la tapa",
+  "paso": "Tapa",
+  "duracion": 9.0
+ },
+ {
+  "id": "ponerPlaca",
+  "nombre": "Pon la placa",
+  "paso": "Placa",
+  "duracion": 7.0
+ },
+ {
+  "id": "sujetador",
+  "nombre": "Sujeta la placa",
+  "paso": "Placa",
+  "duracion": 11.0
+ },
+ {
+  "id": "herramientas",
+  "nombre": "Las herramientas",
+  "paso": "Herramienta",
+  "duracion": 12.0
+ },
+ {
+  "id": "cambiar",
+  "nombre": "Pon la fresa en V",
+  "paso": "Herramienta",
+  "duracion": 11.0
+ },
+ {
+  "id": "homing",
+  "nombre": "Homing",
+  "paso": "Máquina",
+  "duracion": 8.0
+ },
+ {
+  "id": "xy",
+  "nombre": "X0 Y0",
+  "paso": "X0 Y0",
+  "duracion": 7.519999999999998
+ },
+ {
+  "id": "sonda",
+  "nombre": "Conecta la sonda",
+  "paso": "Z0",
+  "duracion": 15.0
+ },
+ {
+  "id": "tocar",
+  "nombre": "Toca la placa",
+  "paso": "Z0",
+  "duracion": 8.0
+ },
+ {
+  "id": "mapa",
+  "nombre": "Mapa de alturas",
+  "paso": "Z0",
+  "duracion": 12.437077779613269
+ },
+ {
+  "id": "quitarCaiman",
+  "nombre": "Quita la sonda",
+  "paso": "Z0",
+  "duracion": 12.0
+ },
+ {
+  "id": "ponerTapa",
+  "nombre": "Pon la tapa",
+  "paso": "Tapa",
+  "duracion": 9.0
+ },
+ {
+  "id": "fresar",
+  "nombre": "Prueba en aire y fresa",
+  "paso": "Fresar",
+  "duracion": 17.495773208197466
+ },
+ {
+  "id": "paro",
+  "nombre": "Paro de emergencia",
+  "paso": "Fresar",
+  "duracion": 7.0
+ },
+ {
+  "id": "limpiar",
+  "nombre": "Aspira el polvo",
+  "paso": "Al terminar",
+  "duracion": 9.0
+ },
+ {
+  "id": "sacarPlaca",
+  "nombre": "Saca la placa",
+  "paso": "Al terminar",
+  "duracion": 12.0
+ },
+ {
+  "id": "apagar",
+  "nombre": "Apaga",
+  "paso": "Al terminar",
+  "duracion": 6.0
+ }
+]

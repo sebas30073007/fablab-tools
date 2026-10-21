@@ -253,6 +253,38 @@ if (qs.has("hoja")) {
   throw new Error("hoja lista");      // nada más que hacer en este modo
 }
 
+// ---------------- ?grabar=id,id|todos: cuadro por cuadro para hacer los videos (tools/grabar_clips.py) ----------------
+// Cada cuadro se dibuja en un tiempo exacto (no depende de qué tan rápido renderiza la máquina), con el subtítulo,
+// y se manda como JPEG por POST a /cuadro; al final, POST a /fin. El servidor de grabar_clips.py los recibe.
+if (qs.has("grabar")) {
+  const ids = qs.get("grabar"), lista = !ids || ids === "todos" ? CLIPS : CLIPS.filter((c) => ids.split(",").includes(c.id));
+  const fps = Number(qs.get("fps") || 30), W = Number(qs.get("w") || 1280), H = Number(qs.get("h") || 720);
+  const lienzo2 = document.createElement("canvas"); lienzo2.width = W; lienzo2.height = H;
+  const x = lienzo2.getContext("2d");
+  await document.fonts?.ready;
+  try {
+    for (const c of lista) {
+      const n = Math.round(c.duracion * fps) + 1;
+      for (let i = 0; i < n; i++) {
+        renderer.setPixelRatio(1); renderer.setSize(W, H, false); camara.aspect = W / H; camara.updateProjectionMatrix();
+        const tt = Math.min(c.duracion, i / fps);
+        escenaEn(c, tt); camaraEn(c, tt); ponerSenal(c.senal, tt);
+        renderer.render(escena, camara);
+        x.drawImage(renderer.domElement, 0, 0, W, H);
+        subtituloEnLienzo(x, subtituloEn(c, tt), W, H);
+        const blob = await new Promise((r) => lienzo2.toBlob(r, "image/jpeg", 0.93));
+        for (let intento = 0; ; intento++) {     // a veces el servidor rechaza una conexión: se reintenta
+          try { await fetch(`/cuadro?clip=${c.id}&n=${i}`, { method: "POST", body: blob }); break; }
+          catch (e) { if (intento >= 4) throw e; await new Promise((r) => setTimeout(r, 300)); }
+        }
+      }
+      await fetch(`/clip?clip=${c.id}&fps=${fps}&duracion=${c.duracion}&nombre=${encodeURIComponent(c.nombre)}&paso=${encodeURIComponent(c.paso)}`, { method: "POST" });
+    }
+    await fetch("/fin", { method: "POST" });
+  } catch (e) { await fetch(`/fin?error=${encodeURIComponent(e.message)}`, { method: "POST" }); }
+  throw new Error("grabación lista");
+}
+
 // ---------------- ?mano=pose&ancho=8: la mano sola en esa pose, de lado, desde abajo y de frente ----------------
 if (qs.has("mano")) {
   const nombre = qs.get("mano"), ancho = Number(qs.get("ancho") || 8);

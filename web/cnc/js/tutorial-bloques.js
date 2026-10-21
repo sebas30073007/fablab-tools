@@ -20,6 +20,7 @@
 //   titulo, texto (texto: cadena o lista de párrafos; admite <b>)
 //   masc      pose de Fresa (claves de app.MASC); por defecto según el tipo
 //   img       imagen dentro de la tarjeta (las del manual sirven para explicar conceptos)
+//   video     id de un video de las manos (web/videos/manos/<id>.mp4): lo que se hace con la máquina real
 //   lado      "izq" | "der" | "arriba" | "abajo" | "dentro"; si falta, se elige solo
 //   antes(app)   prepara la pantalla (navegar a una vista…)
 //   si(app)      false = se salta
@@ -68,6 +69,8 @@ export const BLOQUES = [
 
   // ------------------------------------------------------------------
   { id: "maquina", paso: 1, titulo: "Máquina", pasos: [
+    { tipo: "info", masc: "explica", video: "encender", titulo: "Con la Cubiko real",
+      texto: ["El botón ON/OFF y el paro rojo están en el costado derecho; el USB y la corriente, atrás en ese mismo lado.", "Aquí lo hacemos en simulación."] },
     { tipo: "pulsa", objetivo: ahora("sim"), antes: irInicio, hasta: (app) => app.grbl.conectado,
       titulo: "Conecta en simulación", texto: "Con la Cubiko real pulsarías Conectar y elegirías su puerto USB.", pista: "Pulsa Simulación",
       hazlo: (app) => app.acc.conectar("sim") },
@@ -75,7 +78,7 @@ export const BLOQUES = [
     { tipo: "señala", objetivo: '[data-tour="coords"]', titulo: "X, Y, Z",
       texto: ["Dónde está la punta de la fresa, en milímetros.", "<b>X</b> izquierda y derecha · <b>Y</b> adelante y atrás (en la Cubiko se mueve la cama) · <b>Z</b> arriba y abajo."] },
     { tipo: "pulsa", objetivo: ahora("homing"), antes: irInicio, hasta: (app) => app.S.homed,
-      titulo: "Homing", texto: ["Al encender, la máquina no sabe dónde está y arranca bloqueada.", "Con el homing busca sus topes y desde ahí lo sabe: es su <b>origen de máquina</b>. Se hace cada vez que la enciendes."], pista: "Pulsa Homing",
+      video: "homing", titulo: "Homing", texto: ["Al encender, la máquina no sabe dónde está y arranca bloqueada.", "Con el homing busca sus topes y desde ahí lo sabe: es su <b>origen de máquina</b>. Se hace cada vez que la enciendes."], pista: "Pulsa Homing",
       hazlo: (app) => app.acc.homing() },
   ] },
 
@@ -115,6 +118,8 @@ export const BLOQUES = [
 
   // ------------------------------------------------------------------
   { id: "xy", paso: 4, titulo: "X0 Y0", si: (app) => conectada(app) && app.S.trabajos.length > 0, pasos: [
+    { tipo: "info", masc: "explica", video: "sujetador", titulo: "La placa, sujeta",
+      texto: ["Antes del cero, la placa va al centro de la cama con los dos sujetadores, apretados con la llave Allen de 3 mm.", "Sin tapa: la máquina se mueve, pero el husillo no enciende."] },
     { tipo: "info", masc: "explica", img: fig("xy"), si: (app) => !app.S.xyListo, titulo: "Cero de trabajo",
       texto: ["El homing dice dónde está la máquina. Tú dices dónde está tu placa: su <b>cero de trabajo</b>.", "X0 Y0 va en la esquina inferior izquierda de la placa; Z0, en la superficie del cobre."] },
     { tipo: "pulsa", objetivo: ahora("mover"), antes: irInicio, si: (app) => !app.S.xyListo, hasta: (app) => app.vistaActual === "mover",
@@ -129,7 +134,7 @@ export const BLOQUES = [
 
   // ------------------------------------------------------------------
   { id: "z", paso: 5, titulo: "Z0", si: (app) => conectada(app) && app.S.xyListo, pasos: [
-    { tipo: "info", masc: "sonda", img: fig("ceros"), si: (app) => !app.S.zListo, titulo: "Z0 con la sonda",
+    { tipo: "info", masc: "sonda", video: "sonda", si: (app) => !app.S.zListo, titulo: "Z0 con la sonda",
       texto: ["El caimán va en la fresa y el cable en el cobre. Cuando se tocan, se cierra el circuito y la máquina sabe que llegó.", "Así Z0 queda justo en la superficie, aunque la placa no mida exactamente lo mismo cada vez."] },
     { tipo: "pulsa", objetivo: ahora("paso"), antes: irInicio, si: (app) => !app.S.zListo, hasta: (app) => hojaAbierta() || app.S.zListo,
       titulo: "Calibra Z", texto: "Se abre un asistente paso a paso.", pista: "Pulsa Empezar",
@@ -139,15 +144,17 @@ export const BLOQUES = [
       hazlo: (app) => app.grbl.enviarVarias(["G90", "G53 G0 Z-31"]), hazloTexto: "Acércala por mí",
       hazloSi: (app) => hojaAbierta() && app.grbl.est.estado === "Idle" && app.grbl.est.mpos.z > -30 },
     { tipo: "espera", masc: "lupa", luego: true, si: () => enPasoMapa(), hasta: (app) => app.S.zListo || !!app.S.mapa?.completo,
-      titulo: "Mapa de alturas", texto: ["<b>Deja el caimán puesto.</b> La sonda toca una rejilla de puntos y la app corrige Z mientras fresa: la placa nunca está del todo plana.", "Sin él, donde la placa queda más baja las pistas no se aíslan. Pulsa <b>Medir</b> y espera a que se llenen los puntos."],
+      video: "mapa", titulo: "Mapa de alturas", texto: ["<b>Deja el caimán puesto.</b> La sonda toca una rejilla de puntos y la app corrige Z mientras fresa: la placa nunca está del todo plana.", "Sin él, donde la placa queda más baja las pistas no se aíslan. Pulsa <b>Medir</b> y espera a que se llenen los puntos."],
       hazlo: () => document.querySelector('.hoja [data-sig]')?.click(), hazloTexto: "Mídelo por mí",
       hazloSi: (app) => enPasoMapa() && !app.S.midiendo && !app.S.mapa?.completo },
     { tipo: "espera", masc: "sonda", luego: true, si: (app) => !app.S.zListo, hasta: (app) => app.S.zListo,
-      titulo: "Quita el caimán", texto: "Ahora sí: el mapa está listo. Pulsa Siguiente y Listo para cerrar el asistente." },
+      video: "quitarCaiman", titulo: "Quita la sonda", texto: ["Ahora sí: el mapa está listo. Suelta el caimán, saca la horquilla y desconecta el cable.", "Luego pulsa Siguiente y Listo para cerrar el asistente."] },
   ] },
 
   // ------------------------------------------------------------------
   { id: "fresar", paso: 6, titulo: "Fresar", si: (app) => conectada(app) && app.S.zListo, pasos: [
+    { tipo: "info", masc: "explica", video: "ponerTapa", titulo: "Pon la tapa",
+      texto: "Tiene un sensor: sin la tapa puesta el husillo no enciende." },
     { tipo: "pulsa", objetivo: ahora("aire"), antes: irInicio, hasta: (app) => hojaAbierta() || !!app.S.corriendo,
       titulo: "Prueba en aire", texto: "Antes de cortar de verdad, siempre: el mismo trabajo, pero 5 mm más arriba. Así ves el recorrido completo sin tocar la placa.", pista: "Pulsa Prueba en aire",
       hazlo: (app) => app.acc.correrTrabajo(app.acc.siguienteTrabajo(), { aire: true }) },
@@ -155,9 +162,9 @@ export const BLOQUES = [
     { tipo: "señala", objetivo: '[data-tour="ahora"]', masc: "fresando", luego: true, si: (app) => !!app.S.corriendo, titulo: "En curso",
       texto: "Cuánto lleva, cuánto falta y qué sigue. Mira el 3D: la fresa recorre las pistas." },
     { tipo: "pulsa", objetivo: '[data-tour="paro"]', luego: true, si: (app) => !!app.S.corriendo, hasta: (app) => !app.S.corriendo,
-      titulo: "Practica el PARO", texto: "Párala ahora, para que sepas dónde está cuando lo necesites. La posición se conserva.", pista: "Pulsa PARO",
+      video: "paro", titulo: "Practica el PARO", texto: "Párala ahora, para que sepas dónde está cuando lo necesites. La posición se conserva.", pista: "Pulsa PARO",
       hazlo: (app) => app.acc.paro() },
-    { tipo: "info", masc: "explica", img: fig("fresar"), titulo: "Con una placa real",
+    { tipo: "info", masc: "explica", video: "cambiar", titulo: "Con una placa real",
       texto: ["Deja que la prueba termine y luego pulsa Fresar. Al acabar las pistas, la app te pide la broca y volver a calibrar Z; después, la fresa del contorno.", "Revisa los checks del manual antes de cada trabajo."] },
   ] },
 

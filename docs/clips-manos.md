@@ -59,6 +59,18 @@ Videos cortos del tutorial de la CNC: una mano 3D hace lo que hay que hacer fuer
 - En esta mano la pinza (pulgar → yema del índice) va casi a lo largo de los dedos, bajo la palma: el antebrazo sale del
   lado del pulgar. Por eso cada agarre dice qué caras se aprietan (`eje` del objeto) y hacia dónde mira la palma.
 
+## Videos (tutorial y examen)
+
+`python tools/grabar_clips.py` (o `... usb,sonda`) graba los clips como MP4 1280 × 720 a 30 cuadros por segundo con el
+subtítulo dentro, más un póster JPEG, en `web/videos/manos/` (y la lista `clips.json`). Usa Edge sin ventana con la GPU
+(`?grabar`: cada cuadro en un tiempo exacto) y ffmpeg; los 19 tardan ~2 min. Volver a grabar después de editar poses.
+
+Dónde se ven (`web/cnc/js/videos.js`):
+- **Manual**: cada paso tiene botones ▶ que abren su video encima.
+- **Recorrido guiado**: los pasos con `video` (encender, homing, sujetador, sonda, mapa, quitar la sonda, poner la tapa,
+  PARO, cambio de herramienta) lo muestran en la tarjeta, en bucle y sin sonido.
+- **Examen**: 7 preguntas con video (tapa, homing, sujetador, herramientas, cambio de fresa, sonda, quitar la sonda).
+
 ## Editor de manos (`?editar`)
 
 fablab.sebs.mx/demo/manos/?editar. Panel a la derecha y, bajo la barra de tiempo, una pista por mano con sus

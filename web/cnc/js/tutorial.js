@@ -12,6 +12,7 @@ import { esc, ico, dialogo, hojaAbierta, dialogoAbierto, cerrarHojaSuperior, ls 
 import { MANUAL } from "./manual.js";
 import { BLOQUES } from "./tutorial-bloques.js";
 import { abrirExamen } from "./examen.js";
+import { htmlVideo, verVideo } from "./videos.js";
 
 const reducido = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const MASC_TIPO = { info: "explica", "señala": "senala", pulsa: "senala", espera: "hola" };
@@ -68,7 +69,7 @@ function manual(c, d, app, desdeElegir = false) {
       <h3>${num ? `<span>${num}</span>` : ""}${esc(p.t)}</h3>
       <p>${esc(p.d)}</p>
       ${p.checks.map((k) => `<label class="check"><input type="checkbox"> ${esc(k)}</label>`).join("")}
-      ${p.clips ? `<div class="man-clips">${p.clips.map((v) => `<a href="../demo/manos/?clip=${v.id}" target="_blank" rel="noopener">${esc(v.nombre)}</a>`).join("")}</div>` : ""}
+      ${p.clips ? `<div class="man-clips">${p.clips.map((v) => `<button type="button" data-video="${v.id}">${esc(v.nombre)}</button>`).join("")}</div>` : ""}
     </li>`;
   const seccion = (t, sub, lista, numerar, clase = "") => `<section class="man-sec ${clase}"><h3 class="man-sec__t">${esc(t)}<small>${esc(sub)}</small></h3>
     <ol class="man-pasos">${lista.map((p, i) => tarjeta(p, numerar ? i + 1 : 0)).join("")}</ol></section>`;
@@ -77,6 +78,7 @@ function manual(c, d, app, desdeElegir = false) {
     ${seccion("Los 6 pasos de tu placa", "los mismos de Inicio y del tutorial guiado", MANUAL.pasos, true)}
     ${seccion("Al terminar", "fuera de la app", MANUAL.despues, false, "man-sec--extra")}</div>
     <div class="man-pie">${MANUAL.pie.map(([a, b]) => `<span><b>${esc(a)}</b> ${esc(b)}</span>`).join("")}</div>`;
+  c.querySelectorAll("[data-video]").forEach((b) => (b.onclick = () => verVideo(b.dataset.video, b.textContent)));
   c.scrollTop = 0;
   if (desdeElegir) d.enfocar();
 }
@@ -207,7 +209,7 @@ class Recorrido {
     const n = p.breve ? 0 : vistas.size;
     const total = n + b.pasos.slice(this.pi + 1).filter((x) => !x.breve && (x.luego || this._valido(b, x))).length;
     const [icoChip, txtChip] = CHIP[clase];
-    this.pop.className = `tour__pop tour__pop--${clase}` + (this.modo === "centro" ? " tour__pop--centro" : p.img ? " tour__pop--ancho" : "");
+    this.pop.className = `tour__pop tour__pop--${clase}` + (this.modo === "centro" ? " tour__pop--centro" : p.img || p.video ? " tour__pop--ancho" : "");
     this.pop.innerHTML = `
       <div class="tour__cab">
         <span class="tour__cap">${esc(cap)}</span>
@@ -220,7 +222,7 @@ class Recorrido {
           <span class="tour__chip tour__chip--${clase}">${ico(icoChip)}${txtChip}</span>
           <h3 class="tour__tit" id="tour-tit" tabindex="-1">${esc(p.titulo)}</h3>
           <div id="tour-txt">${textos.map((t) => `<p class="tour__txt">${t}</p>`).join("")}
-            ${p.img ? `<div class="tour__fig"><img src="${p.img}" alt="" onerror="this.parentElement.remove()"></div>` : ""}
+            ${p.video ? `<div class="tour__fig tour__fig--video">${htmlVideo(p.video)}</div>` : p.img ? `<div class="tour__fig"><img src="${p.img}" alt="" onerror="this.parentElement.remove()"></div>` : ""}
             ${p.pista && (pulsable || p.tipo === "espera") ? `<div class="tour__pista">${ico("clic")}${esc(p.pista)}</div>` : ""}</div>
         </div>
       </div>

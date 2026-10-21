@@ -1,6 +1,6 @@
 // examen.js - el examen del Curso básico de CNC y su certificado.
 //
-// 32 preguntas sobre lo que enseña el recorrido guiado; cada intento toma 15 al azar y en
+// 39 preguntas sobre lo que enseña el recorrido guiado (7 con un video de las manos: lo que se hace con la máquina); cada intento toma 15 al azar y en
 // orden aleatorio (también las opciones). Se aprueba con 80 % (12 de 15) y se puede repetir
 // sin límite. Al aprobar, el estudiante escribe su nombre y descarga el certificado en PDF.
 //
@@ -8,13 +8,44 @@
 // como JPEG y se mete en una página A4 horizontal (objeto de imagen DCTDecode).
 
 import { esc, dialogo, ls } from "./ui.js";
+import { htmlVideo } from "./videos.js";
 
 const N_PREGUNTAS = 15, APRUEBA = 0.8;
 const CURSO = "Curso básico de CNC";
 const MAQUINA = "Genmitsu Cubiko";
 
-// { q, ok: respuesta correcta, no: distractores, por: por qué (se muestra al revisar) }
+// { q, ok: respuesta correcta, no: distractores, por: por qué (se muestra al revisar), video?: id de web/videos/manos }
 export const PREGUNTAS = [
+  // ----- Con video: lo que se hace con las manos -----
+  { video: "quitarTapa", q: "Quitaste la tapa, como en el video. ¿Qué hace la máquina mientras está quitada?",
+    ok: "Se mueve y hace homing, pero el husillo no enciende",
+    no: ["No hace nada hasta que pongas la tapa", "Funciona igual, la tapa solo detiene el polvo", "Enciende el husillo pero a menor velocidad"],
+    por: "La tapa pisa un final de carrera: sin ella se puede mover y calibrar, pero no fresar." },
+  { video: "homing", q: "En el video la máquina hace homing. ¿En qué orden?",
+    ok: "Primero Z hacia arriba; luego X y Y juntos. Cada eje toca dos veces, la segunda más despacio",
+    no: ["X, luego Y, luego Z, una vez cada uno", "Los tres ejes a la vez, una sola vez", "Primero baja Z hasta tocar la placa"],
+    por: "Z sube primero para no chocar; el segundo toque, lento, da la posición exacta." },
+  { video: "sujetador", q: "¿Cómo se sujeta la placa a la cama?",
+    ok: "Con los dos sujetadores de aluminio, la lengüeta sobre la orilla, apretados con la llave Allen de 3 mm",
+    no: ["Con cinta doble cara bajo el cobre", "Con los sujetadores tocando el centro de la placa", "Basta con apoyarla: la fresa no la mueve"],
+    por: "La lengüeta pisa solo la orilla; firme, sin forzar, para que la placa no se mueva." },
+  { video: "herramientas", q: "Fíjate en las puntas del video. ¿Cuál corta el contorno de la placa?",
+    ok: "La de maíz: cilindro con rombos y punta plana",
+    no: ["La punta en V", "La broca delgada con anillo de color", "Cualquiera de las tres"],
+    por: "V para pistas, broca para hoyos, maíz para el contorno." },
+  { video: "cambiar", q: "¿Cómo se afloja la tuerca de la pinza para cambiar la fresa?",
+    ok: "Con dos llaves de 13 mm: una sostiene la pinza por sus caras planas y la otra gira la tuerca",
+    no: ["Con una sola llave, girando todo el husillo", "Con la llave Allen de 3 mm", "A mano, sin llaves"],
+    por: "Una llave sostiene y la otra gira; y al aflojar, sostén la fresa para que no caiga." },
+  { video: "sonda", q: "¿Dónde va cada punta del cable de la sonda?",
+    ok: "Conector en «Leveling», horquilla bajo el sujetador que pisa el cobre y caimán en la fresa",
+    no: ["Caimán en el cobre y horquilla en la fresa", "Conector en el USB de atrás", "Caimán en la tuerca de la pinza"],
+    por: "El circuito se cierra cuando la fresa toca el cobre: por eso una punta va a cada uno." },
+  { video: "quitarCaiman", q: "Terminó el mapa de alturas. ¿Qué haces con la sonda antes de fresar?",
+    ok: "Quitar el caimán, sacar la horquilla y desconectar el cable de «Leveling»",
+    no: ["Dejarla puesta: así la app sigue corrigiendo Z", "Solo quitar el caimán y dejar el cable sobre la cama", "Desconectarla hasta terminar todos los trabajos"],
+    por: "Nada de la sonda debe quedar sobre la cama: el cable se enreda y el caimán gira con la fresa." },
+  // ----- Del recorrido -----
   { q: "Enciendes la Cubiko y la app dice que está bloqueada. ¿Por qué?",
     ok: "Todavía no sabe dónde está: hasta hacer homing no conoce su posición",
     no: ["Falta calibrar Z antes de poder moverla", "Está en simulación y hay que conectar el USB", "Falta abrir los archivos de la placa"],
@@ -115,7 +146,7 @@ export const PREGUNTAS = [
     ok: "Desbloquear, alejar el eje 1 mm del extremo y hacer homing; luego revisar X0 Y0",
     no: ["Apagar y prender la máquina y seguir fresando", "Hacer homing sin desbloquear", "Seguir: el pitido solo avisa"],
     por: "La fresa llegó al interruptor del extremo del eje; la posición ya no es confiable hasta el homing." },
-  { q: "La placa quedó con una burbuja bajo la cinta y no usas mapa de alturas. ¿Qué esperas?",
+  { q: "La placa quedó un poco levantada en una esquina y no usas mapa de alturas. ¿Qué esperas?",
     ok: "Donde la placa está más alta corta de más, y donde está más baja no llega a quitar el cobre",
     no: ["Todo sale igual: Z0 ya se calibró", "Solo cambia el tiempo del trabajo", "La máquina se detiene con una alarma"],
     por: "Z0 se mide en un punto; si la superficie no es plana, la profundidad real cambia." },
@@ -180,6 +211,7 @@ function preguntar(c, d, app, lista, i, resp) {
   d.titulo(`Pregunta ${i + 1} de ${lista.length}`); d.meta("");
   d.atras(null);
   c.innerHTML = `<div class="ex-prog" aria-hidden="true">${lista.map((_, k) => `<i class="${k < i ? "on" : k === i ? "actual" : ""}"></i>`).join("")}</div>
+    ${p.video ? `<div class="ex-video">${htmlVideo(p.video)}</div>` : ""}
     <fieldset class="ex-preg">
       <legend>${esc(p.q)}</legend>
       ${p.ops.map((o, k) => `<label class="ex-op"><input type="radio" name="ex-op" value="${k}"><span>${esc(o)}</span></label>`).join("")}
