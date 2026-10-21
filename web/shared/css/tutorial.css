@@ -206,14 +206,12 @@ body.con-tour .w-masc { visibility: hidden; }
 body.con-hoja .tour--libre .tour__masc { display: none; }
 body.con-hoja .tour--libre .tour__cuerpo { grid-template-columns: minmax(0, 1fr); }
 
-/* Tarjeta con video: sin Fresa; el video manda a la izquierda y el texto va a un lado */
-.tour__pop--video, .tour__pop--video.tour__pop--centro { width: 640px; }
-.tour__pop--video .tour__cuerpo, .tour__pop--video.tour__pop--centro .tour__cuerpo { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 18px; align-items: center; }
-.tour__pop--video .tour__cuerpo > .tour__fig--video { margin: 0; width: 100%; max-width: 300px; }
-@media (max-width: 720px) {
-  .tour__pop--video .tour__cuerpo, .tour__pop--video.tour__pop--centro .tour__cuerpo { grid-template-columns: minmax(0, 1fr); }
-  .tour__pop--video .tour__cuerpo > .tour__fig--video { max-width: 240px; justify-self: center; }
-}
+/* Tarjeta con video: sin Fresa; el video grande arriba (ya trae la instrucción) y el texto corto debajo */
+.tour__pop--video, .tour__pop--video.tour__pop--centro { width: 520px; }
+.tour__pop--video .tour__cuerpo, .tour__pop--video.tour__pop--centro .tour__cuerpo { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.tour__pop--video .tour__cuerpo > .tour__fig--video { margin: 0 auto; width: min(100%, 480px, 60vh); max-width: none; aspect-ratio: 1 / 1; }
+.tour__pop--video .tour__tit { font-size: 16px; }
+.tour__pop--video .tour__txt { font-size: 13.5px; }
 
 /* Pregunta con video: el video a la izquierda y la pregunta con sus opciones a un lado */
 .ex-con-video { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 22px; align-items: start; }
