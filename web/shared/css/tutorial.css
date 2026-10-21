@@ -205,3 +205,12 @@ body.con-tour .w-masc { visibility: hidden; }
 /* Con una hoja abierta, la Fresa que habla es la de la hoja */
 body.con-hoja .tour--libre .tour__masc { display: none; }
 body.con-hoja .tour--libre .tour__cuerpo { grid-template-columns: minmax(0, 1fr); }
+
+/* Tarjeta con video: sin Fresa; el video manda a la izquierda y el texto va a un lado */
+.tour__pop--video, .tour__pop--video.tour__pop--centro { width: 640px; }
+.tour__pop--video .tour__cuerpo, .tour__pop--video.tour__pop--centro .tour__cuerpo { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 18px; align-items: center; }
+.tour__pop--video .tour__cuerpo > .tour__fig--video { margin: 0; width: 100%; max-width: 300px; }
+@media (max-width: 720px) {
+  .tour__pop--video .tour__cuerpo, .tour__pop--video.tour__pop--centro .tour__cuerpo { grid-template-columns: minmax(0, 1fr); }
+  .tour__pop--video .tour__cuerpo > .tour__fig--video { max-width: 240px; justify-self: center; }
+}

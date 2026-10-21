@@ -209,7 +209,7 @@ class Recorrido {
     const n = p.breve ? 0 : vistas.size;
     const total = n + b.pasos.slice(this.pi + 1).filter((x) => !x.breve && (x.luego || this._valido(b, x))).length;
     const [icoChip, txtChip] = CHIP[clase];
-    this.pop.className = `tour__pop tour__pop--${clase}` + (this.modo === "centro" ? " tour__pop--centro" : p.img || p.video ? " tour__pop--ancho" : "");
+    this.pop.className = `tour__pop tour__pop--${clase}` + (this.modo === "centro" ? " tour__pop--centro" : p.img || p.video ? " tour__pop--ancho" : "") + (p.video ? " tour__pop--video" : "");
     this.pop.innerHTML = `
       <div class="tour__cab">
         <span class="tour__cap">${esc(cap)}</span>
@@ -217,12 +217,12 @@ class Recorrido {
         <span class="sr-only">${b.paso ? `Paso ${b.paso} de ${nPasos}` : esc(b.titulo)}${n ? `, tarjeta ${n} de ${total}` : ""}</span>
       </div>
       <div class="tour__cuerpo">
-        ${masc && app.MASC[masc] ? `<img class="tour__masc" src="${app.MASC[masc]}" alt="" onerror="this.remove()">` : ""}
+        ${p.video ? `<div class="tour__fig tour__fig--video">${htmlVideo(p.video)}</div>` : masc && app.MASC[masc] ? `<img class="tour__masc" src="${app.MASC[masc]}" alt="" onerror="this.remove()">` : ""}
         <div class="tour__main">
           <span class="tour__chip tour__chip--${clase}">${ico(icoChip)}${txtChip}</span>
           <h3 class="tour__tit" id="tour-tit" tabindex="-1">${esc(p.titulo)}</h3>
           <div id="tour-txt">${textos.map((t) => `<p class="tour__txt">${t}</p>`).join("")}
-            ${p.video ? `<div class="tour__fig tour__fig--video">${htmlVideo(p.video)}</div>` : p.img ? `<div class="tour__fig"><img src="${p.img}" alt="" onerror="this.parentElement.remove()"></div>` : ""}
+            ${p.img && !p.video ? `<div class="tour__fig"><img src="${p.img}" alt="" onerror="this.parentElement.remove()"></div>` : ""}
             ${p.pista && (pulsable || p.tipo === "espera") ? `<div class="tour__pista">${ico("clic")}${esc(p.pista)}</div>` : ""}</div>
         </div>
       </div>
