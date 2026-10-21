@@ -59,6 +59,19 @@ Videos cortos del tutorial de la CNC: una mano 3D hace lo que hay que hacer fuer
 - En esta mano la pinza (pulgar → yema del índice) va casi a lo largo de los dedos, bajo la palma: el antebrazo sale del
   lado del pulgar. Por eso cada agarre dice qué caras se aprietan (`eje` del objeto) y hacia dónde mira la palma.
 
+## Editor de manos (`?editar`)
+
+fablab.sebs.mx/demo/manos/?editar. Panel a la derecha y, bajo la barra de tiempo, una pista por mano con sus
+cuadros clave (rombos; negros = editados a mano, cobre = el elegido).
+
+- **Derecha / Izquierda**: elige la mano; si el clip no la tiene, la agrega. «Quitar mano» borra su pista.
+- **+ Cuadro aquí** (K) agrega un cuadro en el tiempo actual; ◀ ▶ (flechas) saltan entre cuadros; Borrar (Supr).
+- En un cuadro: la flecha en la palma mueve (W) o gira (E) la mano; las barras doblan cada dedo; «Pose» aplica una
+  pose con nombre; «Tiempo» mueve el cuadro; «Sigue a» lo pega a un objeto (la placa, la tapa, el caimán…).
+- Un cuadro tocado queda **manual**: se reproduce tal cual, sin el ajuste automático de contacto.
+- Se guarda solo en el navegador (borrador). **Guardar archivo** descarga `poses.json`; ese archivo, junto a
+  `index.html`, reemplaza las pistas de mano de los clips que trae, para todos. «Descartar este clip» borra el borrador.
+
 ## Prueba
 
 - `?prueba` (o `?prueba=usb,sonda`): recorre cada clip a 15 cuadros por segundo y reporta cuánto entran la piel (por

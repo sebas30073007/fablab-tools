@@ -11,6 +11,10 @@
 //   ?prueba[=id]           mide, cuadro por cuadro, cuánto atraviesan la piel, la manga y los cables
 //                          (resultado en <pre id="reporte"> y window.reporte)
 //   ?mano=agarre&ancho=8   la mano sola en una pose, de tres lados
+//   ?editar                editor de las manos (editor.js)
+//
+// Poses editadas a mano: poses.json (junto a esta página) reemplaza las pistas de mano de los clips que trae;
+// encima va el borrador del navegador (localStorage «manos-borrador»), que guarda el editor.
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -30,6 +34,16 @@ orbita.enableDamping = true;
 const BASE = "../../shared/vendor/manos/";
 const manos = { der: await Mano.crear("der", { base: BASE }), izq: await Mano.crear("izq", { base: BASE }) };
 escena.add(manos.der.raiz, manos.izq.raiz);
+// Pistas editadas: primero poses.json, luego el borrador de este navegador
+export const BORRADOR = "manos-borrador";
+function aplicarPistas(datos) {
+  for (const [id, manosClip] of Object.entries(datos || {})) {
+    const c = CLIPS.find((x) => x.id === id);
+    if (c) { c.manos = manosClip; c._horneado = false; }
+  }
+}
+try { const r = await fetch("poses.json", { cache: "no-store" }); if (r.ok) aplicarPistas(await r.json()); } catch {}
+try { aplicarPistas(JSON.parse(localStorage.getItem(BORRADOR) || "{}")); } catch {}
 // Las poses de agarre se resuelven antes (cada ancho una vez)
 for (const c of CLIPS) for (const p of c.manos) for (const k of p.kf) if (k.agarra) manos[p.lado].poseAgarre(OBJ[k.agarra].agarre.ancho);
 
@@ -50,6 +64,7 @@ function evaluar(mano, k, pista) {
   let pos = v3(k.pos), q = qDe(k.rot);
   if (k.en) { const o = OBJ[k.en].o; o.updateMatrixWorld(true); pos = o.localToWorld(pos); q = o.getWorldQuaternion(new THREE.Quaternion()).multiply(q); }
   const pose = poseDe(k.pose);
+  if (k.raiz) return { pos, q, pose, cierre: 0 };          // cuadro del editor: pos/rot son de la raíz de la mano
   mano.ponerPose(pose); mano.colocar(pos, q, k.ancla ?? pista.ancla ?? "index-finger-tip");
   return { pos: mano.raiz.position.clone(), q: mano.raiz.quaternion.clone(), pose, cierre: k.cierre ?? 0 };
 }
@@ -63,6 +78,8 @@ function hornear(c) {
   for (const p of c.manos) {
     const m = manos[p.lado];
     for (const k of p.kf) {
+      // los cuadros editados a mano se quedan como los dejó el editor (sin ajuste de contacto)
+      if (k.manual) { (k._horno ??= {})[p.lado] = { pose: poseDe(k.pose), off: new THREE.Vector3() }; continue; }
       for (const o of Object.values(manos)) o.raiz.visible = false;
       escenaBase(); c.alTiempo?.(k.t); escena.updateMatrixWorld(true); obstaculos.actualizar();
       m.raiz.visible = true;
@@ -344,6 +361,18 @@ if (qs.has("prueba")) {
 }
 
 // ---------------- Bucle ----------------
+if (qs.has("editar")) {
+  const { iniciarEditor } = await import("./editor.js");
+  iniciarEditor({
+    manos, CLIPS, OBJ, POSES, escena, camara, renderer, orbita, BORRADOR,
+    clip: () => clip, t: () => t,
+    ir: (tt) => { t = tt; corriendo = false; },
+    pausar: () => { corriendo = false; },
+    camaraClip: () => { libre = false; },
+    rehornear: (c) => { c._horneado = false; for (const p of c.manos) for (const k of p.kf) delete k._horno; },
+  });
+}
+
 let antes = performance.now();
 renderer.setAnimationLoop((ahora) => {
   const dt = Math.min(0.05, (ahora - antes) / 1000); antes = ahora;
