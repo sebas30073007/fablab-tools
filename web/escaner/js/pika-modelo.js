@@ -26,7 +26,7 @@ const COL = {
 };
 
 // Utilidades compartidas por las piezas
-function herramientas(sombra) {
+export function herramientas(sombra) {
   const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.05, ...o });
   const vidrio = (color = COL.vidrio, o = {}) => new THREE.MeshPhysicalMaterial({ color, roughness: 0.06, metalness: 0.1, clearcoat: 1, clearcoatRoughness: 0.04, ...o });
   const sombras = (o) => { o.traverse((m) => { if (m.isMesh) { m.castShadow = sombra; m.receiveShadow = true; } }); return o; };
@@ -251,7 +251,7 @@ export function construirPika({ sombra = true } = {}) {
   for (let i = 0; i < 4; i++) { const [a, b] = E[i], [c, d] = E[(i + 1) % 4]; vn.push(0, 0, 0, a, b, 1000, c, d, 1000); }
   gNir.setAttribute("position", new THREE.Float32BufferAttribute(vn, 3));
   const nir = new THREE.Mesh(gNir, new THREE.MeshBasicMaterial({ color: 0xff5a7a, transparent: true, opacity: 0.05, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false }));
-  nir.position.set(-13.3, yc + yOjos, 17); nir.visible = false; raiz.add(nir);
+  nir.position.set(-13.3, yc + yOjos, 17); nir.scale.setScalar(0.42); nir.visible = false; raiz.add(nir);   // en el gemelo solo se dibuja hasta ~420 mm
 
   // Estados de las luces: "apagado", "listo" (pantalla), "laser" (luces blancas + 7 líneas), "nir" (IR + abanico)
   const modo = (m) => {
@@ -271,7 +271,7 @@ export function construirPika({ sombra = true } = {}) {
 }
 
 // La cara frontal de una losa (grupo 0 de ExtrudeGeometry) trae UV en mm: se pasan a 0…1
-function ajustarUV(g, w, h) {
+export function ajustarUV(g, w, h) {
   const uv = g.attributes.uv, pos = g.attributes.position, grupo = g.groups[0];
   for (let i = grupo.start; i < grupo.start + grupo.count; i++) {
     const k = g.index ? g.index.getX(i) : i;
@@ -433,7 +433,7 @@ export function construirTorre({ sombra = true, anillos = 5 } = {}) {
 }
 
 // Polígono de un plano recortado por los demás (todos como n·p ≤ d), en orden CCW visto desde afuera
-function cara(pl, otros) {
+export function cara(pl, otros) {
   const n = pl.n, u = new THREE.Vector3(), v = new THREE.Vector3();
   u.copy(Math.abs(n.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0)).cross(n).normalize();
   v.copy(n).cross(u);

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Escáner 3D · Fab Lab</title>
-<meta name="description" content="Escáner 3D Creality Pika del Fab Lab: gemelo 3D con tripié, tornamesa y torre de marcadores.">
-<!-- Por ahora solo el gemelo 3D (js/pika-modelo.js). La app llega cuando el escáner esté funcionando. -->
+<meta name="description" content="Escáneres 3D del Fab Lab (Creality Pika y CR-Scan Otter): gemelo 3D con tripié, tornamesa, torre de marcadores y placa de calibración.">
+<!-- Por ahora solo el gemelo 3D (js/pika-modelo.js y js/otter-modelo.js). La app llega cuando los escáneres estén funcionando. -->
 <link rel="stylesheet" href="../css/tokens.css">
 <style>
   html, body { margin: 0; height: 100%; background: var(--mist); font-family: var(--font-sans); color: var(--text); }
@@ -15,11 +15,11 @@
   .barra a { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; font-weight: 700; }
   .barra h1 { margin: 0; font-size: 16px; font-weight: 700; }
   .barra__sep { width: 1px; height: 20px; background: var(--mist); }
-  .barra__estado { margin-left: auto; font-size: 13px; color: var(--text-secondary); }
+  .barra .seg { margin-left: auto; box-shadow: none; background: var(--mist); }
   .mandos { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: calc(100% - 32px); z-index: 2; }
   .seg { display: flex; background: #fff; border-radius: 999px; padding: 3px; box-shadow: 0 2px 10px #0001; }
-  .seg button { font: 600 13px/1 var(--font-sans); border: 0; background: none; padding: 8px 12px; border-radius: 999px; cursor: pointer; color: var(--text); }
-  .seg button[aria-checked="true"] { background: var(--graphite); color: #fff; }
+  .seg button, .seg a { font: 600 13px/1 var(--font-sans); border: 0; background: none; padding: 8px 12px; border-radius: 999px; cursor: pointer; color: var(--text); text-decoration: none; }
+  .seg [aria-checked="true"], .seg [aria-current="page"] { background: var(--graphite); color: #fff; }
   body.captura .barra, body.captura .mandos { display: none; }
 </style>
 <script type="importmap">
@@ -34,19 +34,22 @@
   <a href="../" aria-label="Fab Lab: volver al catálogo"><img src="../img/simbolo.png" alt="" width="24" height="24" onerror="this.remove()">Fab Lab</a>
   <span class="barra__sep" aria-hidden="true"></span>
   <h1>Escáner 3D</h1>
-  <span class="barra__estado">Creality Pika · en preparación</span>
+  <nav class="seg" aria-label="Escáner">
+    <a href="?equipo=pika" data-equipo="pika">Pika</a>
+    <a href="?equipo=otter" data-equipo="otter">Otter</a>
+  </nav>
 </header>
 <div id="vista"></div>
 <div class="mandos">
   <div class="seg" role="radiogroup" aria-label="Vista" id="vistas">
     <button role="radio" data-vista="mesa" aria-checked="true">Mesa</button>
-    <button role="radio" data-vista="pika" aria-checked="false">Escáner</button>
+    <button role="radio" data-vista="escaner" aria-checked="false">Escáner</button>
     <button role="radio" data-vista="frente" aria-checked="false">Frente</button>
-    <button role="radio" data-vista="atras" aria-checked="false">Pantalla</button>
+    <button role="radio" data-vista="atras" aria-checked="false" id="v-atras">Pantalla</button>
   </div>
   <div class="seg" role="radiogroup" aria-label="Luz" id="modos">
     <button role="radio" data-modo="apagado" aria-checked="true">Apagado</button>
-    <button role="radio" data-modo="laser" aria-checked="false">Láser azul</button>
+    <button role="radio" data-modo="laser" aria-checked="false" id="m-luz">Láser azul</button>
     <button role="radio" data-modo="nir" aria-checked="false">NIR</button>
   </div>
 </div>
@@ -55,11 +58,17 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { construirPika, construirTripie, construirTornamesa, construirTorre } from "./js/pika-modelo.js";
+import { construirOtter, construirPlacaCalibracion } from "./js/otter-modelo.js";
 
-// ?captura oculta los mandos; ?solo deja el escáner solo en el origen; ?vista=… y ?modo=… fijan la escena
+// ?equipo=pika|otter; ?captura oculta los mandos; ?solo deja el escáner solo en el origen; ?vista=… y ?modo=… fijan la escena
 const q = new URLSearchParams(location.search);
 if (q.has("captura")) document.body.classList.add("captura");
 const solo = q.has("solo");
+const otter = q.get("equipo") === "otter";
+document.querySelector(`[data-equipo="${otter ? "otter" : "pika"}"]`).setAttribute("aria-current", "page");
+document.title = `Escáner 3D · ${otter ? "CR-Scan Otter" : "Pika"} · Fab Lab`;
+// El Otter no tiene láser ni pantalla: sus luces son los LED blancos y su cara de atrás lleva los botones
+if (otter) { document.getElementById("m-luz").textContent = "Luz blanca"; document.getElementById("v-atras").textContent = "Botones"; }
 
 const cont = document.getElementById("vista");
 const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -80,54 +89,56 @@ s.add(sol, sol.target);
 const piso = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.ShadowMaterial({ opacity: 0.16 }));
 piso.rotation.x = -Math.PI / 2; piso.receiveShadow = true; s.add(piso);
 
-const pika = construirPika();
+const esc = otter ? construirOtter() : construirPika();
 const tripie = construirTripie();
 const mesa = construirTornamesa();
 const torre = construirTorre();
 // El escáner va atornillado a la rótula del tripié, inclinado hacia la torre de la tornamesa
 const montaje = tripie.rotula;
-const centroPika = new THREE.Vector3();
+const centro = new THREE.Vector3(0, esc.medidas.y / 2, 0);
 if (solo) {
-  s.add(pika.raiz);
-  centroPika.set(0, 30, 0);
+  s.add(esc.raiz);
 } else {
   s.add(mesa.raiz);
   mesa.plato.add(torre.raiz); torre.raiz.position.y = mesa.alto - mesa.plato.position.y;
   tripie.raiz.position.set(0, 0, -330); s.add(tripie.raiz);
-  tripie.cima.add(pika.raiz);
+  tripie.cima.add(esc.raiz);
+  if (otter) { const placa = construirPlacaCalibracion(); placa.raiz.position.set(-300, 0, -330); placa.raiz.rotation.y = 0.25; s.add(placa.raiz); }
   const blanco = new THREE.Vector3(0, mesa.alto + torre.alto * 0.5, 0);
-  const ojo = new THREE.Vector3(0, tripie.alto + pika.medidas.yOjos, -330);
+  const ojo = new THREE.Vector3(0, tripie.alto + esc.medidas.yOjos, -330);
   montaje.rotation.x = Math.atan2(ojo.y - blanco.y, blanco.z - ojo.z);
   s.updateMatrixWorld(true);
-  centroPika.set(0, 30, 0).applyMatrix4(pika.raiz.matrixWorld);
+  centro.applyMatrix4(esc.raiz.matrixWorld);
 }
 
 const cam = new THREE.PerspectiveCamera(30, 1, 5, 8000);
 const ctl = new OrbitControls(cam, r.domElement);
 ctl.enableDamping = true; ctl.dampingFactor = 0.12; ctl.screenSpacePanning = true;
 ctl.maxPolarAngle = Math.PI / 2 - 0.02;
-// Vistas: [objetivo, dirección desde el objetivo, distancia]
+// Vistas: [objetivo, dirección desde el objetivo, distancia]; el Otter mide 165 de largo y se ve más lejos
+const k = otter ? 1.45 : 1;
 const VISTAS = {
   mesa: () => [new THREE.Vector3(0, 90, -150), new THREE.Vector3(1.1, 0.75, 0.55), 900],
-  pika: () => [centroPika, new THREE.Vector3(0.55, 0.32, 1).applyEuler(montaje.rotation), 330],
-  frente: () => [centroPika, new THREE.Vector3(0, 0.02, 1).applyEuler(montaje.rotation), 300],
-  atras: () => [centroPika, new THREE.Vector3(-0.35, 0.3, -1).applyEuler(montaje.rotation), 300],
-  arriba: () => [centroPika, new THREE.Vector3(0.3, 1, 0.6).applyEuler(montaje.rotation), 300],
-  lado: () => [centroPika, new THREE.Vector3(1, 0.15, 0.25).applyEuler(montaje.rotation), 280],
-  izq: () => [centroPika, new THREE.Vector3(-1, 0.15, -0.25).applyEuler(montaje.rotation), 280],
+  escaner: () => [centro, new THREE.Vector3(0.55, 0.32, 1).applyEuler(montaje.rotation), 330 * k],
+  frente: () => [centro, new THREE.Vector3(0, 0.02, 1).applyEuler(montaje.rotation), 300 * k],
+  atras: () => [centro, new THREE.Vector3(-0.35, 0.3, -1).applyEuler(montaje.rotation), 300 * k],
+  arriba: () => [centro, new THREE.Vector3(0.3, 1, 0.6).applyEuler(montaje.rotation), 300 * k],
+  lado: () => [centro, new THREE.Vector3(1, 0.15, 0.25).applyEuler(montaje.rotation), 280 * k],
+  izq: () => [centro, new THREE.Vector3(-1, 0.15, -0.25).applyEuler(montaje.rotation), 280 * k],
 };
+VISTAS.pika = VISTAS.escaner;   // enlaces viejos
 function vista(n) {
-  const [t, d, dist] = VISTAS[n]();
+  const [t, d, dist] = (VISTAS[n] || VISTAS.mesa)();
   ctl.target.copy(t); cam.position.copy(t).addScaledVector(d.normalize(), dist); ctl.update();
   document.querySelectorAll("[data-vista]").forEach((b) => b.setAttribute("aria-checked", b.dataset.vista === n));
 }
 function modo(n) {
-  pika.modo(n);
+  esc.modo(n);
   document.querySelectorAll("[data-modo]").forEach((b) => b.setAttribute("aria-checked", b.dataset.modo === n));
 }
 document.querySelectorAll("[data-vista]").forEach((b) => (b.onclick = () => vista(b.dataset.vista)));
 document.querySelectorAll("[data-modo]").forEach((b) => (b.onclick = () => modo(b.dataset.modo)));
-vista(q.get("vista") || (solo ? "pika" : "mesa"));
+vista(q.get("vista") || (solo ? "escaner" : "mesa"));
 modo(q.get("modo") || "apagado");
 
 function tam() {
@@ -137,10 +148,10 @@ function tam() {
 new ResizeObserver(tam).observe(cont); tam();
 const giro = q.has("girar");
 r.setAnimationLoop((t) => {
-  if (giro || pika.haces.visible || pika.nir.visible) mesa.plato.rotation.y = t * 0.0002;
+  if (giro || esc.haces?.visible || esc.nir.visible) mesa.plato.rotation.y = t * 0.0002;
   ctl.update(); r.render(s, cam);
 });
-window.pika = pika; window.visor = { cam, ctl, vista, modo };   // para revisar desde la consola
+window.escaner = esc; window.visor = { cam, ctl, vista, modo };   // para revisar desde la consola
 </script>
 </body>
 </html>
