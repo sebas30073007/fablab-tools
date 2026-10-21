@@ -51,6 +51,11 @@ Videos cortos del tutorial de la CNC: una mano 3D hace lo que hay que hacer fuer
   cada pieza (caja o cilindro de su geometría): los dedos se abren lo justo para no atravesar y los que agarran se
   cierran hasta el contacto. El pulgar tiene un quinto giro (sobre su eje) para oponerse al índice. `empuja` en un
   cuadro aleja toda la mano si aún atraviesa algo.
+- **Fluidez (21 oct 2026):** el contacto ya no se calcula en cada cuadro (hacía temblar los dedos). Antes de reproducir
+  un clip se «hornea»: en el instante de cada cuadro clave se ajustan los dedos a lo que tocan y se guarda esa pose. Al
+  reproducir solo se interpola entre poses fijas; la posición sigue una curva de Hermite, así que la mano pasa sin
+  frenar por los cuadros intermedios y solo se detiene en los extremos, al agarrar o donde un cuadro diga `alto`. Lo
+  que se atraviese entre cuadros lo esconde la cámara (la mano de canto o de dorso, el objeto delante de los dedos).
 - En esta mano la pinza (pulgar → yema del índice) va casi a lo largo de los dedos, bajo la palma: el antebrazo sale del
   lado del pulgar. Por eso cada agarre dice qué caras se aprietan (`eje` del objeto) y hacia dónde mira la palma.
 
@@ -58,6 +63,8 @@ Videos cortos del tutorial de la CNC: una mano 3D hace lo que hay que hacer fuer
 
 - `?prueba` (o `?prueba=usb,sonda`): recorre cada clip a 15 cuadros por segundo y reporta cuánto entran la piel (por
   dedo y palma), la manga y los cables en algo, con el momento y la pieza. Resultado en `<pre id="reporte">`.
+- `?fluidez` (o `?fluidez=usb`): sigue la muñeca y las puntas de los dedos a 60 cuadros por segundo y reporta el
+  cambio de velocidad más brusco; por debajo de ~40 se ve fluido.
 - `?hoja=usb&n=8`: tira de cuadros de un clip, para revisarlo de un vistazo.
 - `?mano=agarre&ancho=8`: la mano sola en una pose, de tres lados (azul: punta del pulgar; rojo: yema del índice).
 - `?clip=usb&t=3.2` congela un cuadro; `&cam=x,y,z&mira=x,y,z` fija la cámara.

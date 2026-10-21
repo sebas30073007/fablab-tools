@@ -43,6 +43,12 @@ const Q_CAIMAN = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4(
 const REPOSO_CAIMAN = new V(98, -3.5, 128), REPOSO_HORQUILLA = new V(62, -12.6, 142);
 const PALMA_CAIMAN = NARIZ.clone().multiplyScalar(0.95).add(new V(0, -0.3, 0)).normalize().toArray();   // en la fresa: de lado, la palma hacia la fresa y un poco abajo (arriba está el husillo)
 const mordida = () => new V(cub.carroX.position.x, cub.husillo.position.y + 12.5, Z_FRESA);   // en el vástago, bajo la tuerca
+// Del reposo en la base a la fresa: una sola curva (Bézier cúbica), sube primero y llega de frente por su nariz
+function curvaCaiman(destino, q) {
+  const a = REPOSO_CAIMAN, d = destino, b = a.clone().add(new V(0, 45, 0)), c = d.clone().addScaledVector(NARIZ, -45).add(new V(0, 8, 0));
+  const u = 1 - q;
+  return a.clone().multiplyScalar(u * u * u).addScaledVector(b, 3 * u * u * q).addScaledVector(c, 3 * u * q * q).addScaledVector(d, q * q * q);
+}
 function caimanEn(p, abre) { rojo.g.visible = true; rojo.g.quaternion.copy(Q_CAIMAN); rojo.g.position.copy(p).addScaledVector(ZC, -4); rojo.abrir(abre); }
 const tornilloDer = () => { cub.mesa.updateMatrixWorld(true); return suj.der.tornillo.getWorldPosition(new V()); };
 // La horquilla abre hacia −Z: entra por el frente y su ranura rodea el tornillo (centro de la ranura a 7 mm)
@@ -363,8 +369,7 @@ export const CLIPS = [
         // el conector, con la palma arriba: así la mano queda abajo y hacia adentro (no toca la pared ni el techo)
         { t: 0, agarra: "conector", palma: ARRIBA }, { t: 2.9, agarra: "conector", palma: ARRIBA },
         { t: 3.4, agarra: "conector", palma: ARRIBA, cierre: 0, pose: "pinzaAbierta", aleja: 16 },
-        { t: 4.2, pos: [60, 120, 260], rot: [0, 0, -160], pose: "relajada" },
-        { t: 8.4, pos: [200, 150, 260], rot: [-30, 30, -20], pose: "relajada" },
+        { t: 7.4, pos: [200, 150, 260], rot: [-30, 30, -20], pose: "relajada", alto: true },
         // el caimán: de su lugar en la base hasta la fresa
         { t: 9.0, agarra: "caiman", palma: ABAJO, cierre: 0, pose: "pinzaAbierta", aleja: 30 },
         { t: 9.5, agarra: "caiman", palma: ABAJO }, { t: 11.2, agarra: "caiman", palma: PALMA_CAIMAN }, { t: 12.0, agarra: "caiman", palma: PALMA_CAIMAN },
@@ -386,7 +391,7 @@ export const CLIPS = [
       horquillaEn(t < 5.6 ? REPOSO_HORQUILLA : k < 0.5 ? REPOSO_HORQUILLA.clone().lerp(medio, k * 2) : medio.clone().lerp(fin, (k - 0.5) * 2));
       // caimán: en su lugar hasta que la mano lo toma; abre al llegar y muerde la fresa
       const q = suave(t, 9.5, 11.2), destino = mordida();
-      const p = REPOSO_CAIMAN.clone().lerp(destino.clone().add(new V(40, 6, 18)), Math.min(1, q * 1.4)).lerp(destino, ss(q, 0.6, 1));
+      const p = curvaCaiman(destino, q);
       caimanEn(p, suave(t, 10.4, 10.9) * (1 - 0.3 * suave(t, 11.6, 12.0)));
       cablesSonda();
     },
@@ -440,7 +445,7 @@ export const CLIPS = [
     manos: [{
       lado: "der",
       kf: [
-        { t: 0, pos: [120, 140, 160], rot: [-30, 0, -20], pose: "relajada" },
+        { t: 0, pos: [200, 150, 230], rot: [-30, 0, -20], pose: "relajada" },
         { t: 1.2, agarra: "caiman", palma: PALMA_CAIMAN, cierre: 0, pose: "pinzaAbierta", aleja: 30 },
         { t: 1.6, agarra: "caiman", palma: PALMA_CAIMAN }, { t: 1.9, agarra: "caiman", palma: PALMA_CAIMAN }, { t: 4.4, agarra: "caiman", palma: ABAJO },
         { t: 4.9, agarra: "caiman", palma: ABAJO, cierre: 0, pose: "pinzaAbierta", aleja: 16 },
@@ -453,7 +458,7 @@ export const CLIPS = [
       conectorPuesto(); horquillaPuesta();
       cub.husillo.updateMatrixWorld(true);
       const destino = mordida(), q = suave(t, 1.9, 4.4);
-      const p = destino.clone().lerp(destino.clone().add(new V(40, 6, 18)), ss(q, 0, 0.4)).lerp(REPOSO_CAIMAN, ss(q, 0.3, 1));
+      const p = curvaCaiman(destino, 1 - q);
       caimanEn(p, 0.7 + 0.3 * suave(t, 1.6, 2.0) - suave(t, 2.6, 3.0));
       cablesSonda();
     },
@@ -533,16 +538,16 @@ export const CLIPS = [
              { t: 3.8, pos: [180, 210, 380], mira: [0, 0, 35] }, { t: 12, pos: [200, 230, 430], mira: [0, 10, 65] }],
     senal: null,
     subtitulos: [[0, "Afloja los dos sujetadores y saca la horquilla"], [3.6, "Retíralos de la orilla"], [5.0, "Desliza la placa un poco hacia ti"], [7.8, "Tómala de las orillas y sácala"]],
-    placa: [{ t: 0, p: [0, 0, PLACA.bz] }, { t: 5.4, p: [0, 0, PLACA.bz] }, { t: 7.0, p: [0, 0, PLACA.bz + 12] }, { t: 8.8, p: [0, 0, PLACA.bz + 12] }, { t: 10.4, p: [0, 50, PLACA.bz + 180] }, { t: 12, p: [0, 70, PLACA.bz + 260] }],
+    placa: [{ t: 0, p: [0, 0, PLACA.bz] }, { t: 5.4, p: [0, 0, PLACA.bz] }, { t: 7.0, p: [0, 0, PLACA.bz + 12] }, { t: 9.0, p: [0, 0, PLACA.bz + 12] }, { t: 10.6, p: [0, 50, PLACA.bz + 180] }, { t: 12, p: [0, 70, PLACA.bz + 260] }],
     manos: (() => {
       // la derecha desliza la placa con el índice y luego, con la izquierda, la levanta de las orillas
-      const [der, izq] = manosPlaca(() => [{ t: 7.9, suelta: true }, { t: 8.8, agarra: true }, { t: 12, agarra: true }]);
+      const [der, izq] = manosPlaca(() => [{ t: 8.2, suelta: true }, { t: 9.0, agarra: true }, { t: 12, agarra: true }]);
       der.kf = [
         { t: 3.8, pos: [120, 150, 220], rot: [-40, 0, -10], pose: "relajada", ancla: "index-finger-tip" },
         { t: 5.0, en: "placa", pos: [0, 14, 34], rot: [-45, 0, 0], pose: "apuntar", ancla: "index-finger-tip", empuja: [0, 1, 0.3] },
         { t: 5.4, en: "placa", pos: [0, 2.0, 34], rot: [-45, 0, 0], pose: "presionar", ancla: "index-finger-tip", empuja: [0, 1, 0.3] },
         { t: 7.0, en: "placa", pos: [0, 2.0, 34], rot: [-45, 0, 0], pose: "presionar", ancla: "index-finger-tip", empuja: [0, 1, 0.3] },
-        { t: 7.4, en: "placa", pos: [0, 20, 44], rot: [-45, 0, 0], pose: "relajada", ancla: "index-finger-tip" },
+        { t: 7.7, en: "placa", pos: [0, 20, 44], rot: [-45, 0, 0], pose: "relajada", ancla: "index-finger-tip" },
         ...der.kf,
       ];
       izq.desde = 7.0; izq.kf.unshift({ t: 7.0, pos: [-230, 170, 220], rot: [-30, -70, 0], pose: "relajada" });

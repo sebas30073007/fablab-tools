@@ -53,16 +53,62 @@ function evaluar(mano, k, pista) {
   mano.ponerPose(pose); mano.colocar(pos, q, k.ancla ?? pista.ancla ?? "index-finger-tip");
   return { pos: mano.raiz.position.clone(), q: mano.raiz.quaternion.clone(), pose, cierre: k.cierre ?? 0 };
 }
+// ---------------- Horneado: el contacto se calcula una vez por cuadro clave ----------------
+// Calcular el contacto en cada cuadro hacía temblar los dedos (cada cuadro encontraba otra solución). Ahora,
+// antes de reproducir, se pone la escena en el instante de cada cuadro clave, se ajustan los dedos a lo que
+// tocan y se guarda esa pose (y el desplazamiento de «empuja»). Al reproducir solo se interpola entre poses
+// fijas, así que el movimiento es continuo; lo que se atraviese entre cuadros lo esconde la cámara.
+function hornear(c) {
+  if (c._horneado) return;
+  for (const p of c.manos) {
+    const m = manos[p.lado];
+    for (const k of p.kf) {
+      for (const o of Object.values(manos)) o.raiz.visible = false;
+      escenaBase(); c.alTiempo?.(k.t); escena.updateMatrixWorld(true); obstaculos.actualizar();
+      m.raiz.visible = true;
+      const E = evaluar(m, k, p);
+      m.ponerPose(E.pose); m.raiz.position.copy(E.pos); m.raiz.quaternion.copy(E.q); m.raiz.updateMatrixWorld(true);
+      m.ajustar(obstaculos, { cierre: E.cierre });
+      const pose = m.pose;
+      if (k.empuja) empujar(m, v3(k.empuja).normalize());
+      (k._horno ??= {})[p.lado] = { pose, off: m.raiz.position.clone().sub(E.pos) };
+    }
+  }
+  c._horneado = true;
+}
+
+// Posición de la mano en un cuadro clave, en el instante actual (los agarres siguen a su objeto)
+function puntoKF(mano, pista, i) {
+  const k = pista.kf[i], E = evaluar(mano, k, pista);
+  return { ...E, pos: E.pos.add(k._horno[pista.lado].off), pose: k._horno[pista.lado].pose };
+}
+// Pasa sin detenerse por un cuadro libre que va en la misma dirección; se detiene en los extremos, en los
+// agarres (la mano llega a tomar algo) y donde marque «alto»
+const pasaPor = (kf, i, P) => {
+  const k = kf[i];
+  if (i === 0 || i === kf.length - 1 || k.agarra || k.en || k.alto) return null;
+  const a = P(i - 1), b = P(i), c = P(i + 1);
+  if (b.clone().sub(a).dot(c.clone().sub(b)) <= 0) return null;
+  return c.sub(a).divideScalar(kf[i + 1].t - kf[i - 1].t);
+};
 function animar(mano, pista, t) {
-  const [a, b, u] = tramo(pista.kf, t);
-  const A = evaluar(mano, a, pista), B = a === b ? A : evaluar(mano, b, pista);
-  const pose = mezclarPoses(A.pose, B.pose, u);
-  mano.ponerPose(pose);
-  mano.raiz.position.copy(A.pos).lerp(B.pos, u); mano.raiz.quaternion.copy(A.q).slerp(B.q, u);
-  mano.ajustar(obstaculos, { cierre: A.cierre + (B.cierre - A.cierre) * u });
-  // «empuja»: si la mano (libre) todavía atraviesa algo, se aleja lo justo en esa dirección
-  const dir = (u < 0.5 ? a : b).empuja ?? a.empuja ?? b.empuja;
-  if (dir) empujar(mano, v3(dir).normalize());
+  const kf = pista.kf;
+  let i = kf.findIndex((k) => k.t > t) - 1;
+  if (i < 0) i = t < kf[0].t ? 0 : kf.length - 1;
+  const j = Math.min(i + 1, kf.length - 1);
+  const A = puntoKF(mano, pista, i), B = j === i ? A : puntoKF(mano, pista, j);
+  const dt = kf[j].t - kf[i].t, s = dt > 0 ? THREE.MathUtils.clamp((t - kf[i].t) / dt, 0, 1) : 0;
+  const u = s * s * (3 - 2 * s);
+  // Posición: curva de Hermite (velocidad continua donde la mano solo pasa)
+  const P = (n) => puntoKF(mano, pista, n).pos;
+  const m0 = j === i ? null : pasaPor(kf, i, P), m1 = j === i ? null : pasaPor(kf, j, P);
+  const h10 = s * s * s - 2 * s * s + s, h11 = s * s * s - s * s;
+  const pos = A.pos.clone().lerp(B.pos, u);
+  if (m0) pos.addScaledVector(m0, h10 * dt);
+  if (m1) pos.addScaledVector(m1, h11 * dt);
+  mano.ponerPose(mezclarPoses(A.pose, B.pose, u));
+  mano.raiz.position.copy(pos); mano.raiz.quaternion.copy(A.q).slerp(B.q, u);
+  mano.raiz.updateMatrixWorld(true);
 }
 function empujar(mano, d, tol = 0.6) {
   const p0 = mano.raiz.position.clone();
@@ -91,6 +137,7 @@ function ponerSenal(lista, tt) {
 }
 
 function escenaEn(c, tt) {
+  hornear(c);
   for (const m of Object.values(manos)) m.raiz.visible = false;
   escenaBase();
   c.alTiempo?.(tt);
@@ -245,6 +292,37 @@ function medir(c, tt, peores) {
     }
   }
 }
+// ?fluidez: sigue la muñeca y las puntas de los dedos a 60 cuadros por segundo y reporta los saltos: el cambio
+// de velocidad más brusco entre dos cuadros (mm/s por cuadro). Una mano que se mueve bien no pasa de ~40.
+if (qs.has("fluidez")) {
+  const lista = qs.get("fluidez") ? CLIPS.filter((c) => qs.get("fluidez").split(",").includes(c.id)) : CLIPS;
+  const PUNTOS = ["wrist", "thumb-tip", "index-finger-tip", "middle-finger-tip", "pinky-finger-tip"], dt = 1 / 60, reporte = {};
+  for (const c of lista) {
+    const hist = {}, peor = {};
+    for (let tt = 0; tt <= c.duracion + 1e-6; tt += dt) {
+      escenaEn(c, tt);
+      for (const p of c.manos) {
+        const m = manos[p.lado];
+        for (const n of PUNTOS) {
+          const k = `${p.lado} ${n}`, h = (hist[k] ??= []);
+          if (!m.raiz.visible) { h.length = 0; continue; }
+          h.push(m.huesos[n].getWorldPosition(new THREE.Vector3())); if (h.length > 3) h.shift();
+          if (h.length === 3) {
+            const salto = h[2].clone().sub(h[1]).sub(h[1].clone().sub(h[0])).length() / (dt * dt) * dt;   // mm/s de cambio por cuadro
+            if (!peor[k] || salto > peor[k].v) peor[k] = { v: +salto.toFixed(0), t: +tt.toFixed(2) };
+          }
+        }
+      }
+    }
+    reporte[c.id] = Object.fromEntries(Object.entries(peor).sort((a, b) => b[1].v - a[1].v).slice(0, 4));
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  const pre = document.createElement("pre"); pre.id = "reporte"; pre.textContent = JSON.stringify(reporte, null, 1);
+  document.body.innerHTML = ""; document.body.append(pre);
+  window.listo = true;
+  throw new Error("fluidez lista");
+}
+
 if (qs.has("prueba")) {
   const lista = qs.get("prueba") ? CLIPS.filter((c) => qs.get("prueba").split(",").includes(c.id)) : CLIPS;
   const reporte = {};
