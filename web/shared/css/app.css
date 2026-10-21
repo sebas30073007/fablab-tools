@@ -366,9 +366,6 @@ button.fila:hover .fila__nom { text-decoration: underline; text-underline-offset
   .pildora-dato { height: 28px; padding: 0 9px; gap: 5px; font-size: 12px; }
   .seg--flota { bottom: 10px; }
   .btn-visor { position: absolute; top: 8px; right: 8px; z-index: 3; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--tarjeta); box-shadow: var(--flota-sombra); color: var(--text); cursor: pointer; }
-  /* Campos del material un poco más chicos */
-  .mat { grid-template-columns: 84px minmax(0, max-content); }
-  .mat__campo { width: 84px; }
 }
 /* Panel angosto (lo que mide el panel, no la pantalla): los botones de «Ahora» no pasan bajo la mascota */
 .panel { container-type: inline-size; }

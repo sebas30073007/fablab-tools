@@ -17,7 +17,7 @@ import { previa } from "./previa.js";
 import { ALARMAS, ERRORES } from "./alarmas.js";
 import { leer, transformar, alineacion, formatoTiempo, tiempoAcumulado } from "./gcode.js";
 import { MapaAlturas } from "./alturas.js";
-import { clasificar, leerGerber, leerTaladros, leerJob } from "./gerber.js";
+import { clasificar, leerGerber, leerTaladros, leerJob, lazos } from "./gerber.js";
 import { leerDXF } from "./dxf.js";
 import { leerSVG } from "./svg.js";
 import { diseno, cajaDe } from "./vector.js";
@@ -42,7 +42,7 @@ const S = {
   archivos: [],          // {nombre, tipo, texto}
   pcb: null,             // {cobre, contorno, hoyos, job, marco, imgs, miniatura, nombre}; un dibujo DXF/SVG: vector, grabado, vaciado, linea, circulos, avisos
   avisosGen: [],         // lo que avisó la última generación de trayectorias
-  giroPieza: 0,          // grados (0, 90, 180, 270) que se gira un dibujo DXF/SVG
+  giroPieza: 0,          // grados (0, 90, 180, 270) que se gira el diseño (Gerber o dibujo DXF/SVG)
   sinMapa: false,        // se eligió fresar las pistas sin mapa de alturas
   verMalla: false,       // el mapa de alturas en el 3D (mientras se mide siempre se ve)
   paramsGen: null,       // los valores con que se generaron las trayectorias (la vista previa avisa si cambiaron)
@@ -310,6 +310,7 @@ function procesarArchivos() {
     pcb.marco = marco(pcb, { dpi: 1000, margen: Math.max(2, S.params.contorno.diam + 1.5) });
     if (pcb.marco) {
       pcb.imgs = imagenes(pcb, pcb.marco);
+      if (S.giroPieza) girarPCB(pcb, S.giroPieza);
       pcb.miniatura = miniatura(pcb.imgs.pistas || pcb.imgs.interior);
       pcb.nombre = pcb.job?.nombre || (cobre || contorno).nombre.replace(/[-_]?(F_Cu|B_Cu|Edge_Cuts)?\.(gbr|gtl|gbl|gko|gm1)$/i, "");
       S.pcb = pcb;
@@ -359,14 +360,33 @@ function girarDiseno(d, grados) {
   d.caja = c;
   return d;
 }
+// Una placa de Gerber se gira ya hecha imagen: cada imagen 90° (antihorario), los hoyos y el marco con ella.
+// En el mundo (x, y) → (−y, x); en la imagen, el píxel (u, v) pasa a (v, W − u).
+function girarPCB(pcb, grados) {
+  const veces = ((grados / 90) % 4 + 4) % 4;
+  for (let k = 0; k < veces; k++) {
+    const m = pcb.marco, s = m.s, p = m.placa;
+    const rot = (cv) => {
+      const n = document.createElement("canvas"); n.width = cv.height; n.height = cv.width;
+      const x = n.getContext("2d", { willReadFrequently: true }); x.translate(0, cv.width); x.rotate(-Math.PI / 2); x.drawImage(cv, 0, 0);
+      return n;
+    };
+    for (const c of Object.keys(pcb.imgs)) if (pcb.imgs[c]) pcb.imgs[c] = rot(pcb.imgs[c]);
+    const x0 = -m.yTop, yTop = m.x0 + m.W / s;
+    pcb.marco = { ...m, W: m.H, H: m.W, x0, yTop, placa: { x0: -p.y1, y0: p.x0, x1: -p.y0, y1: p.x1 }, T: (x, y) => [(x - x0) * s, (yTop - y) * s] };
+    pcb.hoyos = (pcb.hoyos || []).map((h) => ({ ...h, x: -h.y, y: h.x }));
+    // el borde de la placa (lo usa la imagen en blanco y negro)
+    if (pcb.contorno) pcb.contorno = { ...pcb.contorno, lazos: (pcb.contorno.lazos ?? lazos(pcb.contorno)).map((l) => l.map(([x, y]) => [-y, x])) };
+  }
+}
 async function girarPieza() {
-  if (!S.pcb?.vector || disenoBloqueado()) return;
+  if (!S.pcb || disenoBloqueado()) return;
   const habia = S.trabajos.some((t) => t.origen === "cam");
   S.giroPieza = (S.giroPieza + 90) % 360;
   procesarArchivos();
   if (holgura()?.cabe === false && holgura()?.cabeCentrado) { centrarDiseno(); return; }
   if (habia) await generar(); else refrescar();
-  anunciar(`Pieza girada ${S.giroPieza}°`);
+  anunciar(`Diseño girado ${S.giroPieza}°`);
 }
 
 // Hoyos que se taladran: los del Excellon y, en un dibujo, los círculos donde no cabe la fresa del contorno

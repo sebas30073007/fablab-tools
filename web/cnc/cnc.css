@@ -16,38 +16,68 @@
 .mat__tipo { height: 30px; max-width: 60%; padding: 0 8px; border: 0; border-radius: var(--r-campo, 12px); background: var(--tarjeta-2); box-shadow: inset 0 0 0 1px var(--mist); font-size: 13px; font-weight: 600; cursor: pointer; }
 .mat__tipo:focus-visible { outline: 2px solid var(--d-pistas); outline-offset: 1px; }
 
-/* Material: la placa virgen vista desde arriba, con el canto al frente; cada medida va en su eje */
-.mat { display: grid; grid-template-columns: 92px minmax(0, max-content); grid-template-areas: "alto dib" "grosor ancho"; justify-content: center; align-items: center; gap: 4px 10px; margin-top: 6px; }
-.mat__dib { grid-area: dib; min-width: 0; }
-.mat__campo--alto { grid-area: alto; }
-.mat__campo--ancho { grid-area: ancho; justify-self: start; }   /* margin-left en línea: centrado bajo la cota de X */
-.mat__campo--grosor { grid-area: grosor; }
-.mat__campo { display: flex; flex-direction: column; gap: 3px; width: 92px; }
+/* Material: la placa en isométrico y, debajo, sus tres medidas en un renglón */
+.mat__dib { display: flex; justify-content: center; margin: 6px 0 4px; }
+.mat-iso { display: block; width: 100%; max-width: 300px; max-height: 190px; overflow: visible; }
+.iso-arriba { fill: var(--m-cobre); stroke: var(--m-cobre-borde); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.iso-frente { fill: color-mix(in srgb, var(--m-fr4) 92%, #000); }
+.iso-lado { fill: color-mix(in srgb, var(--m-fr4) 70%, #000); }
+.iso-corte { fill: rgba(17, 19, 23, .10); }
+.iso-corte.es-fuera { fill: color-mix(in srgb, var(--m-fuera) 18%, transparent); }
+.iso-diseno { fill: none; stroke: var(--text); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.iso-diseno.es-fuera { stroke: var(--m-fuera); }
+.iso-cero { fill: var(--text); }
+.iso-eje { stroke-width: 2; vector-effect: non-scaling-stroke; }
+.iso-eje.x, .iso-punta.x { stroke: var(--d-x); fill: var(--d-x); }
+.iso-eje.y, .iso-punta.y { stroke: var(--d-y); fill: var(--d-y); }
+.iso-eje.z, .iso-punta.z { stroke: var(--d-z); fill: var(--d-z); }
+.mat__dims { margin-top: 4px; }
+.mat__campo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .mat__campo > span:first-child { display: flex; align-items: baseline; gap: 5px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
 .mat__campo b { font-weight: 800; }
 .mat__campo b[data-eje="X"] { color: var(--d-x); }
 .mat__campo b[data-eje="Y"] { color: var(--d-y); }
 .mat__campo b[data-eje="Z"] { color: var(--d-z); }
-.mat__campo input { width: 100%; height: 40px; padding: 0 34px 0 10px; border: 0; border-radius: var(--r-campo); background: var(--tarjeta-2); box-shadow: inset 0 0 0 1px var(--mist); font-family: var(--font-mono); font-size: 14px; }
+.mat__campo input { width: 100%; height: 44px; padding: 0 34px 0 10px; border: 0; border-radius: var(--r-campo); background: var(--tarjeta-2); box-shadow: inset 0 0 0 1px var(--mist); font-family: var(--font-mono); font-size: 15px; }
 .mat__campo input:focus { outline: 2px solid var(--d-actual); outline-offset: 0; }
-.mat-dib { display: block; max-width: 100%; height: auto; margin: 4px 0; overflow: visible; }
-.mat-dib__cobre { fill: color-mix(in srgb, var(--m-cobre) 55%, var(--tarjeta)); stroke: var(--m-cobre-borde); stroke-width: 1; }
-.mat-dib__corte { fill: rgba(17, 19, 23, .08); stroke: none; }
-.mat-dib__corte.es-fuera { fill: color-mix(in srgb, var(--m-fuera) 14%, transparent); }
-.mat-dib__diseno { fill: none; stroke: var(--text); stroke-width: 1; stroke-dasharray: 4 3; }
-.mat-dib__diseno.es-fuera { stroke: var(--m-fuera); }
-.mat-dib__cero { fill: var(--text); }
-.mcota line { stroke-width: 1.5; }
-.mcota--x line { stroke: var(--d-x); }
-.mcota--y line { stroke: var(--d-y); }
-.mcota--off line { stroke: var(--text-secondary); stroke-dasharray: 3 3; stroke-width: 1; }
-.mcota.hl line { stroke-width: 3.5; }
-.mcota--off.hl line { stroke: var(--d-actual); stroke-dasharray: none; stroke-width: 2.5; }
 
-/* Fila de PCB → Configuración: un renglón por herramienta */
-.mini-herr { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; font-size: 13.5px; font-weight: 600; }
-.mini-herr > span { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
-.mini-herr b { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; color: var(--text-secondary); }
+/* Botones centrados, del mismo ancho (no ocupan toda la tarjeta) */
+.w-acc--centro { justify-content: center; }
+.w-acc--centro > .btn-pill, .btn-igual { min-width: 140px; }
+.btn-pill .ico { flex: none; display: block; }
+
+/* Botón terciario: solo el texto, sobre el fondo; al pasar el puntero, una sombra */
+.btn-terc { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--r-ctl);
+  background: transparent; color: var(--text); font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; transition: box-shadow 150ms, background 150ms; }
+.btn-terc:hover:not(:disabled) { background: var(--tarjeta); box-shadow: 0 2px 10px rgba(17, 19, 23, .14); }
+.btn-terc:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Inicio: Origen y Curso en renglones discretos, debajo de lo principal */
+.w-sec { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.w-sec__fila { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 4px 6px 4px 14px; border: 0; border-radius: var(--r-ctl); background: transparent; color: var(--text); text-align: left; font: inherit; }
+button.w-sec__fila { cursor: pointer; transition: box-shadow 150ms, background 150ms; }
+button.w-sec__fila:hover { background: var(--tarjeta); box-shadow: 0 2px 10px rgba(17, 19, 23, .12); }
+.w-sec__fila .ico { width: 16px; height: 16px; color: var(--text-secondary); flex: none; }
+.w-sec__t { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--text-secondary); }
+.w-sec__chips, .w-sec__acc { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.w-sec__acc .btn-terc { min-height: 36px; padding: 0 10px; font-size: 13.5px; }
+.chip-sec { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+.chip-sec i { width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--text-secondary); }
+.chip-sec[data-ok="1"] { color: var(--text); }
+.chip-sec[data-ok="1"] i { background: var(--d-hecho); box-shadow: none; }
+
+/* Archivo en Inicio: la miniatura grande */
+.con-thumb--grande { min-height: 150px; }
+.con-thumb--grande .w-thumb { top: 16px; width: 104px; height: 118px; }
+.con-thumb--grande .w-texto, .con-thumb--grande .w-sub { margin-right: 118px; }
+
+/* Configuraciones de CNC: lo importante de cada herramienta en columnas */
+.cfg-res { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+.cfg-res__col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cfg-res__t { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 800; margin-bottom: 2px; }
+.cfg-res__d { display: flex; flex-direction: column; line-height: 1.15; }
+.cfg-res__d small { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+.cfg-res__d b { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; overflow-wrap: anywhere; }
 
 /* Configuración: cada herramienta con sus dibujos */
 .herr__t { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; }

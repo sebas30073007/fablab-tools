@@ -10,7 +10,7 @@ import { esc, ico, mm, ls, miniJog, descargar, dialogo } from "./ui.js";
 import { aPNG, vista } from "./raster.js";
 import { anchoV, igualHerr } from "./cam.js";
 import { MATERIALES } from "./materiales.js";
-import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, resumen, atraviesa, revisarRango, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun, dibujosGrabado, dibujosVaciado } from "./herramientas.js";
+import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, atraviesa, revisarRango, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun, dibujosGrabado, dibujosVaciado } from "./herramientas.js";
 
 const chev = ico("chev");
 const masc = (app, k) => `<img class="w-masc" src="${app.MASC[k]}" alt="" onerror="this.remove()">`;
@@ -18,8 +18,9 @@ const hecho = (t) => t.estado === "hecho" || t.estado === "omitido";
 // Lo que está abierto: una PCB o la pieza de un dibujo DXF/SVG
 const queEs = (S) => (S.pcb?.vector ? "Pieza" : "PCB");
 const superficie = (app) => (app.acc.mat().conduce ? "Superficie del cobre" : `Superficie del ${app.acc.mat().t.toLowerCase()}`);
-const btn = (acc, txt, { main = false, icono = null, dis = false, texto = false } = {}) =>
-  `<button type="button" class="${texto ? "btn-texto" : `btn-pill ${main ? "btn-pill--main" : ""}`}" data-acc="${acc}" ${dis ? "disabled" : ""}>${icono ? ico(icono) : ""}${esc(txt)}</button>`;
+// terc: botón terciario, solo el texto sobre el fondo (sombra al pasar el puntero)
+const btn = (acc, txt, { main = false, icono = null, dis = false, texto = false, terc = false } = {}) =>
+  `<button type="button" class="${texto ? "btn-texto" : terc ? "btn-terc" : `btn-pill ${main ? "btn-pill--main" : ""}`}" data-acc="${acc}" ${dis ? "disabled" : ""}>${icono ? ico(icono) : ""}${esc(txt)}</button>`;
 function cablear(pag, mapa) {
   pag.querySelectorAll("[data-acc]").forEach((b) => { const f = mapa[b.dataset.acc]; if (f) b.onclick = () => f(b); });
   pag.querySelectorAll("[data-ir]").forEach((b) => (b.onclick = () => mapa.__irA(b.dataset.ir)));
@@ -66,8 +67,8 @@ export function ahora(app) {
   }
   if (e === "Home") return { k: "homing", cab: "Ahora", texto: "Homing…", masc: "fresando", acc: [] };
   if (!S.homed) return { k: "home", cab: "Ahora", texto: "Hacer homing", masc: "hola", acc: [{ id: "homing", t: "Homing", main: true, ico: "casa" }, { id: "desbloquear", t: "Ya está en casa" }] };
-  if (!S.pcb && !S.trabajos.length) return { k: "archivos", cab: "Ahora", texto: "Abrir la placa", sub: "Gerber de KiCad, DXF, SVG o .nc", masc: "archivos", acc: [{ id: "abrir", t: "Abrir archivos", main: true, ico: "abrir" }, { id: "ejemplo", t: "Ejemplo" }] };
-  if (S.pcb && !S.trabajos.length) return { k: "generar" + S.generando, cab: "Ahora", texto: S.generando ? "Calculando trayectorias…" : "Generar trayectorias", sub: S.pcb.nombre, masc: "archivos", acc: S.generando ? [] : [{ id: "generar", t: "Generar", main: true }, { id: "verPlaca", t: "Ajustar" }] };
+  if (!S.pcb && !S.trabajos.length) return { k: "archivos", cab: "Ahora", texto: "Abrir la placa", sub: "Gerber de KiCad, DXF, SVG o .nc", masc: "archivos", acc: [{ id: "abrir", t: "Abrir archivos", main: true, ico: "abrir" }, { id: "ejemplo", t: "Ejemplo", terc: true }] };
+  if (S.pcb && !S.trabajos.length) return { k: "generar" + S.generando, cab: "Ahora", texto: S.generando ? "Calculando trayectorias…" : "Generar trayectorias", sub: S.pcb.nombre, masc: "archivos", acc: S.generando ? [] : [{ id: "generar", t: "Generar", main: true }, { id: "verPlaca", t: "Ajustar", terc: true }] };
   if (!S.xyListo) return { k: "xy", cab: "Ahora", texto: "Fijar X0 Y0", sub: "Esquina inferior izquierda del material", masc: "hola", acc: [{ id: "mover", t: "Mover", main: true, ico: "mover" }] };
   const t = acc.siguienteTrabajo();
   if (!t) return { k: "fin", cab: "Ahora", texto: S.pcb?.vector ? "Pieza terminada" : "Placa terminada", masc: "placa", acc: [{ id: "nueva", t: S.pcb?.vector ? "Nueva pieza" : "Nueva placa", main: true }] };
@@ -118,7 +119,7 @@ function ahoraHTML(app, a, ps) {
     ${a.sub ? `<span class="w-sub">${esc(a.sub)}</span>` : ""}
     ${a.pasos?.length ? `<ol class="w-pasos-alarma">${a.pasos.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>` : ""}
     ${conMasc ? masc(app, a.masc) : ""}
-    ${a.acc.length ? `<span class="w-acc">${a.acc.map((b) => btn(b.id, b.t, { main: b.main, icono: b.ico, texto: b.texto })).join("")}</span>` : ""}
+    ${a.acc.length ? `<span class="w-acc">${a.acc.map((b) => btn(b.id, b.t, { main: b.main, icono: b.ico, texto: b.texto, terc: b.terc })).join("")}</span>` : ""}
   </section>`;
 }
 
@@ -152,29 +153,18 @@ function inicio(pag, app) {
     const em = estadoMaquina(app);
     const ps = pasos(app);
     const t = S.trabajos;
-    const cel = (lbl, ok, val) => `<span class="celda" data-ok="${ok ? 1 : 0}"><span>${lbl}</span><b>${esc(val)}</b></span>`;
+    const chipSec = (lbl, ok) => `<span class="chip-sec" data-ok="${ok ? 1 : 0}"><i aria-hidden="true"></i>${lbl}</span>`;
     pag.innerHTML = `
       <header class="cab0"><h2 tabindex="-1">CNC</h2>
         <button type="button" class="chip" data-tour="estado" data-ir="maquina" data-s="${em.s}" data-v="chip"><span class="punto" aria-hidden="true"></span><span data-v="chip-t">${esc(em.t)}</span></button></header>
       ${ahoraHTML(app, a, ps)}
-      ${!ls.get("examenAprobado", null) && !S.corriendo && !S.midiendo ? `<section class="w" aria-labelledby="w-curso" data-tour="curso">
-        <span class="w-cab"><span id="w-curso">Curso básico de CNC</span></span>
-        <span class="w-texto">Recomendado para hacer una buena PCB</span>
-        <span class="w-sub">Tutorial guiado de unos 10 min y examen de 15 preguntas con certificado</span>
-        <span class="w-acc">${btn("tutorial", "Tutorial guiado")}${btn("examen", "Examen")}</span>
-      </section>` : ""}
-      <button type="button" class="w ${S.pcb ? "con-thumb" : ""}" data-tour="w-placa" data-ir="placa">
-        <span class="w-cab"><span>${queEs(S)}</span>${chev}</span>
+      ${S.pcb || t.length ? `<button type="button" class="w ${S.pcb ? "con-thumb con-thumb--grande" : ""}" data-tour="w-placa" data-ir="placa">
+        <span class="w-cab"><span>Archivo</span>${chev}</span>
         ${S.pcb ? `<span class="w-texto">${esc(S.pcb.nombre)}</span><span class="w-sub">${mm(S.pcb.marco.placa.x1 - S.pcb.marco.placa.x0, 1)} × ${mm(S.pcb.marco.placa.y1 - S.pcb.marco.placa.y0, 1)} mm · material ${mm(S.material.ancho, 0)} × ${mm(S.material.alto, 0)}</span>
           ${acc.holgura()?.cabe === false ? `<span class="w-sub w-sub--atencion">${ico("alerta")}No cabe en el material</span>` : ""}
           <img class="w-thumb" src="${S.pcb.miniatura}" alt="">`
-        : t.length ? `<span class="w-texto">${esc(t[0].nombre)}</span><span class="w-sub">${t.length} archivo${t.length > 1 ? "s" : ""} .nc</span>`
-        : `<span class="w-texto muted">Sin archivos</span>`}
-      </button>
-      <button type="button" class="w" data-tour="w-origen" data-ir="origen">
-        <span class="w-cab"><span>Origen</span>${chev}</span>
-        <span class="celdas celdas--col">${cel("X0 Y0", S.xyListo && !S.revisarOrigen, S.xyListo ? (S.revisarOrigen ? "Revisar" : S.alinear ? "Alineada" : "Fijado") : "Pendiente")}${cel("Z0", S.zListo, S.zListo ? S.herramientaZ || "Fijado" : "Pendiente")}${S.pcb && !S.pcb.vector && acc.mat().conduce ? cel("Mapa de alturas", !!S.mapa?.completo, S.mapa?.completo ? (S.usarMapa ? "Aplicado" : "Sin aplicar") : S.sinMapa ? "Sin mapa" : "Recomendado") : ""}</span>
-      </button>
+        : `<span class="w-texto">${esc(t[0].nombre)}</span><span class="w-sub">${t.length} archivo${t.length > 1 ? "s" : ""} .nc</span>`}
+      </button>` : ""}
       ${t.length ? `<section class="w" aria-labelledby="w-trab" data-tour="trabajos">
         <span class="w-cab"><span id="w-trab">Trabajos</span></span>
         <span class="filas">${t.map((x) => `<button type="button" class="fila" data-trabajo="${x.id}">
@@ -182,11 +172,21 @@ function inicio(pag, app) {
           <span class="fila__nom">${esc(x.nombre)}<small>${esc(x.herramienta)}</small></span>
           ${x.estado === "hecho" ? `<span class="fila__ok">${ico("ok")}Hecho</span>` : x.estado === "omitido" ? `<span class="fila__val">Omitido</span>` : `<span class="fila__val">${formatoTiempo(x.prev.tiempo)}</span>`}
           ${chev}</button>`).join("")}</span>
-      </section>` : ""}`;
+      </section>` : ""}
+      <nav class="w-sec" aria-label="Más">
+        <button type="button" class="w-sec__fila" data-tour="w-origen" data-ir="origen">
+          <span class="w-sec__t">Origen</span>
+          <span class="w-sec__chips">${chipSec("X0 Y0", S.xyListo && !S.revisarOrigen)}${chipSec("Z0", S.zListo)}${S.pcb && !S.pcb.vector && acc.mat().conduce ? chipSec("Mapa", !!S.mapa?.completo) : ""}</span>${chev}
+        </button>
+        ${!S.corriendo && !S.midiendo ? `<div class="w-sec__fila" data-tour="curso">
+          <span class="w-sec__t">Curso básico de CNC${ls.get("examenAprobado", null) ? " · aprobado" : ""}</span>
+          <span class="w-sec__acc">${btn("tutorial", "Tutorial", { terc: true })}${btn("examen", "Examen", { terc: true })}</span>
+        </div>` : ""}
+      </nav>`;
     cablear(pag, {
       __irA: app.irA,
       conectar: () => acc.conectar("real"), sim: () => acc.conectar("sim"), homing: acc.homing, desbloquear: acc.desbloquear,
-      abrir: acc.elegirArchivos, ejemplo: acc.cargarEjemplo, generar: acc.generar, verPlaca: () => app.irA("placa"),
+      abrir: acc.elegirArchivos, ejemplo: acc.cargarEjemplo, generar: () => generarYVer(app), verPlaca: () => app.irA("placa"),
       mover: () => app.irA("mover"), nueva: acc.nuevaPlaca,
       paso: () => acc.siguientePaso(acc.siguienteTrabajo()), zmanual: () => acc.asistenteZManual(acc.siguienteTrabajo()),
       misma: () => acc.mismaFresa(acc.siguienteTrabajo()),
@@ -339,9 +339,11 @@ function placa(pag, app) {
     ${(pcb?.avisos || []).concat(S.avisosGen || []).map(aviso).join("")}
     ${materialHTML(app)}
     <button type="button" class="w" data-tour="config" data-ir="config">
-      <span class="w-cab"><span>Configuración</span>${chev}</span>
-      <span class="w-texto">${fuera.length ? `${fuera.length} ${fuera.length === 1 ? "valor fuera" : "valores fuera"} de rango` : cambiados ? `Cambiaste ${cambiados} ${cambiados === 1 ? "valor" : "valores"}` : "Valores de la Cubiko"}</span>
-      <span class="mini-herr">${GRUPOS.map((g) => `<span><span class="cuad" style="background:${HERRAMIENTAS[g].color}"></span>${HERRAMIENTAS[g].t}<b>${resumen(g, P[g])}</b></span>`).join("")}</span>
+      <span class="w-cab"><span>Configuraciones de CNC</span>${chev}</span>
+      <span class="w-sub ${fuera.length ? "w-sub--atencion" : ""}">${fuera.length ? `${fuera.length} ${fuera.length === 1 ? "valor fuera" : "valores fuera"} de rango` : cambiados ? `Cambiaste ${cambiados} ${cambiados === 1 ? "valor" : "valores"}` : "Valores de la Cubiko"}</span>
+      <span class="cfg-res" style="--n:${GRUPOS.length}">${GRUPOS.map((g) => `<span class="cfg-res__col">
+        <span class="cfg-res__t"><span class="cuad" style="background:${HERRAMIENTAS[g].color}"></span>${HERRAMIENTAS[g].t}</span>
+        ${datosHerr(g, P[g]).map(([k, v]) => `<span class="cfg-res__d"><small>${k}</small><b>${v}</b></span>`).join("")}</span>`).join("")}</span>
     </button>
     ${fuera.length && !S.permitirFuera ? aviso("Corrige la configuración para poder generar.") : ""}
     ${pcb ? `<button type="button" class="btn-pill btn-pill--main btn-pill--ancho" data-acc="generar" ${S.generando ? "disabled" : ""}>${S.generando ? "Calculando…" : cam.length ? "Volver a generar" : "Generar trayectorias"}</button>
@@ -357,8 +359,8 @@ function placa(pag, app) {
           ${pcb.imgs.vaciado ? '<button type="button" role="radio" data-img="vaciado" aria-checked="false">Vaciado</button>' : ""}
         </div>
         <canvas class="raster" data-raster role="img" aria-label="Imagen en blanco y negro: ${pcb.vector ? "lo blanco es material que se queda" : "lo blanco es cobre que se queda"}"></canvas>
-        <span class="fila-wrap" style="justify-content:space-between"><span class="w-sub mono">${pcb.marco.W} × ${pcb.marco.H} px · ${pcb.vector ? "blanco = material que se queda" : "blanco = cobre que se queda"}</span>
-          <button type="button" class="btn-texto" data-png>${ico("bajar")}PNG</button></span>
+        <span class="w-sub mono" style="text-align:center">${pcb.marco.W} × ${pcb.marco.H} px · ${pcb.vector ? "blanco = material que se queda" : "blanco = cobre que se queda"}</span>
+        <span class="w-acc w-acc--centro" style="margin-top:0"><button type="button" class="btn-pill btn-pill--suave btn-igual" data-png>${ico("bajar")}PNG</button></span>
       </div>
     </details>` : ""}
     ${S.archivos.length ? `<details class="desp">
@@ -367,15 +369,15 @@ function placa(pag, app) {
         <span class="cuad" style="background:${a.tipo === "otro" ? "var(--riel)" : "var(--d-hecho)"}"></span>
         <span class="fila__nom">${esc(a.nombre)}<small>${TIPOS[a.tipo] || a.tipo}</small></span><span></span>
         <button type="button" class="btn-icono" data-quitar="${esc(a.nombre)}" aria-label="Quitar ${esc(a.nombre)}">${ico("x")}</button></span>`).join("")}</span>
-        <span class="w-acc" style="margin-top:4px">${btn("abrir", "Abrir más", { icono: "abrir" })}${btn("nueva", pcb?.vector ? "Nueva pieza" : "Nueva placa")}</span></div>
+        <span class="w-acc w-acc--centro" style="margin-top:4px">${btn("abrir", "Abrir más", { icono: "abrir" })}${btn("nueva", pcb?.vector ? "Nueva pieza" : "Nueva placa")}</span></div>
     </details>` : ""}
     ${[...cam, ...nc].length ? `<section class="w" aria-labelledby="p-nc"><span class="w-cab"><span id="p-nc">Archivos .nc</span></span>
       <span class="filas">${[...cam, ...nc].map((t) => `<span class="fila"><span class="cuad" style="background:${app.hex(t.id)}"></span>
         <span class="fila__nom">${esc(t.nombre)}<small>${t.lineas.length} líneas · ${formatoTiempo(t.prev.tiempo)}</small></span><span></span>
         <button type="button" class="btn-icono" data-bajar="${t.id}" aria-label="Descargar ${esc(t.nombre)}.nc">${ico("bajar")}</button></span>`).join("")}</span></section>` : ""}`;
 
-  cablear(pag, { __irA: app.irA, abrir: acc.elegirArchivos, ejemplo: acc.cargarEjemplo, generar: acc.generar, nueva: acc.nuevaPlaca,
-    centrar: acc.centrarDiseno, girarMat: acc.girarMaterial, girarPieza: acc.girarPieza, matNuevo: () => { acc.materialNuevo(); app.refrescar(); } });
+  cablear(pag, { __irA: app.irA, abrir: acc.elegirArchivos, ejemplo: acc.cargarEjemplo, generar: () => generarYVer(app), nueva: acc.nuevaPlaca,
+    centrar: acc.centrarDiseno, girarPieza: acc.girarPieza, matNuevo: () => { acc.materialNuevo(); app.refrescar(); } });
   const selMat = pag.querySelector("[data-mat-tipo]");
   if (selMat) selMat.onchange = () => acc.ponerTipoMaterial(selMat.value);
   pag.querySelectorAll("[data-m]").forEach((inp) => {
@@ -429,7 +431,14 @@ function pintarPrevia(pag, app) {
   const x = cv.getContext("2d"); x.imageSmoothingQuality = "high"; x.drawImage(r.cv, 0, 0, cv.width, cv.height);
   cv.onclick = pag.querySelector("[data-ampliar]").onclick = () => ampliarPrevia(app);
 }
-function ampliarPrevia(app) {
+// Generar desde un botón: al terminar se abre la vista previa grande. Si se generó fuera de Inicio
+// (desde PCB o Configuraciones), la ventana trae «Ir a Inicio» para seguir con los pasos.
+async function generarYVer(app) {
+  const antes = app.S.trabajos;
+  await app.acc.generar();
+  if (app.S.trabajos !== antes && app.S.trabajos.some((t) => t.origen === "cam")) ampliarPrevia(app, { irInicio: app.vistaActual !== "inicio" });
+}
+function ampliarPrevia(app, { irInicio = false } = {}) {
   const r = app.acc.vistaPrevia();
   if (!r) return;
   dialogo({ titulo: "Vista previa", clase: "dlg--previa", contenido(c, d) {
@@ -437,7 +446,9 @@ function ampliarPrevia(app) {
     c.innerHTML = `<div class="previa-zoom" data-z tabindex="0" aria-label="Vista previa; rueda o botones para acercar, arrastra para mover"></div>
       <div class="previa-ctl"><button type="button" class="btn-icono" data-menos aria-label="Alejar">−</button><span class="mono" data-pct></span>
         <button type="button" class="btn-icono" data-mas aria-label="Acercar">+</button><button type="button" class="btn-texto" data-ajustar>Ajustar</button>
-        <span class="w-sub">${esc(r.fuente)}</span></div>`;
+        <span class="w-sub">${esc(r.fuente)}</span>
+        ${irInicio ? `<span style="flex:1"></span><button type="button" class="btn-pill btn-pill--main" data-inicio>Ir a Inicio</button>` : ""}</div>`;
+    if (irInicio) c.querySelector("[data-inicio]").onclick = () => { d.cerrar(); app.irA("inicio"); };
     const z = c.querySelector("[data-z]"), pct = c.querySelector("[data-pct]");
     const img = document.createElement("canvas"); img.width = r.cv.width; img.height = r.cv.height; img.getContext("2d").drawImage(r.cv, 0, 0);
     img.className = "previa-grande"; img.style.width = "100%"; z.appendChild(img);
@@ -463,57 +474,65 @@ function ampliarPrevia(app) {
   } });
 }
 
-// ---- Material: la placa virgen con el diseño encima, a escala; cada medida en su eje ----
+// ---- Material: la placa virgen en 3D (isométrico) con el diseño encima; sus tres medidas en un renglón ----
 function materialHTML(app) {
   const { S, acc, visor } = app;
   const M = S.material, d = acc.tamDiseno(), h = acc.holgura(), bloq = acc.disenoBloqueado();
-  const medida = (k, eje, txt, paso = 0.5) => `<label class="mat__campo mat__campo--${k}"><span><b data-eje="${eje}">${eje}</b>${txt}</span>
+  const medida = (k, eje, txt, paso = 0.5) => `<label class="mat__campo"><span><b data-eje="${eje}">${eje}</b>${txt}</span>
     <span class="u"><input type="number" step="${paso}" min="0.1" data-m="${k}" value="${M[k]}"><i>mm</i></span></label>`;
   const offset = (k, txt) => `<label class="campo"><span>${txt}</span><span class="u"><input type="number" step="0.5" min="-50" data-m="${k}" value="${M[k]}" ${bloq ? "disabled" : ""}><i>mm</i></span></label>`;
   const LADOS = { izq: "por la izquierda", der: "por la derecha", abajo: "por abajo", arriba: "por arriba" };
   const sale = h ? Object.keys(LADOS).filter((k) => h.sale[k] >= 0.05).map((k) => `${mm(h.sale[k], 1)} mm ${LADOS[k]}`) : [];
-  const estado = !h ? ""
-    : h.cabe ? `<span class="w-sub">Cabe · ${mm(Math.max(0, h.margen), 1)} mm de orilla en el lado más justo</span>`
-    : `<div class="aviso">${ico("alerta")}<span>No cabe: se sale ${sale.join(" y ")}.${h.cabeCentrado ? " Centrado sí cabe." : h.cabeGirado ? " Girando el material 90° sí cabe." : " Necesitas un material más grande."}</span></div>`;
+  const estado = !h || h.cabe ? ""
+    : `<div class="aviso">${ico("alerta")}<span>No cabe: se sale ${sale.join(" y ")}.${h.cabeCentrado ? " Centrado sí cabe." : h.cabeGirado ? " Girando el diseño 90° sí cabe." : " Necesitas un material más grande."}</span></div>`;
   const area = M.ancho > 145 || M.alto > 110;
-  const dib = dibujoMaterial(M, d, h);
   return `<section class="w" aria-labelledby="p-mat" data-tour="material">
     <span class="w-cab"><span id="p-mat">Material</span>
       <select class="mat__tipo" data-mat-tipo aria-label="Qué material" ${bloq ? "disabled" : ""}>${Object.entries(MATERIALES).map(([k, m]) => `<option value="${k}" ${k === M.tipo ? "selected" : ""}>${esc(m.t)}</option>`).join("")}</select></span>
-    <div class="mat">
-      ${medida("alto", "Y", "Alto")}
-      <div class="mat__dib">${dib.svg}</div>
-      ${medida("grosor", "Z", "Grosor", 0.1)}
-      ${medida("ancho", "X", "Ancho").replace("<label ", `<label style="margin-left:${Math.max(0, dib.cx - 46).toFixed(0)}px" `)}
-    </div>
-    <span class="w-sub">Mide el grosor con vernier${acc.mat().conduce ? ", con el cobre" : ""}: de él sale cuánto bajan los hoyos y el contorno.</span>
+    <div class="mat__dib">${placaIso(M, d, h)}</div>
+    <div class="campos mat__dims">${medida("ancho", "X", "Ancho")}${medida("alto", "Y", "Alto")}${medida("grosor", "Z", "Grosor", 0.1)}</div>
     ${estado}
     ${area ? `<div class="aviso">${ico("alerta")}<span>Más grande que el área de la Cubiko (145 × 110 mm).</span></div>` : ""}
     ${d ? `<div class="campos campos--2">${offset("x", "Offset izquierdo")}${offset("y", "Offset inferior")}</div>` : ""}
-    <span class="w-acc" style="margin-top:8px">${d ? btn("centrar", "Centrar", { dis: bloq }) : ""}${S.pcb?.vector ? btn("girarPieza", "Girar pieza 90°", { dis: bloq }) : ""}${btn("girarMat", S.pcb?.vector ? "Girar material" : "Girar 90°", { dis: bloq })}${visor.hayCortes ? btn("matNuevo", "Borrar cortes del 3D") : ""}</span>
+    ${d || visor.hayCortes ? `<span class="w-acc w-acc--centro">${d ? btn("centrar", "Centrar", { dis: bloq }) + btn("girarPieza", "Girar 90°", { dis: bloq }) : ""}${visor.hayCortes ? btn("matNuevo", "Borrar cortes del 3D") : ""}</span>` : ""}
   </section>`;
 }
-// Vista de arriba con la cota de X y la de Y, cada una del color de su eje. Devuelve el SVG y dónde
-// queda el centro de la cota de X (px desde la izquierda), para poner el campo Ancho justo debajo.
-function dibujoMaterial(M, d, h) {
-  const s = Math.max(M.ancho, M.alto), c = s * 0.075, pad = s * 0.03, t = s * 0.018;
-  const x0 = Math.min(0, h?.x0 ?? 0) - c - pad, x1 = Math.max(M.ancho, h?.x1 ?? 0) + c + pad;
-  const yTop = Math.max(M.alto, h?.y1 ?? 0) + pad, yBot = Math.min(0, h?.y0 ?? 0) - c - pad;
-  const Y = (y) => yTop - y;        // el SVG crece hacia abajo; la máquina, hacia arriba
-  const r = (x, y, w, hh, extra) => `<rect x="${x}" y="${Y(y + hh)}" width="${w}" height="${hh}" ${extra}/>`;
-  const ln = (xa, ya, xb, yb) => `<line x1="${xa}" y1="${Y(ya)}" x2="${xb}" y2="${Y(yb)}" vector-effect="non-scaling-stroke"/>`;
-  const fuera = h && !h.cabe;
-  const yX = -c * 0.6, xY = -c * 0.6;
-  const ancho = Math.min(256, (190 * (x1 - x0)) / (yTop - yBot));     // la columna mide lo que el dibujo
-  return { cx: ((M.ancho / 2 - x0) / (x1 - x0)) * ancho, svg: `<svg class="mat-dib" style="width:${ancho.toFixed(0)}px" viewBox="${x0} 0 ${x1 - x0} ${yTop - yBot}" role="img" aria-label="Material de ${mm(M.ancho, 1)} por ${mm(M.alto, 1)} por ${mm(M.grosor, 1)} mm${d ? ` con el diseño de ${mm(d.ancho, 1)} por ${mm(d.alto, 1)} mm` : ""}">
-    ${r(0, 0, M.ancho, M.alto, 'class="mat-dib__cobre" vector-effect="non-scaling-stroke"')}
-    ${h ? r(h.x0, h.y0, h.x1 - h.x0, h.y1 - h.y0, `class="mat-dib__corte${fuera ? " es-fuera" : ""}"`) : ""}
-    ${d ? r(M.x, M.y, d.ancho, d.alto, `class="mat-dib__diseno${fuera ? " es-fuera" : ""}" vector-effect="non-scaling-stroke"`) : ""}
-    ${d ? `<g class="mcota mcota--off" data-k="x">${ln(0, M.y + d.alto / 2, M.x, M.y + d.alto / 2)}</g><g class="mcota mcota--off" data-k="y">${ln(M.x + d.ancho / 2, 0, M.x + d.ancho / 2, M.y)}</g>` : ""}
-    <g class="mcota mcota--x" data-k="ancho">${ln(0, yX, M.ancho, yX)}${ln(0, yX - t, 0, yX + t)}${ln(M.ancho, yX - t, M.ancho, yX + t)}</g>
-    <g class="mcota mcota--y" data-k="alto">${ln(xY, 0, xY, M.alto)}${ln(xY - t, 0, xY + t, 0)}${ln(xY - t, M.alto, xY + t, M.alto)}</g>
-    <circle cx="0" cy="${Y(0)}" r="${s * 0.016}" class="mat-dib__cero"/>
-  </svg>` };
+// La placa en isométrico: cara de arriba del color del material, cantos, el diseño punteado encima y los ejes
+// en la esquina del cero (X rojo, Y verde, Z azul). Se ajusta a las medidas; el grosor se exagera para verse.
+function placaIso(M, d, h) {
+  const ex = [0.9, 0.36], ey = [0.62, -0.42], ez = [0, -1];
+  const s = Math.max(M.ancho, M.alto), g = Math.max(M.grosor, s * 0.035);
+  const P = (x, y, z = g) => [x * ex[0] + y * ey[0] + z * ez[0], x * ex[1] + y * ey[1] + z * ez[1]];
+  const pol = (pts, cls, extra = "") => `<polygon class="${cls}" points="${pts.map((p) => p.map((v) => v.toFixed(2)).join(",")).join(" ")}" ${extra}/>`;
+  const rect = (x, y, w, hh, z, cls, extra) => pol([P(x, y, z), P(x + w, y, z), P(x + w, y + hh, z), P(x, y + hh, z)], cls, extra);
+  const W = M.ancho, H = M.alto, fuera = h && !h.cabe;
+  const largo = s * 0.16;
+  const flecha = (a, b, cls) => `<line class="iso-eje ${cls}" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" marker-end="url(#iso-p-${cls})"/>`;
+  const pts = [P(0, 0, 0), P(W, 0, 0), P(W, H, 0), P(0, H, 0), P(0, 0), P(W, 0), P(W, H), P(0, H), P(0, 0, g + largo), P(-largo * 0.2, 0)];
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]), pad = s * 0.06;
+  const vb = [Math.min(...xs) - pad, Math.min(...ys) - pad, Math.max(...xs) - Math.min(...xs) + 2 * pad, Math.max(...ys) - Math.min(...ys) + 2 * pad];
+  const marca = (cls) => `<marker id="iso-p-${cls}" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="iso-punta ${cls}"/></marker>`;
+  return `<svg class="mat-iso" viewBox="${vb.map((v) => v.toFixed(2)).join(" ")}" role="img" aria-label="Material de ${mm(W, 1)} por ${mm(H, 1)} por ${mm(M.grosor, 1)} mm${d ? ` con el diseño de ${mm(d.ancho, 1)} por ${mm(d.alto, 1)} mm` : ""}">
+    <defs>${marca("x")}${marca("y")}${marca("z")}</defs>
+    ${pol([P(0, 0, 0), P(W, 0, 0), P(W, 0), P(0, 0)], "iso-frente")}
+    ${pol([P(W, 0, 0), P(W, H, 0), P(W, H), P(W, 0)], "iso-lado")}
+    ${rect(0, 0, W, H, g, "iso-arriba")}
+    ${h ? rect(h.x0, h.y0, h.x1 - h.x0, h.y1 - h.y0, g, `iso-corte${fuera ? " es-fuera" : ""}`) : ""}
+    ${d ? rect(M.x, M.y, d.ancho, d.alto, g, `iso-diseno${fuera ? " es-fuera" : ""}`, 'vector-effect="non-scaling-stroke"') : ""}
+    ${flecha(P(0, 0), P(largo, 0), "x")}${flecha(P(0, 0), P(0, largo), "y")}${flecha(P(0, 0), P(0, 0, g + largo), "z")}
+    <circle class="iso-cero" cx="${P(0, 0)[0]}" cy="${P(0, 0)[1]}" r="${s * 0.014}"/>
+  </svg>`;
+}
+
+// Lo más importante de cada herramienta, para el resumen de Configuraciones de CNC
+const nn = (v, d = 2) => +(+v).toFixed(d);
+function datosHerr(g, Q) {
+  if (g === "pistas") return [["Fresa", `V ${nn(Q.angulo, 0)}° · ${nn(Q.punta)}`], ["Corte", `${nn(Q.diam)} mm`], ["Prof.", `${nn(Q.prof)} mm`], ["Pasadas", Q.pasadas], ["Avance", nn(Q.f, 0)]];
+  if (g === "hoyos") return [["Broca", `Ø${nn(Q.broca)}`], ["Prof.", `${nn(Q.prof)} mm`], ["Hoyos", `Ø${nn(Q.min)}–${nn(Q.max)}`], ["Bajada", nn(Q.fz, 0)]];
+  if (g === "contorno") return [["Fresa", `Ø${nn(Q.diam)}`], ["Prof.", `${nn(Q.prof)} mm`], ["Pasadas", Q.pasadas], ["Puentes", Q.puentes], ["Avance", nn(Q.f, 0)]];
+  if (g === "grabado") return [["Fresa", `V ${nn(Q.angulo, 0)}° · ${nn(Q.punta)}`], ["Prof.", `${nn(Q.prof)} mm`], ["Pasadas", Q.pasadas], ["Avance", nn(Q.f, 0)]];
+  if (g === "vaciado") return [["Prof.", `${nn(Q.prof)} mm`], ["Pasadas", Q.pasadas], ["Traslape", `${nn(Q.traslape * 100, 0)}%`], ["Avance", nn(Q.f, 0)]];
+  return [];
 }
 
 // ======================================================================
@@ -591,35 +610,28 @@ function config(pag, app) {
   // Fuera de rango: el aviso y el campo en rojo (no se genera hasta corregirlo)
   const malos = (g, Q) => revisarRango(g, Q, grosor);
   const extraTodo = (g, Q) => extra(g, Q) + Object.values(malos(g, Q)).map((t) => `<div class="aviso aviso--fuera">${ico("alerta")}<span>${esc(t)}</span></div>`).join("");
-  const avanzado = ls.get("configAvanzado", false);
   const seccion = (g) => {
     const H = HERRAMIENTAS[g];
     return `<section class="w herr" data-herr="${g}" data-tour="herr-${g}" aria-labelledby="h-${g}">
-      <span class="w-cab"><span id="h-${g}" class="herr__t"><span class="cuad" style="background:${H.color}"></span>${H.t}</span><span class="desp__resumen" data-res>${resumen(g, P[g])}</span></span>
+      <span class="w-cab"><span id="h-${g}" class="herr__t"><span class="cuad" style="background:${H.color}"></span>${H.t}</span></span>
       <div class="herr__dib" data-dib>${dib(g, P[g])}</div>
       <div class="pila-s" data-extra>${extraTodo(g, P[g])}</div>
-      ${avanzado ? `${g === "hoyos" ? rango() : ""}
+      ${g === "hoyos" ? rango() : ""}
       <div class="campos">${CAMPOS[g].map((c) => campo(g, c)).join("")}</div>
       ${g === "pistas" ? `<label class="check"><input type="checkbox" data-p="pistas.orilla" ${P.pistas.orilla !== false ? "checked" : ""} aria-describedby="n-pistas-orilla"> Limpiar la orilla${desc("pistas", "orilla")}</label>` : ""}
-      ${g === "comun" ? `<label class="check"><input type="checkbox" data-p="comun.climb" ${P.comun.climb ? "checked" : ""} aria-describedby="n-comun-climb"> Fresado en concordancia${desc("comun", "climb")}</label>` : ""}` : ""}
+      ${g === "comun" ? `<label class="check"><input type="checkbox" data-p="comun.climb" ${P.comun.climb ? "checked" : ""} aria-describedby="n-comun-climb"> Fresado en concordancia${desc("comun", "climb")}</label>` : ""}
     </section>`;
   };
   const cam = S.trabajos.some((t) => t.origen === "cam");
   const nFuera = acc.paramsFuera().length;
-  pag.innerHTML = `${cab2(queEs(S), "Configuración")}
-    <div class="seg seg--ancho" role="radiogroup" aria-label="Qué se ve" data-tour="modo-config">
-      <button type="button" role="radio" data-modo-config="0" aria-checked="${!avanzado}">Básico</button>
-      <button type="button" role="radio" data-modo-config="1" aria-checked="${avanzado}">Avanzado</button>
-    </div>
-    <span class="w-sub" style="text-align:center">${avanzado ? "Los valores por defecto ya funcionan en la Cubiko. Cambia solo si sabes por qué." : "Así corta cada herramienta. Los valores ya funcionan en la Cubiko."}</span>
+  pag.innerHTML = `${cab2(queEs(S), "Configuraciones de CNC")}
     ${[...GRUPOS, "comun"].map(seccion).join("")}
-    ${avanzado && nFuera ? `<label class="check" style="align-self:center"><input type="checkbox" data-permitir ${S.permitirFuera ? "checked" : ""}> Generar con valores fuera de rango</label>` : ""}
+    ${nFuera ? `<label class="check" style="align-self:center"><input type="checkbox" data-permitir ${S.permitirFuera ? "checked" : ""}> Generar con valores fuera de rango</label>` : ""}
     <button type="button" class="btn-texto" data-acc="defecto" style="align-self:center">Valores por defecto</button>
     ${previaHTML(app)}
     ${S.pcb ? `<button type="button" class="btn-pill btn-pill--main btn-pill--ancho" data-acc="generar" ${S.generando ? "disabled" : ""}>${S.generando ? "Calculando…" : cam ? "Volver a generar" : "Generar trayectorias"}</button>` : ""}`;
-  cablear(pag, { __irA: app.irA, generar: acc.generar, defecto: acc.paramsPorDefecto });
+  cablear(pag, { __irA: app.irA, generar: () => generarYVer(app), defecto: acc.paramsPorDefecto });
   pag.querySelector("[data-atras]").onclick = app.regresar;
-  pag.querySelectorAll("[data-modo-config]").forEach((b) => (b.onclick = () => { ls.set("configAvanzado", b.dataset.modoConfig === "1"); app.refrescar(); }));
   const perm = pag.querySelector("[data-permitir]");
   if (perm) perm.onchange = () => acc.ponerPermitirFuera(perm.checked);
   pintarPrevia(pag, app);
@@ -643,7 +655,6 @@ function config(pag, app) {
       const Q = leer();
       sec.querySelector("[data-dib]").innerHTML = dib(g, Q);
       sec.querySelector("[data-extra]").innerHTML = extraTodo(g, Q);
-      sec.querySelector("[data-res]").textContent = resumen(g, Q);
       marcar(Q);
       resaltar(sec, enfocado());
       return Q;
