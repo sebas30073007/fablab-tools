@@ -79,10 +79,8 @@ export function construirCubiko({ cx, zCama, sombra = true }) {
   prisma(planta(X0, X1, zAtras, zFrente, 36), yPiso, 28, M.base, fijo);
   prisma(planta(X0 + 5, X1 - 5, zAtras + 3, zFrente - 6, 32), yPiso + 28, 26, M.cubierta, fijo);
   prisma(planta(X0 + 16, X1 - 16, zTorre, zFrente - 16, 26), yCubierta - 1, 1.6, M.cubiertaClara, fijo);
-  // Ranuras por donde baja el carro de la cama (cerca de las orillas de la cama)
-  for (const dx of [-70, 70]) caja(7, 1, 164, M.negro, cx + dx, yCubierta + 0.4, Z_FRESA, fijo);   // sus carros van de Z_FRESA−77 a +77
-  // Hueco al frente donde asienta la tapa (su sensor: por confirmar)
-  const sensorTapa = caja(14, 0.6, 7, M.negro, cx, yCubierta + 0.5, zFrente - 22, fijo);
+  // Ranuras por donde baja el soporte de la cama (cerca de las orillas de la cama)
+  for (const dx of [-65, 65]) caja(7, 1, 200, M.negro, cx + dx, yCubierta + 0.4, Z_FRESA, fijo);   // sus soportes (90 mm) van de Z_FRESA−100 a +100
   // Franja LED (estado) y control con pantalla
   const luz = caja(72, 5, 1.2, new THREE.MeshBasicMaterial({ color: COL.ledApagado }), cx - 72, yPiso + 14, zFrente + 0.4, fijo);   // cx−108…cx−36, dentro del chaflán (cx−114)
 
@@ -207,24 +205,34 @@ export function construirCubiko({ cx, zCama, sombra = true }) {
   tapa.add(new THREE.LineSegments(gB, bordes));
 
   // ================= Cama (se mueve en Y) =================
-  // Placa de aluminio 186 × 136 con roscas: rejilla de 6 × 5 (paso 32 × 27), cuatro roscas más entre la
-  // primera y la segunda columna de cada orilla, y un perno de latón atrás a la derecha (como en la foto)
+  // Plano oficial (cubiko_platform_drawings.pdf, SainSmart): aluminio 180 × 120 × 5.5, esquinas R5, 34 roscas
+  // M5 en una rejilla de 6 × 5 (x 7…173 paso 33.2, y 7…113 paso 26.5) más cuatro en (23.6 | 156.4, 20.25 | 99.75),
+  // y un hoyo mayor atrás a la derecha (163, 111.5) con su inserto de latón. El origen del plano es la
+  // esquina de adelante a la izquierda; aquí todo va respecto al centro de la cama (+z hacia el frente).
   const mesa = new THREE.Group();
   const czCama = 55;                        // centro de la cama en coordenadas locales (y de máquina = −55)
-  caja(186, 6, 136, M.aluminio, cx, zCama - 3, czCama, mesa);
-  const roscas = [];
-  for (let i = 0; i < 6; i++) for (let j = 0; j < 5; j++) roscas.push([-80 + i * 32, -54 + j * 27]);
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) roscas.push([sx * 64, sz * 40.5]);
-  const hoyo = new THREE.InstancedMesh(new THREE.CircleGeometry(2.5, 18).rotateX(-Math.PI / 2), mat(0x34383e, { roughness: 0.85 }), roscas.length);
-  const bocel = new THREE.InstancedMesh(new THREE.RingGeometry(2.5, 3.3, 18).rotateX(-Math.PI / 2), mat(0x8d9299, { metalness: 0.6, roughness: 0.4 }), roscas.length);
+  const deCama = (xp, yp) => [xp - 90, 60 - yp];
+  const ROSCAS = [];
+  for (const xp of [7, 40.2, 73.4, 106.6, 139.8, 173]) for (const yp of [7, 33.5, 60, 86.5, 113]) ROSCAS.push(deCama(xp, yp));
+  for (const xp of [23.6, 156.4]) for (const yp of [20.25, 99.75]) ROSCAS.push(deCama(xp, yp));
+  const contornoCama = new THREE.Shape();
+  { const w = 90, h = 60, r = 5, c = contornoCama;
+    c.moveTo(-w + r, -h); c.lineTo(w - r, -h); c.absarc(w - r, -h + r, r, -Math.PI / 2, 0);
+    c.lineTo(w, h - r); c.absarc(w - r, h - r, r, 0, Math.PI / 2); c.lineTo(-w + r, h);
+    c.absarc(-w + r, h - r, r, Math.PI / 2, Math.PI); c.lineTo(-w, -h + r); c.absarc(-w + r, -h + r, r, Math.PI, Math.PI * 1.5); }
+  for (const [x, z] of ROSCAS) { const h = new THREE.Path(); h.absarc(x, -z, 2.5, 0, Math.PI * 2, true); contornoCama.holes.push(h); }
+  const gCama = new THREE.ExtrudeGeometry(contornoCama, { depth: 5.5 - 1.2, bevelEnabled: true, bevelSize: 0.6, bevelThickness: 0.6, bevelSegments: 1, curveSegments: 14 });
+  gCama.rotateX(-Math.PI / 2); gCama.translate(cx, zCama - 5.5 + 0.6, czCama);
+  mesa.add(new THREE.Mesh(gCama, [M.aluminio, mat(0x9ba0a7, { metalness: 0.7, roughness: 0.38 })]));
+  const [lx, lz] = deCama(163, 111.5);
+  const laton = cil(4, 5.5, mat(0xc8a24a, { metalness: 0.85, roughness: 0.3 }), mesa, "y", 24); laton.position.set(cx + lx, zCama - 2.73, czCama + lz);
+  // Soportes que bajan por las ranuras de la base
+  for (const dx of [-65, 65]) caja(10, 20, 90, M.negro, cx + dx, zCama - 15.5, czCama, mesa);
+  sombras(mesa);
+  // Rosca n de la cama en coordenadas de la mesa: 0…29 la rejilla (por columnas, de adelante hacia atrás),
+  // 30…33 las extra (izq. adelante, izq. atrás, der. adelante, der. atrás)
+  const roscaCama = (n) => new THREE.Vector3(cx + ROSCAS[n][0], zCama, czCama + ROSCAS[n][1]);
   const m4 = new THREE.Matrix4();
-  roscas.forEach(([x, z], k) => { m4.makeTranslation(cx + x, zCama + 0.03, czCama + z); hoyo.setMatrixAt(k, m4); bocel.setMatrixAt(k, m4); });
-  mesa.add(hoyo, bocel);
-  const laton = cil(3, 1.2, mat(0xc8a24a, { metalness: 0.85, roughness: 0.3 }), mesa, "y", 20); laton.position.set(cx + 64, zCama + 0.3, czCama - 54);
-  for (const dx of [-70, 70]) caja(12, 14, 44, M.negro, cx + dx, zCama - 13, czCama, mesa);
-  sombras(mesa); hoyo.castShadow = bocel.castShadow = false;
-  // Rosca de la cama en coordenadas de la mesa (para poner sujetadores)
-  const roscaCama = (i, j) => new THREE.Vector3(cx - 80 + i * 32, zCama, czCama - 54 + j * 27);
 
   // ================= Carro X (se mueve en X) =================
   const carroX = new THREE.Group();
@@ -252,23 +260,30 @@ export function construirCubiko({ cx, zCama, sombra = true }) {
     herramienta.userData.tipo = tipo;
   };
   ponerHerramienta("v");
-  const tuerca = cil(9.5, 9, mat(COL.acero, { metalness: 0.92, roughness: 0.22, flatShading: true }), husillo, "y", 6); tuerca.position.set(0, 17.5, zH);     // tuerca hexagonal de la pinza ER11
-  const nariz = cil(13, 12, mat(0x3a3e44, { metalness: 0.5, roughness: 0.4 }), husillo, "y", 32); nariz.position.set(0, 28, zH);
-  const cuerpo = redondeada(52, 58, 52, 10, M.husillo, husillo); cuerpo.position.set(0, 34 + 29, zH + 2);
-  const cabeza = redondeada(46, 30, 48, 9, M.husillo, husillo); cabeza.position.set(0, 92 + 15, zH);
+  // Pinza ER11 (fotos): tuerca hexagonal negra de 17 mm entre caras, rosca, cuerpo de acero con dos caras
+  // planas de 13 mm para la llave, y el anillo negro del motor
+  const tuerca = cil(17 / Math.sqrt(3), 8, mat(0x1e2024, { metalness: 0.55, roughness: 0.38, flatShading: true }), husillo, "y", 6); tuerca.position.set(0, 21, zH);
+  const roscaPinza = cil(7.2, 2.6, rosca, husillo, "y", 24); roscaPinza.position.set(0, 26.3, zH);
+  const sPinza = new THREE.Shape(); { const r = 8, f = 6.5, a = Math.acos(f / r), e = Math.sqrt(r * r - f * f);
+    sPinza.absarc(0, 0, r, a, Math.PI - a, false); sPinza.lineTo(-f, -e); sPinza.absarc(0, 0, r, Math.PI + a, -a, false); sPinza.lineTo(f, e); }
+  const gPinza = new THREE.ExtrudeGeometry(sPinza, { depth: 9.4, bevelEnabled: false, curveSegments: 18 }); gPinza.rotateX(-Math.PI / 2);
+  const pinza = new THREE.Mesh(gPinza, M.acero); pinza.position.set(0, 27.6, zH); husillo.add(pinza);
+  const nariz = cil(12, 6, mat(0x1d1f23, { metalness: 0.4, roughness: 0.45 }), husillo, "y", 32); nariz.position.set(0, 40, zH);
+  const cuerpo = redondeada(52, 58, 52, 10, M.husillo, husillo); cuerpo.position.set(0, 38 + 29, zH + 2);
+  const cabeza = redondeada(46, 30, 48, 9, M.husillo, husillo); cabeza.position.set(0, 96 + 15, zH);
   // Rejilla de ventilación y logotipo al frente
   const rejilla = new THREE.InstancedMesh(new THREE.BoxGeometry(4.2, 2.2, 1), M.negro, 18);
   let k = 0;
-  for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) { m4.makeTranslation(-12.5 + i * 5, 99 + j * 4, zH + 24.2); rejilla.setMatrixAt(k++, m4); }
+  for (let i = 0; i < 6; i++) for (let j = 0; j < 3; j++) { m4.makeTranslation(-12.5 + i * 5, 103 + j * 4, zH + 24.2); rejilla.setMatrixAt(k++, m4); }
   husillo.add(rejilla);
   const logo = new THREE.Mesh(new THREE.PlaneGeometry(38, 7), new THREE.MeshBasicMaterial({ map: logoTextura(), transparent: true, depthWrite: false }));
-  logo.position.set(0, 116, zH + 24.3); husillo.add(logo);
+  logo.position.set(0, 120, zH + 24.3); husillo.add(logo);
   // placa trasera que une la cubierta con el carro Z
-  caja(40, 70, 20, M.carro, 0, 70, zH - 34, husillo);
+  caja(40, 70, 20, M.carro, 0, 74, zH - 34, husillo);
   sombras(husillo); logo.castShadow = false;
 
   return {
-    fijo, mesa, carroX, husillo, luz, techo, tapa, control, lampara, barraLed, sensorTapa,
+    fijo, mesa, carroX, husillo, luz, techo, tapa, control, lampara, barraLed, tuerca, pinza,
     botones: { paro: paro.tapa, encendido: encendido.tapa, simbolo: anilloOn },
     puertos: { usb, jack, leveling },
     roscaCama, ponerHerramienta,
@@ -285,50 +300,52 @@ export function construirHerramienta(tipo) {
   const acero = mat(COL.acero, { metalness: 0.92, roughness: 0.22 });
   const pieza = (geo, m, y) => { const o = new THREE.Mesh(geo, m); o.position.y = y; g.add(o); return o; };
   if (tipo === "maiz") {
-    pieza(new THREE.CylinderGeometry(1.6, 1.6, 18, 20), acero, 12 + 9);
+    pieza(new THREE.CylinderGeometry(1.6, 1.6, 22, 20), acero, 12 + 11);
     pieza(new THREE.CylinderGeometry(1.6, 1.6, 12, 24), texturaMaiz(), 6);
   } else if (tipo === "broca") {
-    pieza(new THREE.CylinderGeometry(1.6, 1.6, 17, 20), acero, 13 + 8.5);
+    pieza(new THREE.CylinderGeometry(1.6, 1.6, 21, 20), acero, 13 + 10.5);
     pieza(new THREE.CylinderGeometry(2.7, 2.7, 2.4, 24), mat(0x2a6fd6, { roughness: 0.5 }), 12);
     pieza(new THREE.CylinderGeometry(1.6, 0.5, 2.5, 20), acero, 9.6);
     pieza(new THREE.CylinderGeometry(0.5, 0.5, 7.8, 14), texturaHelice(), 0.5 + 3.9);
     pieza(new THREE.ConeGeometry(0.5, 0.5, 14).rotateX(Math.PI), acero, 0.25);
   } else {
-    pieza(new THREE.CylinderGeometry(1.6, 1.6, 21, 20), acero, 9 + 10.5);
+    pieza(new THREE.CylinderGeometry(1.6, 1.6, 25, 20), acero, 9 + 12.5);
     pieza(new THREE.CylinderGeometry(1.6, 0.04, 9, 24), mat(0x2b2e33, { metalness: 0.7, roughness: 0.3 }), 4.5);
   }
   return g;
 }
 
-// Sujetador de aluminio con su tornillo Allen de cabeza plana y arandela. Marco: la lengüeta que pisa la
-// placa mira a +X, el pie apoya en la cama (y = 0) y el tornillo pasa por la ranura en x = 0.
+// Sujetador de aluminio (medido en las fotos contra la rejilla de la cama): 44 × 15, pie de 9.5 mm de alto con
+// su ceja, barra de 5 mm con ranura de 19 × 5.5 y lengüeta delgada que pisa la placa. Tornillo M5 de cabeza
+// plana (cilíndrica baja, hexágono de 3 mm) con arandela, porque las roscas de la cama son M5.
+// Marco: la lengüeta mira a +X, el pie apoya en la cama (y = 0); la ranura va de x = −5 a x = 9.
 // Devuelve { grupo, tornillo }: el tornillo baja en y (0 = apretado) y gira sobre su eje.
 export function crearSujetador({ grosorPlaca = 1.6 } = {}) {
   const alu = mat(0xd3d6da, { metalness: 0.6, roughness: 0.32 });
   const grupo = new THREE.Group();
-  const yBarra = grosorPlaca + 0.8;
-  // Barra vista desde arriba: rectángulo con ranura alargada y un hoyo chico, extruida en altura
-  const s = new THREE.Shape(); s.moveTo(-20, -7); s.lineTo(16, -7); s.lineTo(16, 7); s.lineTo(-20, 7); s.lineTo(-20, -7);
-  const ranura = new THREE.Path(); ranura.absarc(7, 0, 2.4, -Math.PI / 2, Math.PI / 2, false); ranura.absarc(-7, 0, 2.4, Math.PI / 2, Math.PI * 1.5, false);
-  const chico = new THREE.Path(); chico.absarc(-15.5, 0, 1.3, 0, Math.PI * 2, true);
+  const yBarra = grosorPlaca + 0.6, hBarra = 5;
+  const s = new THREE.Shape(); s.moveTo(-16, -7.5); s.lineTo(16, -7.5); s.lineTo(16, 7.5); s.lineTo(-16, 7.5); s.lineTo(-16, -7.5);
+  const ranura = new THREE.Path(); ranura.absarc(9, 0, 2.75, -Math.PI / 2, Math.PI / 2, false); ranura.absarc(-5, 0, 2.75, Math.PI / 2, Math.PI * 1.5, false);
+  const chico = new THREE.Path(); chico.absarc(-11, 0, 1.2, 0, Math.PI * 2, true);
   s.holes.push(ranura, chico);
-  const gBarra = new THREE.ExtrudeGeometry(s, { depth: 4.6, bevelEnabled: true, bevelSize: 0.4, bevelThickness: 0.4, bevelSegments: 1 });
-  gBarra.rotateX(Math.PI / 2); gBarra.translate(0, yBarra + 4.6 + 0.4, 0);
-  const barra = new THREE.Mesh(gBarra, alu); grupo.add(barra);
-  const caja = (w, h, d, x, y, z) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), alu); o.position.set(x, y, z); grupo.add(o); return o; };
-  caja(6, yBarra + 4.6, 14, -23, (yBarra + 4.6) / 2, 0);          // pie
-  caja(3, 2.2, 14, -27.5, 1.1, 0);                                // ceja del pie
-  caja(5, 1.8, 10, 18.5, grosorPlaca + 0.9, 0);                    // lengüeta que pisa la placa
-  // Tornillo: cabeza cilíndrica baja con hexágono, arandela y cuerda M4
+  const gBarra = new THREE.ExtrudeGeometry(s, { depth: hBarra - 0.8, bevelEnabled: true, bevelSize: 0.4, bevelThickness: 0.4, bevelSegments: 1, curveSegments: 12 });
+  gBarra.rotateX(Math.PI / 2); gBarra.translate(0, yBarra + hBarra - 0.4, 0);
+  grupo.add(new THREE.Mesh(gBarra, alu));
+  // Pie (de perfil, con el canto de arriba biselado) y lengüeta
+  const pie = new THREE.Shape(); pie.moveTo(-27, 0); pie.lineTo(-16, 0); pie.lineTo(-16, 9.5); pie.lineTo(-22.5, 9.5); pie.lineTo(-24, 8); pie.lineTo(-24, 2.5); pie.lineTo(-27, 2.5); pie.lineTo(-27, 0);
+  const gPie = new THREE.ExtrudeGeometry(pie, { depth: 15, bevelEnabled: false }); gPie.translate(0, 0, -7.5);
+  grupo.add(new THREE.Mesh(gPie, alu));
+  const lengua = new THREE.Mesh(new THREE.BoxGeometry(4.5, 2.2, 11), alu); lengua.position.set(18.2, grosorPlaca + 1.1, 0); grupo.add(lengua);
+  // Tornillo
   const tornillo = new THREE.Group(); grupo.add(tornillo);
-  const negro = mat(0x2a2c30, { metalness: 0.7, roughness: 0.35 });
+  const pavon = mat(0x2a2c30, { metalness: 0.7, roughness: 0.35 });
   const t = (geo, m, y) => { const o = new THREE.Mesh(geo, m); o.position.y = y; tornillo.add(o); return o; };
-  const yApoyo = yBarra + 5.4;
-  t(new THREE.CylinderGeometry(5, 5, 0.8, 28), mat(0xc4c8ce, { metalness: 0.9, roughness: 0.25 }), yApoyo + 0.4);
-  t(new THREE.CylinderGeometry(3.8, 4, 2.6, 28), negro, yApoyo + 0.8 + 1.3);
-  t(new THREE.CylinderGeometry(1.45, 1.45, 0.4, 6), mat(0x050506), yApoyo + 0.8 + 2.45);
-  t(new THREE.CylinderGeometry(2, 2, 12, 16), negro, yApoyo - 6);
-  tornillo.userData.tope = yApoyo + 3.4;      // cara de la cabeza (donde entra la llave)
+  const yApoyo = yBarra + hBarra;
+  t(new THREE.CylinderGeometry(5, 5, 1, 28), mat(0xc4c8ce, { metalness: 0.9, roughness: 0.25 }), yApoyo + 0.5);
+  t(new THREE.CylinderGeometry(4.0, 4.25, 3.3, 28), pavon, yApoyo + 1 + 1.65);
+  t(new THREE.CylinderGeometry(3 / Math.sqrt(3), 3 / Math.sqrt(3), 0.6, 6), mat(0x050506), yApoyo + 1 + 3.3 - 0.25);
+  t(new THREE.CylinderGeometry(2.5, 2.5, 14, 16), pavon, yApoyo - 7);
+  tornillo.userData.tope = yApoyo + 1 + 3.3;      // cara de la cabeza (donde entra la llave)
   grupo.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   return { grupo, tornillo };
 }

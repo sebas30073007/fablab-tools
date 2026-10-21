@@ -1,64 +1,70 @@
-# Clips con manos 3D (muestra)
+# Clips con manos 3D
 
-Pedido del 20 oct 2026: el tutorial sigue sin ser intuitivo, así que se probaron clips cortos donde una mano 3D hace lo que
-hay que hacer fuera de la app. Muestra en `web/demo/manos/` (fablab.sebs.mx/demo/manos/, no está enlazada desde la app).
+Videos cortos del tutorial de la CNC: una mano 3D hace lo que hay que hacer fuera de la app. Página en `web/demo/manos/`
+(fablab.sebs.mx/demo/manos/, todavía no enlazada desde la app). «Grabar» descarga cada clip como `.webm`.
 
-## Clips
+## Clips (en el orden de uso)
 
-1. **Enciende**: ON/OFF en el costado derecho de la base; señala también el E-STOP. Al prender se iluminan la franja, la
-   pantalla, el símbolo del botón y la barra LED.
-2. **Conecta el USB**: USB-B atrás en el costado derecho, debajo de la corriente.
-3. **Quita la tapa** y 4. **Pon la tapa**: con las dos manos, de los costados, hacia arriba; se deja a un lado. Sin tapa
-   la máquina se mueve y hace homing, pero el husillo no enciende (la tapa pisa un final de carrera).
-5. **Sujeta la placa**: acercamiento sin mano: la lengüeta del sujetador sobre la orilla de la placa y la llave Allen
-   apretando el tornillo.
-6. **Las herramientas**: punta en V, maíz y broca, una tras otra en la pinza y al final en fila con su nombre.
-7. **Conecta la sonda**: el conector blanco en «Leveling» (pared derecha, por dentro, arriba), el caimán negro en la
-   orilla de la placa y el rojo en la fresa.
+| # | Clip | Qué muestra |
+|---|------|-------------|
+| 1 | Enciende | corriente atrás a la derecha; ON/OFF en el costado derecho; el E-STOP; se prenden franja, pantalla y luz |
+| 2 | Conecta el USB | USB-B atrás en el costado derecho |
+| 3 | Quita la tapa | con las dos manos: sube, sale al frente y va a un lado. Sin tapa se mueve y hace homing, pero el husillo no enciende |
+| 4 | Pon la placa | con las dos manos, de las orillas, cobre arriba, al centro |
+| 5 | Sujeta la placa | el sujetador desliza bajo su tornillo; acercamiento a la llave Allen de 3 mm apretando |
+| 6 | Las herramientas | V, maíz y broca en la pinza, y en fila con su nombre |
+| 7 | Pon la fresa en V | acercamiento sin mano: dos llaves de 13 (pinza y tuerca), afloja, cambia la broca por la V, aprieta |
+| 8 | Homing | sube Z y busca los topes de X y Y |
+| 9 | X0 Y0 | jog de 10 mm y de 1 mm hasta la esquina de adelante a la izquierda; aparece el cero |
+| 10 | Conecta la sonda | conector en Leveling; la horquilla bajo el tornillo del sujetador de adelante; el caimán en la fresa |
+| 11 | Toca la placa | baja despacio, contacto, Z0 |
+| 12 | Mapa de alturas | 4 × 3 toques sobre la placa |
+| 13 | Quita el caimán | antes de fresar (la horquilla se queda) |
+| 14 | Pon la tapa | lo mismo que quitarla, al revés |
+| 15 | Prueba en aire y fresa | 5 mm arriba y luego cortando (surco y polvo), mano junto al PARO |
+| 16 | Paro de emergencia | se presiona el rojo y todo se detiene |
+| 17 | Aspira el polvo | aspiradora de mano por pasadas |
+| 18 | Saca la placa | afloja, retira sujetadores, desliza y levanta con las dos manos |
+| 19 | Apaga | ON/OFF |
 
-## La máquina (`web/cnc/js/cubiko.js`)
+## Datos de la máquina (fuentes)
 
-Afinada con 15 fotos de la Cubiko del Fab Lab (20 oct 2026):
-- Costado derecho de la base: E-STOP rojo al frente y ON/OFF con símbolo iluminado detrás; corriente (clavija en ángulo)
-  y USB-B casi en la esquina de atrás.
-- Pared derecha por dentro, arriba y cerca del frente: Upgrade Interface (ranura), 4th axis y Leveling, rotulados en
-  vertical. Del techo cuelga un conector blanco suelto (el del láser).
-- Eje X: varillas con soportes redondos, husillo con cople negro a la derecha y tuerca antijuego a la izquierda, barra
-  LED entre la varilla de abajo y el husillo (ilumina la cama) y un final de carrera en cada pared.
-- Cama 186 × 136: rejilla de 6 × 5 roscas (paso 32 × 27), cuatro roscas extra entre la 1.ª y la 2.ª columna de cada
-  orilla y un perno de latón atrás a la derecha. Las ranuras de la base quedan cerca de las orillas de la cama.
-- `crearSujetador()`: sujetador de aluminio (pie, barra con ranura, lengüeta) con tornillo Allen de cabeza plana y arandela.
-- `construirHerramienta(tipo)` / `ponerHerramienta(tipo)`: `v`, `maiz`, `broca`. El visor usa la V.
+- **Plano de la cama** (SainSmart, `cubiko_platform_drawings.pdf`): aluminio 180 × 120 × 5.5, esquinas R5, 34 roscas M5
+  (rejilla 6 × 5 con paso 33.2 × 26.5 y cuatro extra en 23.6 | 156.4, 20.25 | 99.75), hoyo mayor en (163, 111.5).
+- **Manual** (Cubiko Instruction V1.1, abr 2025): tornillos M5 de cabeza plana con hexágono (8 a 40 mm), llaves Allen de
+  3 y 2.5 mm, dos llaves de 13 mm, dos sujetadores de aluminio, V de 20° y brocas de 1/8". El cable de alturas va entre
+  la herramienta y el material y se conecta en el puerto de adentro; en las fotos del manual, un caimán muerde la fresa y
+  una horquilla roja va bajo el tornillo de un sujetador (el sujetador pisa el cobre).
+- **Fotos de la Cubiko del Fab Lab** (20 oct 2026): botones, puertos, conectores, riel, luz, sujetadores y pinza.
+- Medido en las fotos (no viene en el plano ni en el manual): el sujetador (44 × 15, pie de 9.5, lengüeta) y la pinza
+  (tuerca y caras planas de 13).
 
-Por confirmar en la máquina: medidas exactas de la cama y del sujetador, la medida del tornillo (¿M4 o M5?) y dónde está
-el sensor de la tapa (se puso en el hueco del frente de la base, que se ve en la foto de arriba).
+## Cómo está hecho
 
-## Modelo de mano
+- `web/cnc/js/cubiko.js`: la máquina (la comparte el visor de la app). Exporta `crearSujetador`, `construirHerramienta`.
+- `web/demo/manos/accesorios.js`: caimán (dos mitades que giran sobre el perno, mordazas dentadas, funda con estrías),
+  horquilla, llave Allen (hexágono barrido con su doblez), llave de 13, clavija USB-B, conector, aspiradora, cables.
+- `web/demo/manos/escena.js`: escena, placa con su surco, sujetadores en las roscas reales, estado de la máquina.
+- `web/demo/manos/clips.js`: los clips. Cuadros de mano libres (`pos`, `rot`, `pose`, `en` = en el marco de un objeto) o
+  de agarre (`agarra`, `palma`): en un agarre la mano sigue al objeto y los dedos se cierran hasta tocarlo.
+- `web/shared/js/manos.js` + `contacto.js`: la mano. Su piel (1360 vértices) se calcula con sus huesos y se mide contra
+  cada pieza (caja o cilindro de su geometría): los dedos se abren lo justo para no atravesar y los que agarran se
+  cierran hasta el contacto. El pulgar tiene un quinto giro (sobre su eje) para oponerse al índice. `empuja` en un
+  cuadro aleja toda la mano si aún atraviesa algo.
+- En esta mano la pinza (pulgar → yema del índice) va casi a lo largo de los dedos, bajo la palma: el antebrazo sale del
+  lado del pulgar. Por eso cada agarre dice qué caras se aprietan (`eje` del objeto) y hacia dónde mira la palma.
 
-**Perfil `generic-hand` de WebXR Input Profiles** (`@webxr-input-profiles/assets` 1.0.19, MIT). Es la mano que usan los
-navegadores de realidad virtual: 25 articulaciones con nombre, ligera (~95 KB por mano) y ya en glTF, así que three.js la
-carga sin conversión. Copia en `web/shared/vendor/manos/` con su licencia.
+## Prueba
 
-Descartados:
-- **Mixamo** (Adobe): cuerpos completos gratis, pero requiere cuenta, su licencia no deja redistribuir el modelo suelto y
-  para mostrar acciones solo hace falta la mano.
-- **Modelos de mano en TurboSquid/CGTrader/Superhive**: casi todos de pago o con licencia poco clara.
-- **Rig de mano de Blender (CC-BY)**: pide crédito y hay que exportarlo y reajustarlo.
-
-## Cómo funciona
-
-- `web/shared/js/manos.js`: carga la mano, encadena sus huesos (en el .glb vienen sueltos) y la pone en un marco simple
-  (palma abajo, dedos hacia el fondo, mm). Poses con nombre (`abierta`, `apuntar`, `presionar`, `pinza`, `apretar`, `puno`…).
-  En las poses que sostienen algo, el pulgar se resuelve solo para quedar a la distancia del objeto. Una manga tapa el corte
-  de la muñeca.
-- `web/demo/manos/clips.js`: cada clip tiene cámara, cuadros clave de la mano (posición de la punta del dedo o de la pinza,
-  giro y pose), accesorios (clavija USB, caimanes, conector de la sonda, llave Allen, cables), un aro cobre que marca dónde
-  actuar y subtítulos. `escenaBase()` deja la máquina prendida, con tapa y sin accesorios antes de cada cuadro.
-- **Grabar** reproduce el clip y descarga un `.webm` con el subtítulo dentro, para usarlo como video en el manual.
-- Depuración: `?clip=usb&t=3.2` congela un cuadro; `?poses=1` muestra todas las poses; `&cam=x,y,z&mira=x,y,z` fija la cámara.
+- `?prueba` (o `?prueba=usb,sonda`): recorre cada clip a 15 cuadros por segundo y reporta cuánto entran la piel (por
+  dedo y palma), la manga y los cables en algo, con el momento y la pieza. Resultado en `<pre id="reporte">`.
+- `?hoja=usb&n=8`: tira de cuadros de un clip, para revisarlo de un vistazo.
+- `?mano=agarre&ancho=8`: la mano sola en una pose, de tres lados (azul: punta del pulgar; rojo: yema del índice).
+- `?clip=usb&t=3.2` congela un cuadro; `&cam=x,y,z&mira=x,y,z` fija la cámara.
+- Estado del 20 oct 2026: 14 de 19 clips sin nada que atraviese más de 1 mm; los demás, 5 mm o menos en momentos
+  cortos (sobre todo cables al soltar algo y el pulgar sobre la clavija USB).
 
 ## Pendiente
 
-- Los dedos atraviesan cables, caimanes y la tapa (no hay colisiones).
+- Enlazar los clips desde el manual y el recorrido guiado (cada paso con su clip).
 - Sujetadores en el visor de la app (tendrían que seguir el tamaño de la placa).
-- Si gustan: convertir cada paso del manual (`manual.js`) en un clip y ponerlo en lugar de la imagen o junto a ella.

@@ -20,7 +20,8 @@
   #subtitulo:empty { opacity: 0; }
   #paso { position: absolute; left: 16px; top: 14px; font-weight: 800; font-size: 13px; letter-spacing: .04em; color: var(--suave); text-transform: uppercase; }
   .controles { background: var(--panel); border-top: 1px solid var(--linea); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); display: grid; gap: 10px; }
-  .clips { display: flex; gap: 8px; overflow-x: auto; }
+  .clips { display: flex; gap: 8px; overflow-x: auto; align-items: center; }
+  .clips .grupo { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--suave); white-space: nowrap; padding-left: 6px; }
   .clips button, .fila button { font: inherit; font-weight: 700; font-size: 14px; border: 1px solid var(--linea); background: var(--panel);
     color: var(--texto); border-radius: 999px; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
   .clips button[aria-pressed="true"] { border-color: var(--texto); background: var(--texto); color: #fff; }
@@ -47,6 +48,6 @@
     <button id="grabar" title="Graba el clip completo a un video .webm">Grabar</button>
   </div>
 </div>
-<script type="module" src="clips.js"></script>
+<script type="module" src="reproductor.js"></script>
 </body>
 </html>

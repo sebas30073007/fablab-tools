@@ -68,6 +68,7 @@ function manual(c, d, app, desdeElegir = false) {
       <h3>${num ? `<span>${num}</span>` : ""}${esc(p.t)}</h3>
       <p>${esc(p.d)}</p>
       ${p.checks.map((k) => `<label class="check"><input type="checkbox"> ${esc(k)}</label>`).join("")}
+      ${p.clips ? `<div class="man-clips">${p.clips.map((v) => `<a href="../demo/manos/?clip=${v.id}" target="_blank" rel="noopener">${esc(v.nombre)}</a>`).join("")}</div>` : ""}
     </li>`;
   const seccion = (t, sub, lista, numerar, clase = "") => `<section class="man-sec ${clase}"><h3 class="man-sec__t">${esc(t)}<small>${esc(sub)}</small></h3>
     <ol class="man-pasos">${lista.map((p, i) => tarjeta(p, numerar ? i + 1 : 0)).join("")}</ol></section>`;
