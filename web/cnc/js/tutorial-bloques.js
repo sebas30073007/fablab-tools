@@ -120,7 +120,7 @@ export const BLOQUES = [
   { id: "xy", paso: 4, titulo: "X0 Y0", si: (app) => conectada(app) && app.S.trabajos.length > 0, pasos: [
     { tipo: "info", masc: "explica", video: "sujetador", titulo: "La placa, sujeta",
       texto: ["Antes del cero, la placa va al centro de la cama con los dos sujetadores, apretados con la llave Allen de 3 mm.", "Sin tapa: la máquina se mueve, pero el husillo no enciende."] },
-    { tipo: "info", masc: "explica", img: fig("xy"), si: (app) => !app.S.xyListo, titulo: "Cero de trabajo",
+    { tipo: "info", masc: "explica", video: "xy", si: (app) => !app.S.xyListo, titulo: "Cero de trabajo",
       texto: ["El homing dice dónde está la máquina. Tú dices dónde está tu placa: su <b>cero de trabajo</b>.", "X0 Y0 va en la esquina inferior izquierda de la placa; Z0, en la superficie del cobre."] },
     { tipo: "pulsa", objetivo: ahora("mover"), antes: irInicio, si: (app) => !app.S.xyListo, hasta: (app) => app.vistaActual === "mover",
       titulo: "Ve a Mover", texto: "Aquí se mueve la fresa a mano.", pista: "Pulsa Mover", hazlo: (app) => app.irA("mover") },

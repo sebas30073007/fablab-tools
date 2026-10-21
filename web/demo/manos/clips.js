@@ -1,6 +1,6 @@
 // clips.js - los clips del tutorial de la CNC, en el orden en que se usa la máquina.
 //
-// Cada clip: { id, nombre, paso, duracion, camara: [{ t, pos, mira }], senal: [{ pos, t0, t1, r }],
+// Cada clip: { id, zoom? (acerca la cámara; 0.8 si falta), nombre, paso, duracion, camara: [{ t, pos, mira }], senal: [{ pos, t0, t1, r }],
 // subtitulos: [[t, texto]], manos: [pista], alTiempo(t) }. alTiempo pone la máquina y los accesorios
 // (lo que no toca queda como en escenaBase). Pistas de mano (las anima reproductor.js):
 //   { lado: "der" | "izq", ancla, kf: [cuadro] }
@@ -227,7 +227,7 @@ export const CLIPS = [
     },
   },
   {
-    id: "quitarTapa", nombre: "Quita la tapa", paso: "Tapa", duracion: TAPA_D,
+    id: "quitarTapa", zoom: 0.95, nombre: "Quita la tapa", paso: "Tapa", duracion: TAPA_D,
     camara: [{ t: 0, pos: [420, 320, 780], mira: [0, 40, 60] }, { t: 5.5, pos: [220, 420, 1050], mira: [-170, 20, 60] }, { t: TAPA_D, pos: [180, 330, 820], mira: [-40, -10, 80] }],
     senal: null,
     subtitulos: [[0, "Toma la tapa de los costados"], [2.0, "Levántala derecho hacia arriba"], [4.2, "Déjala a un lado, sobre la mesa"], [6.4, "Sin tapa la máquina se mueve y hace homing, pero el husillo no enciende"]],
@@ -236,7 +236,7 @@ export const CLIPS = [
   },
   // ===== Placa =====
   {
-    id: "ponerPlaca", nombre: "Pon la placa", paso: "Placa", duracion: 7,
+    id: "ponerPlaca", zoom: 1, nombre: "Pon la placa", paso: "Placa", duracion: 7,
     camara: [{ t: 0, pos: [120, 330, 560], mira: [0, 20, 90] }, { t: 4, pos: [90, 300, 470], mira: [0, 0, 25] }, { t: 7, pos: [80, 290, 440], mira: [0, 0, 15] }],
     senal: { pos: camaBase(PLACA.bx, 2, PLACA.bz + 45), t0: 4.6, t1: 6.2, r: 1.4 },
     subtitulos: [[0, "Tómala de las orillas, con el cobre hacia arriba"], [2.0, "Ponla al centro de la cama"], [4.2, "Plana: que no quede nada debajo"]],
@@ -249,7 +249,7 @@ export const CLIPS = [
     },
   },
   {
-    id: "sujetador", nombre: "Sujeta la placa", paso: "Placa", duracion: 11,
+    id: "sujetador", zoom: 0.9, nombre: "Sujeta la placa", paso: "Placa", duracion: 11,
     camara: [{ t: 0, pos: [330, 280, -60], mira: [55, 0, 12] }, { t: 3.8, pos: [300, 250, -60], mira: [60, 0, 10] },
              { t: 4.4, pos: [66 + 75, 62, 9.75 + 80], mira: [66 - 4, 4, 9.75] }, { t: 8.6, pos: [66 + 60, 52, 9.75 + 66], mira: [66 - 4, 4, 9.75] },
              { t: 9.6, pos: [150, 230, 300], mira: [0, 0, -30] }, { t: 11, pos: [140, 240, 290], mira: [0, 0, -30] }],
@@ -276,7 +276,7 @@ export const CLIPS = [
   },
   // ===== Herramienta =====
   {
-    id: "herramientas", nombre: "Las herramientas", paso: "Herramienta", duracion: 12,
+    id: "herramientas", zoom: 1, nombre: "Las herramientas", paso: "Herramienta", duracion: 12,
     camara: [{ t: 0, pos: [70, 65, Z_FRESA + 95], mira: [0, 49, Z_FRESA] }, { t: 8.6, pos: [80, 63, Z_FRESA + 100], mira: [0, 49, Z_FRESA] },
              { t: 9.6, pos: [74, 58, Z_FRESA + 110], mira: [50, 37, Z_FRESA] }, { t: 12, pos: [66, 54, Z_FRESA + 100], mira: [52, 37, Z_FRESA] }],
     senal: null,
@@ -293,7 +293,7 @@ export const CLIPS = [
     },
   },
   {
-    id: "cambiar", nombre: "Pon la fresa en V", paso: "Herramienta", duracion: 11,
+    id: "cambiar", zoom: 1, nombre: "Pon la fresa en V", paso: "Herramienta", duracion: 11,
     camara: [{ t: 0, pos: [95, 100, Z_FRESA + 125], mira: [0, 64, Z_FRESA] }, { t: 5, pos: [80, 92, Z_FRESA + 110], mira: [0, 60, Z_FRESA] }, { t: 11, pos: [90, 96, Z_FRESA + 120], mira: [0, 62, Z_FRESA] }],
     senal: null,
     subtitulos: [[0, "Cambio de herramienta: aquí, de la broca a la V"], [0.9, "Una llave de 13 sostiene la pinza por sus caras planas"], [1.9, "Con la otra, afloja la tuerca"], [3.5, "Termina a mano y sostén la fresa: al aflojar se cae"],
@@ -350,7 +350,7 @@ export const CLIPS = [
     t = jog(kf, t, kf[kf.length - 1].p, [ex, ez, 2], 1, 1);
     const tFin = t, c = new V(ex, 2, Z_FRESA);
     return {
-      id: "xy", nombre: "X0 Y0", paso: "X0 Y0", duracion: tFin + 2.4,
+      id: "xy", zoom: 0.9, nombre: "X0 Y0", paso: "X0 Y0", duracion: tFin + 2.4,
       camara: [{ t: 0, pos: [330, 260, 520], mira: [0, 20, -30] }, { t: 4.6, pos: [140, 200, 330], mira: [-30, 10, -30] },
                { t: tFin - 1.5, pos: [c.x - 90, 55, c.z + 85], mira: [c.x, 3, c.z] }, { t: tFin + 2.4, pos: [c.x - 75, 45, c.z + 70], mira: [c.x, 2, c.z] }],
       senal: { pos: c.clone().setY(1.7), t0: tFin + 0.2, t1: tFin + 1.6, r: 0.6 },
@@ -407,7 +407,7 @@ export const CLIPS = [
     },
   },
   {
-    id: "tocar", nombre: "Toca la placa", paso: "Z0", duracion: 8,
+    id: "tocar", zoom: 1, nombre: "Toca la placa", paso: "Z0", duracion: 8,
     camara: [{ t: 0, pos: [-160, 60, 50], mira: [-45, 20, Z_FRESA] }, { t: 4, pos: [-140, 34, 35], mira: [-45, 6, Z_FRESA] }, { t: 8, pos: [-130, 30, 30], mira: [-45, 5, Z_FRESA] }],
     senal: null,
     subtitulos: [[0, "En el asistente, pulsa Bajar y tocar"], [1.0, "La fresa baja despacio hasta el cobre…"], [4.0, "Contacto: la app lo marca y ahí queda Z0"], [6.0, "Sube un poco y queda lista para el mapa"]],
@@ -448,7 +448,7 @@ export const CLIPS = [
     };
   })(),
   {
-    id: "quitarCaiman", nombre: "Quita la sonda", paso: "Z0", duracion: 12,
+    id: "quitarCaiman", zoom: 1, nombre: "Quita la sonda", paso: "Z0", duracion: 12,
     camara: [{ t: 0, pos: [-210, 130, 160], mira: [-30, 25, -20] }, { t: 3.0, pos: [190, 110, 170], mira: [55, 5, 10] }, { t: 6.4, pos: [180, 100, 160], mira: [60, 5, 10] },
              { t: 7.4, pos: [-120, 290, 380], mira: [lv.x - 30, lv.y - 30, lv.z + 30] }, { t: 12, pos: [-80, 300, 460], mira: [60, 90, 40] }],
     senal: [{ pos: new V(ESQ[0], H_SONDA + 12.5, Z_FRESA), t0: 0.2, t1: 1.4, r: 0.8 }, { pos: lv, t0: 7.4, t1: 8.4, r: 0.7 }],
@@ -487,7 +487,7 @@ export const CLIPS = [
   },
   // ===== Fresar =====
   {
-    id: "ponerTapa", nombre: "Pon la tapa", paso: "Tapa", duracion: TAPA_D,
+    id: "ponerTapa", zoom: 0.95, nombre: "Pon la tapa", paso: "Tapa", duracion: TAPA_D,
     camara: [{ t: 0, pos: [180, 330, 820], mira: [-40, -10, 80] }, { t: 3.5, pos: [220, 420, 1050], mira: [-170, 20, 60] }, { t: TAPA_D, pos: [420, 300, 780], mira: [0, 30, 60] }],
     senal: null,
     subtitulos: [[0, "Toma la tapa de los costados"], [3.0, "Llévala sobre la máquina"], [4.6, "Bájala derecho hasta que asiente"], [6.4, "Con la tapa puesta, el husillo ya puede encender"]],
@@ -495,7 +495,7 @@ export const CLIPS = [
     alTiempo(t) { cub.tapa.position.set(...kfSuave(TAPA_KF, TAPA_D - t)); sondaGuardada(); },
   },
   {
-    id: "fresar", nombre: "Prueba en aire y fresa", paso: "Fresar", duracion: T_FIN_CORTE + 2.6,
+    id: "fresar", zoom: 1, nombre: "Prueba en aire y fresa", paso: "Fresar", duracion: T_FIN_CORTE + 2.6,
     camara: [{ t: 0, pos: [0, 170, 380], mira: [0, 10, -30] }, { t: 4.6, pos: [40, 150, 360], mira: [0, 5, -30] },
              { t: 5.4, pos: [470, 100, 300], mira: [100, -20, 30] }, { t: 8.6, pos: [450, 90, 290], mira: [100, -20, 30] },
              { t: 9.4, pos: [60, 70, 70], mira: [0, 5, -30] }, { t: T_FIN_CORTE + 2.6, pos: [70, 75, 85], mira: [0, 5, -30] }],
@@ -555,7 +555,7 @@ export const CLIPS = [
     },
   },
   {
-    id: "sacarPlaca", nombre: "Saca la placa", paso: "Al terminar", duracion: 12,
+    id: "sacarPlaca", zoom: 1, nombre: "Saca la placa", paso: "Al terminar", duracion: 12,
     camara: [{ t: 0, pos: [66 + 80, 62, 54.75 + 82], mira: [62, 4, 54.75] }, { t: 3.0, pos: [66 + 70, 58, 54.75 + 72], mira: [62, 4, 54.75] },
              { t: 3.8, pos: [180, 210, 380], mira: [0, 0, 35] }, { t: 12, pos: [200, 230, 430], mira: [0, 10, 65] }],
     senal: null,

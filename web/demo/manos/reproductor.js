@@ -167,7 +167,12 @@ function escenaEn(c, tt) {
 }
 function camaraEn(c, tt) {
   if (qs.has("mira")) { camara.position.fromArray(qs.get("cam").split(",").map(Number)); orbita.target.fromArray(qs.get("mira").split(",").map(Number)); }
-  else if (!libre) { const [a, b, s] = tramo(c.camara, tt); camara.position.copy(v3(a.pos).lerp(v3(b.pos), s)); orbita.target.copy(v3(a.mira).lerp(v3(b.mira), s)); }
+  else if (!libre) {
+    const [a, b, s] = tramo(c.camara, tt);
+    orbita.target.copy(v3(a.mira).lerp(v3(b.mira), s));
+    // «zoom» del clip: la cámara se acerca a lo que mira (los videos son cuadrados y se ven chicos)
+    camara.position.copy(v3(a.pos).lerp(v3(b.pos), s)).sub(orbita.target).multiplyScalar(c.zoom ?? 0.8).add(orbita.target);
+  }
   camara.lookAt(orbita.target);
 }
 const subtituloEn = (c, tt) => [...c.subtitulos].reverse().find(([ts]) => tt >= ts)?.[1] ?? "";
@@ -218,11 +223,14 @@ $("grabar").onclick = () => {
 };
 function subtituloEnLienzo(x, s, W, H) {
   if (!s) return;
-  const k = H / 720;
-  x.font = `600 ${Math.round(26 * k)}px Manrope, sans-serif`; x.textAlign = "center"; x.textBaseline = "middle";
-  const w = x.measureText(s).width + 40 * k, h = 50 * k, cx = W / 2, cy = H - 50 * k;
-  x.fillStyle = "rgba(17,19,23,.82)"; x.beginPath(); x.roundRect(cx - w / 2, cy - h / 2, w, h, 12 * k); x.fill();
-  x.fillStyle = "#fff"; x.fillText(s, cx, cy);
+  // grande y en dos renglones si hace falta: el video se ve chico en las tarjetas
+  const k = Math.min(W, H * 1.4) / 1080, fs = Math.round(46 * k), pad = 26 * k, lh = fs * 1.22, maxW = W - 80 * k;
+  x.font = `700 ${fs}px Manrope, sans-serif`; x.textAlign = "center"; x.textBaseline = "middle";
+  const lineas = [];
+  for (const p of s.split(" ")) { const u = lineas.length ? lineas[lineas.length - 1] + " " + p : p; if (lineas.length && x.measureText(u).width <= maxW - 2 * pad) lineas[lineas.length - 1] = u; else lineas.push(p); }
+  const w = Math.max(...lineas.map((l) => x.measureText(l).width)) + 2 * pad, h = lineas.length * lh + 1.2 * pad, cx = W / 2, cy = H - 40 * k - h / 2;
+  x.fillStyle = "rgba(17,19,23,.88)"; x.beginPath(); x.roundRect(cx - w / 2, cy - h / 2, w, h, 18 * k); x.fill();
+  x.fillStyle = "#fff"; lineas.forEach((l, i) => x.fillText(l, cx, cy - ((lineas.length - 1) * lh) / 2 + i * lh));
 }
 
 function tamano() {
@@ -233,7 +241,7 @@ new ResizeObserver(tamano).observe(lienzo); tamano();
 
 // ---------------- ?hoja: tira de cuadros ----------------
 if (qs.has("hoja")) {
-  const n = Number(qs.get("n") || 8), W = 480, H = 300, cols = 4, filas = Math.ceil(n / cols);
+  const n = Number(qs.get("n") || 8), W = Number(qs.get("w") || 480), H = Number(qs.get("h") || 300), cols = 4, filas = Math.ceil(n / cols);
   const hoja = document.createElement("canvas"); hoja.width = W * cols; hoja.height = H * filas;
   const x = hoja.getContext("2d");
   renderer.setPixelRatio(1); renderer.setSize(W, H, false); camara.aspect = W / H; camara.updateProjectionMatrix();
@@ -258,7 +266,7 @@ if (qs.has("hoja")) {
 // y se manda como JPEG por POST a /cuadro; al final, POST a /fin. El servidor de grabar_clips.py los recibe.
 if (qs.has("grabar")) {
   const ids = qs.get("grabar"), lista = !ids || ids === "todos" ? CLIPS : CLIPS.filter((c) => ids.split(",").includes(c.id));
-  const fps = Number(qs.get("fps") || 30), W = Number(qs.get("w") || 1280), H = Number(qs.get("h") || 720);
+  const fps = Number(qs.get("fps") || 30), W = Number(qs.get("w") || 1080), H = Number(qs.get("h") || 1080);
   const lienzo2 = document.createElement("canvas"); lienzo2.width = W; lienzo2.height = H;
   const x = lienzo2.getContext("2d");
   await document.fonts?.ready;

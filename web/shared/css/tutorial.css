@@ -74,13 +74,13 @@ body.con-tour .w-masc { visibility: hidden; }
 .tour__fig { margin: 12px 0 2px; border-radius: 14px; overflow: hidden; background: var(--tarjeta-2); aspect-ratio: 3 / 2; }
 .tour__fig img { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* Videos de las manos (videos.js) */
-.tour__fig--video { aspect-ratio: 16 / 9; }
+.tour__fig--video { aspect-ratio: 1 / 1; width: min(100%, 260px); margin-inline: auto; }
 .vid { width: 100%; height: 100%; object-fit: cover; display: block; background: var(--tarjeta-2); }
 .vid-capa { position: fixed; inset: 0; z-index: 1000; background: rgba(17,19,23,.72); display: grid; place-items: center; padding: 16px; }
-.vid-capa__caja { margin: 0; width: min(960px, 100%); background: var(--tarjeta, #fff); border-radius: 16px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,.35); }
-.vid-capa__caja video { width: 100%; display: block; background: #000; aspect-ratio: 16 / 9; }
+.vid-capa__caja { margin: 0; width: min(640px, 100%, calc(80vh - 40px)); background: var(--tarjeta, #fff); border-radius: 16px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+.vid-capa__caja video { width: 100%; display: block; background: #000; aspect-ratio: 1 / 1; max-height: 80vh; }
 .vid-capa__caja figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 16px; font-weight: 800; font-size: 14px; }
-.ex-video { margin: 0 0 10px; border-radius: 12px; overflow: hidden; aspect-ratio: 16 / 9; }
+.ex-video { margin: 0 auto 10px; border-radius: 12px; overflow: hidden; aspect-ratio: 1 / 1; width: min(100%, 260px); }
 .tour__pista { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--d-actual) 10%, var(--tarjeta)); font-size: 13.5px; font-weight: 700; }
 .tour__pie { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
 .tour__pie .btn-texto { padding: 0 10px; }

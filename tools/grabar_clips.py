@@ -4,7 +4,7 @@
     python tools/grabar_clips.py usb,sonda    (solo esos)
 
 Abre la página en Edge sin ventana con ?grabar: la página dibuja cada clip cuadro por cuadro (30 por segundo, en
-tiempo exacto) y manda cada cuadro aquí por POST. Con ffmpeg se arma un MP4 (H.264, 1280 × 720) y un póster JPEG por
+tiempo exacto) y manda cada cuadro aquí por POST. Con ffmpeg se arma un MP4 (H.264, 1080 × 1080) y un póster JPEG por
 clip en web/videos/manos/, y la lista en web/videos/manos/clips.json (la usa el tutorial).
 """
 import functools
@@ -87,7 +87,7 @@ def main():
     perfil = os.path.join(tmp, "perfil")
     url = f"http://localhost:{PUERTO}/demo/manos/?grabar={ids}"
     edge = subprocess.Popen([EDGE, "--headless=new", "--use-angle=d3d11", "--enable-gpu", "--ignore-gpu-blocklist",
-                             "--window-size=1280,900", f"--user-data-dir={perfil}", "--disable-background-timer-throttling",
+                             "--window-size=1100,1300", f"--user-data-dir={perfil}", "--disable-background-timer-throttling",
                              "--disable-renderer-backgrounding", url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     t0 = time.time()
     fin.wait()
