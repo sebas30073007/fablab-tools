@@ -429,9 +429,14 @@ async function cargarEjemplo() {
   // La placa del curso básico de KiCad (course-docs/pcb/kicad-basics-course)
   const base = "ejemplos/kicad-basics/";
   const nombres = ["F_Cu.gbr", "Edge_Cuts.gbr", "PTH.drl", "NPTH.drl", "job.gbrjob"].map((x) => `kicad basics course-${x}`);
-  const files = [];
-  for (const n of nombres) { try { const r = await fetch(base + encodeURIComponent(n)); if (r.ok) files.push(new File([await r.text()], n)); } catch (_) {} }
-  if (files.length) await abrirArchivos(files);
+  if (S.abriendo) return;
+  S.abriendo = true; refrescar();
+  // los cinco a la vez: uno tras otro, en la página publicada, tardaba casi un segundo
+  const files = (await Promise.all(nombres.map(async (n) => {
+    try { const r = await fetch(base + encodeURIComponent(n)); return r.ok ? new File([await r.text()], n) : null; } catch (_) { return null; }
+  }))).filter(Boolean);
+  S.abriendo = false;
+  if (files.length) await abrirArchivos(files); else refrescar();
 }
 
 // Valores fuera de rango en lo que se va a generar: [{ g, k, t }]
@@ -1059,10 +1064,10 @@ function abrirTrabajo(t) {
         <div class="celdas" style="margin:0">
           <div class="celda"><span>Herramienta</span><b>${esc(t.herramienta)}</b></div>
           <div class="celda"><span>Tiempo</span><b>${formatoTiempo(t.prev.tiempo)}</b></div>
+          <div class="celda" style="grid-column:1 / -1"><span>Profundidad</span><b style="font-size:14px;line-height:1.35">${profEnPalabras(t.prev.caja.min.z)}</b></div>
         </div>
         <div class="filas">
           <div class="fila"><span></span><span class="fila__nom">Líneas</span><span class="fila__val">${t.lineas.length}</span><span></span></div>
-          <div class="fila"><span></span><span class="fila__nom">Profundidad</span><span class="fila__val">${profEnPalabras(t.prev.caja.min.z)}</span><span></span></div>
         </div>
         <label class="campo" style="max-width:220px"><span>Prueba en aire: subir mm</span><input type="number" min="1" step="1" value="${S.dzAire}" data-dz></label>
         <div class="hoja__pie">

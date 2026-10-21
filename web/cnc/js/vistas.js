@@ -67,6 +67,7 @@ export function ahora(app) {
   }
   if (e === "Home") return { k: "homing", cab: "Ahora", texto: "Homing…", masc: "fresando", acc: [] };
   if (!S.homed) return { k: "home", cab: "Ahora", texto: "Hacer homing", masc: "hola", acc: [{ id: "homing", t: "Homing", main: true, ico: "casa" }, { id: "desbloquear", t: "Ya está en casa" }] };
+  if (S.abriendo) return { k: "abriendo", cab: "Ahora", texto: "Abriendo la placa…", masc: "archivos", acc: [] };
   if (!S.pcb && !S.trabajos.length) return { k: "archivos", cab: "Ahora", texto: "Abrir la placa", sub: "Gerber de KiCad, DXF, SVG o .nc", masc: "archivos", acc: [{ id: "abrir", t: "Abrir archivos", main: true, ico: "abrir" }, { id: "ejemplo", t: "Ejemplo", terc: true }] };
   if (S.pcb && !S.trabajos.length) return { k: "generar" + S.generando, cab: "Ahora", texto: S.generando ? "Calculando trayectorias…" : "Generar trayectorias", sub: S.pcb.nombre, masc: "archivos", acc: S.generando ? [] : [{ id: "generar", t: "Generar", main: true }, { id: "verPlaca", t: "Ajustar", terc: true }] };
   if (!S.xyListo) return { k: "xy", cab: "Ahora", texto: "Fijar X0 Y0", sub: "Esquina inferior izquierda del material", masc: "hola", acc: [{ id: "mover", t: "Mover", main: true, ico: "mover" }] };
