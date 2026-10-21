@@ -79,9 +79,10 @@ export function ahora(app) {
   if (t.id === "pistas" && acc.mat().conduce && !S.mapa?.completo && !S.sinMapa) {
     const pm = acc.puntosMapa();
     return { k: "mapa", cab: "Ahora", texto: "Medir el mapa de alturas", sub: `Recomendado: la placa nunca está del todo plana${pm ? ` · ${pm.n} puntos, unos ${pm.min} min` : ""}`, masc: "sonda",
-      acc: [{ id: "mapa", t: "Medir", main: true, ico: "capas" }, { id: "aire", t: "Prueba en aire", ico: "aire" }, { id: "sinMapa", t: "Sin mapa", texto: true }] };
+      acc: [{ id: "mapa", t: "Medir", main: true, ico: "capas" }, { id: "aire", t: "Prueba en aire", ico: "aire" }, { id: "borde", t: "Recorrer borde", ico: "ruta", terc: true }, { id: "sinMapa", t: "Sin mapa", texto: true }] };
   }
-  return { k: "fresar" + t.id, cab: "Ahora", texto: `Fresar ${t.nombre}`, sub: `${t.herramienta} · ${formatoTiempo(t.prev.tiempo)}`, masc: "hola", acc: [{ id: "paso", t: "Fresar", main: true, ico: "play" }, { id: "aire", t: "Prueba en aire", ico: "aire" }] };
+  return { k: "fresar" + t.id, cab: "Ahora", texto: `Fresar ${t.nombre}`, sub: `${t.herramienta} · ${formatoTiempo(t.prev.tiempo)}`, masc: "hola",
+    acc: [{ id: "paso", t: "Fresar", main: true, ico: "play" }, { id: "aire", t: "Prueba en aire", ico: "aire" }, { id: "borde", t: "Recorrer borde", ico: "ruta", terc: true }] };
 }
 
 // Un solo widget: arriba en qué paso vas (abre los 6 pasos), abajo lo que toca ahora con su botón
@@ -153,7 +154,6 @@ function inicio(pag, app) {
     const em = estadoMaquina(app);
     const ps = pasos(app);
     const t = S.trabajos;
-    const chipSec = (lbl, ok) => `<span class="chip-sec" data-ok="${ok ? 1 : 0}"><i aria-hidden="true"></i>${lbl}</span>`;
     pag.innerHTML = `
       <header class="cab0"><h2 tabindex="-1">CNC</h2>
         <button type="button" class="chip" data-tour="estado" data-ir="maquina" data-s="${em.s}" data-v="chip"><span class="punto" aria-hidden="true"></span><span data-v="chip-t">${esc(em.t)}</span></button></header>
@@ -165,22 +165,18 @@ function inicio(pag, app) {
           <img class="w-thumb" src="${S.pcb.miniatura}" alt="">`
         : `<span class="w-texto">${esc(t[0].nombre)}</span><span class="w-sub">${t.length} archivo${t.length > 1 ? "s" : ""} .nc</span>`}
       </button>` : ""}
-      ${t.length ? `<section class="w" aria-labelledby="w-trab" data-tour="trabajos">
-        <span class="w-cab"><span id="w-trab">Trabajos</span></span>
-        <span class="filas">${t.map((x) => `<button type="button" class="fila" data-trabajo="${x.id}">
-          <span class="cuad" style="background:${app.hex(x.id)}"></span>
+      ${t.length && S.xyListo && (S.zListo || t.some(hecho)) ? `<section class="w" aria-labelledby="w-trab" data-tour="trabajos">
+        <span class="w-cab"><span id="w-trab">Trabajo pendiente</span><span class="desp__resumen">${t.filter(hecho).length} de ${t.length}</span></span>
+        <span class="filas">${t.map((x) => `<button type="button" class="fila tarea" data-trabajo="${x.id}" data-hecho="${hecho(x) ? 1 : 0}">
+          <span class="tarea__check" style="--c:${app.hex(x.id)}" aria-label="${x.estado === "hecho" ? "Hecho" : x.estado === "omitido" ? "Omitido" : "Pendiente"}">${x.estado === "hecho" ? ico("ok") : ""}</span>
           <span class="fila__nom">${esc(x.nombre)}<small>${esc(x.herramienta)}</small></span>
-          ${x.estado === "hecho" ? `<span class="fila__ok">${ico("ok")}Hecho</span>` : x.estado === "omitido" ? `<span class="fila__val">Omitido</span>` : `<span class="fila__val">${formatoTiempo(x.prev.tiempo)}</span>`}
+          <span class="fila__val">${x.estado === "hecho" ? "Hecho" : x.estado === "omitido" ? "Omitido" : formatoTiempo(x.prev.tiempo)}</span>
           ${chev}</button>`).join("")}</span>
       </section>` : ""}
       <nav class="w-sec" aria-label="Más">
-        <button type="button" class="w-sec__fila" data-tour="w-origen" data-ir="origen">
-          <span class="w-sec__t">Origen</span>
-          <span class="w-sec__chips">${chipSec("X0 Y0", S.xyListo && !S.revisarOrigen)}${chipSec("Z0", S.zListo)}${S.pcb && !S.pcb.vector && acc.mat().conduce ? chipSec("Mapa", !!S.mapa?.completo) : ""}</span>${chev}
-        </button>
         ${!S.corriendo && !S.midiendo ? `<div class="w-sec__fila" data-tour="curso">
           <span class="w-sec__t">Curso básico de CNC${ls.get("examenAprobado", null) ? " · aprobado" : ""}</span>
-          <span class="w-sec__acc">${btn("tutorial", "Tutorial", { terc: true })}${btn("examen", "Examen", { terc: true })}</span>
+          <span class="w-sec__acc">${btn("tutorial", "Tutorial")}${btn("examen", "Examen", { terc: true })}</span>
         </div>` : ""}
       </nav>`;
     cablear(pag, {
@@ -191,7 +187,7 @@ function inicio(pag, app) {
       paso: () => acc.siguientePaso(acc.siguienteTrabajo()), zmanual: () => acc.asistenteZManual(acc.siguienteTrabajo()),
       misma: () => acc.mismaFresa(acc.siguienteTrabajo()),
       aire: () => acc.correrTrabajo(acc.siguienteTrabajo(), { aire: true }),
-      mapa: acc.medirMapa, sinMapa: acc.sinMapa, tutorial: acc.tutorialGuiado, examen: acc.abrirExamen,
+      mapa: acc.medirMapa, sinMapa: acc.sinMapa, tutorial: acc.tutorialGuiado, examen: acc.abrirExamen, borde: acc.recorrerBorde,
       pausar: () => { acc.pausar(); setTimeout(app.refrescar, 300); }, reanudar: () => { acc.reanudar(); setTimeout(app.refrescar, 300); }, paro: acc.paro,
     });
     pag.querySelectorAll("[data-trabajo]").forEach((b) => (b.onclick = () => acc.abrirTrabajo(S.trabajos.find((x) => x.id === b.dataset.trabajo))));

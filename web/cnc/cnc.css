@@ -61,6 +61,12 @@ button.w-sec__fila:hover { background: var(--tarjeta); box-shadow: 0 2px 10px rg
 .w-sec__t { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--text-secondary); }
 .w-sec__chips, .w-sec__acc { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 .w-sec__acc .btn-terc { min-height: 36px; padding: 0 10px; font-size: 13.5px; }
+.w-sec__acc .btn-pill { min-height: 36px; padding: 0 14px; font-size: 13.5px; }
+/* Trabajo pendiente: cada trabajo con su casilla (del color del trabajo); hecho = palomita */
+.tarea__check { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--c); color: #fff; }
+.tarea__check .ico { width: 14px; height: 14px; stroke-width: 3; color: #fff; }
+.tarea[data-hecho="1"] .tarea__check { background: var(--c); box-shadow: none; }
+.tarea[data-hecho="1"] .fila__nom { color: var(--text-secondary); text-decoration: line-through; text-decoration-thickness: 1px; }
 .chip-sec { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
 .chip-sec i { width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--text-secondary); }
 .chip-sec[data-ok="1"] { color: var(--text); }

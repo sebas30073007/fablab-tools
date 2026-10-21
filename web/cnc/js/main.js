@@ -265,6 +265,17 @@ async function irACero() {
   await grbl.enviarVarias(["G90", `G0 Z${z.toFixed(3)}`, "G0 X0 Y0"]);
 }
 async function subirZ() { await grbl.enviar("G53 G0 Z-1"); }
+// Recorrer el borde: la fresa, sin girar y a Z seguro, da una vuelta al rectángulo que ocupa el trabajo.
+// Es la revisión más rápida (segundos): dice si la placa cae dentro del material antes de la prueba en aire.
+async function recorrerBorde() {
+  const c = cajaTrabajos(); if (!c || S.corriendo) return;
+  const fuera = fueraDelRecorrido({ min: { x: c.x, y: c.y, z: 0 }, max: { x: c.x + c.ancho, y: c.y + c.alto, z: 0 } }, S.params.comun.zSeguro);
+  if (fuera.length) { await confirmar({ titulo: "No cabe en la máquina", html: `<ul class="pila-s">${textoFuera(fuera).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`, si: "Cerrar" }); return; }
+  if (!(await confirmar({ titulo: "Recorrer el borde",
+    html: `<p>La fresa no gira: sube a ${mm(S.params.comun.zSeguro, 1)} mm y da una vuelta al rectángulo que ocupa la placa (${mm(c.ancho, 1)} × ${mm(c.alto, 1)} mm).</p><p class="muted">Míralo desde arriba: el recorrido debe quedar dentro del material.</p>`,
+    si: "Recorrer" }))) return;
+  await recorrerArea();
+}
 async function recorrerArea() {
   const c = cajaTrabajos(); if (!c) return;
   const z = S.zListo ? S.params.comun.zSeguro : Math.max(0, grbl.est.wpos.z);
@@ -1213,7 +1224,7 @@ const app = {
   get vistaActual() { return nav.actual; },
   acc: {
     conectar, cambiarModo, homing, desbloquear, paro, ponerEstilo,
-    jog, ponerPasoJog, fijarXY, irACero, subirZ, recorrerArea,
+    jog, ponerPasoJog, fijarXY, irACero, subirZ, recorrerArea, recorrerBorde,
     elegirArchivos, quitarArchivo, cargarEjemplo, generar, ponerParam, paramsPorDefecto, descargarTrabajo, nuevaPlaca,
     paramsFuera, paramsCambiados, ponerPermitirFuera: (v) => { S.permitirFuera = v; refrescar(); },
     ponerMaterial, ponerTipoMaterial, mat, centrarDiseno, girarMaterial, girarPieza, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
