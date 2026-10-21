@@ -31,7 +31,7 @@ export const MANUAL = {
       checks: ["Aparecen el cobre, el contorno y los taladros", "La placa se ve completa en la imagen", "Medidas de la placa como en KiCad"] },
     { id: "tray", img: img("aire"), t: "Trayectorias",
       d: "Escribe las medidas del material, revisa la imagen en blanco y negro y pulsa Generar.",
-      checks: ["Grosor medido con vernier, con el cobre", "Configuración en «Valores de la Cubiko»: no la cambies", "Todas las pistas se ven separadas en la imagen", "Tres trabajos: pistas, hoyos y contorno"] },
+      checks: ["Grosor medido con vernier, con el cobre", "Configuraciones de CNC en «Valores de la Cubiko»: no las cambies", "Todas las pistas se ven separadas en la imagen", "Tres trabajos: pistas, hoyos y contorno"] },
     { id: "xy", img: img("xy"), t: "X0 Y0",
       d: "En Mover, lleva la fresa a la esquina inferior izquierda de la placa y fija X0 Y0.",
       checks: ["Empieza con pasos de 10 mm y afina con 0.1 mm", "La fresa sobre la esquina, sin tocar el cobre", "Recorrer el área: no sale de la placa"],
