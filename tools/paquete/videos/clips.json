@@ -1,0 +1,116 @@
+[
+ {
+  "id": "encender",
+  "nombre": "Power on",
+  "paso": "Machine",
+  "duracion": 9.5
+ },
+ {
+  "id": "usb",
+  "nombre": "Plug in the USB",
+  "paso": "Machine",
+  "duracion": 7.0
+ },
+ {
+  "id": "quitarTapa",
+  "nombre": "Remove the lid",
+  "paso": "Lid",
+  "duracion": 9.0
+ },
+ {
+  "id": "ponerPlaca",
+  "nombre": "Place the board",
+  "paso": "Board",
+  "duracion": 7.0
+ },
+ {
+  "id": "sujetador",
+  "nombre": "Clamp the board",
+  "paso": "Board",
+  "duracion": 11.0
+ },
+ {
+  "id": "herramientas",
+  "nombre": "The bits",
+  "paso": "Tool",
+  "duracion": 12.0
+ },
+ {
+  "id": "cambiar",
+  "nombre": "Put in the V-bit",
+  "paso": "Tool",
+  "duracion": 11.0
+ },
+ {
+  "id": "homing",
+  "nombre": "Homing",
+  "paso": "Machine",
+  "duracion": 8.0
+ },
+ {
+  "id": "xy",
+  "nombre": "X0 Y0",
+  "paso": "X0 Y0",
+  "duracion": 7.519999999999998
+ },
+ {
+  "id": "sonda",
+  "nombre": "Connect the probe",
+  "paso": "Z0",
+  "duracion": 15.0
+ },
+ {
+  "id": "tocar",
+  "nombre": "Touch the board",
+  "paso": "Z0",
+  "duracion": 8.0
+ },
+ {
+  "id": "mapa",
+  "nombre": "Height map",
+  "paso": "Z0",
+  "duracion": 12.437077779613269
+ },
+ {
+  "id": "quitarCaiman",
+  "nombre": "Remove the probe",
+  "paso": "Z0",
+  "duracion": 12.0
+ },
+ {
+  "id": "ponerTapa",
+  "nombre": "Put the lid on",
+  "paso": "Lid",
+  "duracion": 9.0
+ },
+ {
+  "id": "fresar",
+  "nombre": "Air test and mill",
+  "paso": "Mill",
+  "duracion": 17.495773208197466
+ },
+ {
+  "id": "paro",
+  "nombre": "Emergency stop",
+  "paso": "Mill",
+  "duracion": 7.0
+ },
+ {
+  "id": "limpiar",
+  "nombre": "Vacuum the dust",
+  "paso": "When done",
+  "duracion": 9.0
+ },
+ {
+  "id": "sacarPlaca",
+  "nombre": "Remove the board",
+  "paso": "When done",
+  "duracion": 12.0
+ },
+ {
+  "id": "apagar",
+  "nombre": "Power off",
+  "paso": "When done",
+  "duracion": 6.0
+ }
+]
