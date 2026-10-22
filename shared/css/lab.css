@@ -1,0 +1,37 @@
+/* Laboratorio — piel tomada de OPI (Casita, estilo One UI / Samsung Health) en claro.
+   Solo cambia variables y lo que flota; la estructura es la misma que en SEBS estricto.
+   Valores de superficie de OPI: plano.css (:root, 4 oct 2026). Es un experimento: si funciona,
+   lo que sirva sube a la skill sebs-brand; mientras, vive aquí. */
+:root[data-estilo="lab"] {
+  --fondo-panel: #F3F4F6;
+  --tarjeta: #FFFFFF;
+  --tarjeta-2: #F5F6F8;
+  --filo: 0 0 0 1px #E4E6EA;
+  --riel: #ECEEF1;
+  --elegido: #FFFFFF;
+  --r-w: 22px;
+  --r-celda: 14px;
+  --r-ctl: 999px;
+  --r-hoja: 28px;
+  --r-campo: 12px;
+  --main-bg: var(--graphite);
+  --main-fg: #FFFFFF;
+  --nav-margen: 12px;
+  --nav-r: 999px;
+  --nav-sombra: none;
+  --flota-sombra: 0 12px 32px -12px rgba(16, 24, 40, .22), 0 2px 6px rgba(16, 24, 40, .06);
+  --velo: rgba(18, 24, 38, .42);
+}
+
+/* Barra inferior flotante: píldora de tres destinos + botón redondo aparte */
+:root[data-estilo="lab"] .navinf { background: none; padding: 0; }
+:root[data-estilo="lab"] .navinf__pildora { padding: 5px; border-radius: 999px; background: var(--tarjeta); box-shadow: var(--flota-sombra); }
+:root[data-estilo="lab"] .navinf__pildora button[aria-current="page"] { background: var(--riel); }
+:root[data-estilo="lab"] .navinf__mas { width: 58px; height: 58px; border-radius: 50%; background: var(--tarjeta); box-shadow: var(--flota-sombra); }
+
+/* Lo que vive sobre el 3D flota con sombra suave */
+:root[data-estilo="lab"] .barra { border-bottom-color: transparent; }
+:root[data-estilo="lab"] .panel { border-left-color: #E4E6EA; }
+:root[data-estilo="lab"] .consola { border-radius: 18px; }
+:root[data-estilo="lab"] .w-thumb { border-radius: 12px; }
+:root[data-estilo="lab"] .pad button { border-radius: 18px; }

@@ -1,0 +1,169 @@
+/* COPIA de https://sebs.mx/brand/chrome.css · 2026-10-02 · no editar aquí, actualizar con scripts/publish.py de la skill sebs-brand */
+/* ===================================================================
+   SEBS — Chrome (capa 1)
+   Identidad SEBS v1.1 · sebs.mx · requiere tokens.css cargado antes.
+
+   Lo que todo sitio SEBS comparte y ningún proyecto redefine:
+   cartela (elemento firma), dot de estado, foco, sr-only, reduced-motion.
+   Ver references/signature.md.
+   =================================================================== */
+
+/* ---- Foco ------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--sebs-signal);
+  outline-offset: 2px;
+}
+
+/* ---- Utilidad --------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- Dot de estado ---------------------------------------------- */
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-round);
+  background: var(--text-secondary);
+  flex: none;
+  vertical-align: middle;
+}
+.dot--active  { background: var(--sebs-signal); } /* sebs-allow: dot de estado */
+.dot--idle    { background: var(--text-secondary); }
+.dot--neutral { background: var(--text); }
+
+/* ---- Cartela ---------------------------------------------------- */
+.cartela {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  border-top: 1px solid var(--divider);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.cartela__firma {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  min-width: 0;
+}
+.cartela__firma img {
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+.cartela__nombre {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+}
+.cartela__linea {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.cartela__campos {
+  display: grid;
+  grid-auto-flow: column;
+  margin: 0;
+}
+.cartela__campo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-lg) var(--space-xl);
+  border-left: 1px solid var(--divider);
+  min-width: 112px;
+}
+.cartela__campo dt {
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.cartela__campo dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  white-space: nowrap;
+}
+
+/* Compacta: una línea, para barras de estado y portadas */
+.cartela--compacta {
+  grid-template-columns: auto auto;
+  justify-content: start;
+  align-items: center;
+  border: 1px solid var(--divider);
+  border-radius: var(--radius-sm);
+  width: max-content;
+  max-width: 100%;
+}
+.cartela--compacta .cartela__nombre {
+  padding: var(--space-xs) var(--space-md);
+  font-size: 14px;
+  line-height: 20px;
+}
+.cartela--compacta .cartela__campo {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md);
+  min-width: 0;
+}
+.cartela--compacta .cartela__campo dd { font-size: 12px; line-height: 16px; }
+
+/* Inline: última fila de una card */
+.cartela--inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  margin: 0;
+  border: 0;
+  background: transparent;
+}
+.cartela--inline .cartela__campo {
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.cartela--inline .cartela__campo dd { font-size: 12px; line-height: 16px; }
+
+@media (max-width: 720px) {
+  .cartela { grid-template-columns: 1fr; }
+  .cartela__campos { grid-auto-flow: row; grid-template-columns: 1fr 1fr; border-top: 1px solid var(--divider); }
+  .cartela__campo { border-left: 0; }
+  .cartela__campo:nth-child(even) { border-left: 1px solid var(--divider); }
+}
+
+/* ---- Motion ----------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

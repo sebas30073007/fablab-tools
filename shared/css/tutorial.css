@@ -1,0 +1,219 @@
+/* Tutorial — capa 3. Ventana centrada (elegir y manual) y recorrido guiado sobre la interfaz.
+   Lee las mismas variables de piel que cnc.css. El aro del recorrido usa --d-actual (cobre):
+   en esta app el cobre ya significa «lo que toca ahora». El rojo sigue siendo solo PARO. */
+
+/* ================= Botón de la barra ================= */
+.btn-tutorial { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px 0 10px; border: 0; border-radius: var(--r-ctl); background: var(--riel); color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; }
+.btn-tutorial:hover { background: color-mix(in srgb, var(--riel) 85%, var(--graphite)); }
+.btn-tutorial .ico { width: 18px; height: 18px; }
+
+/* ================= Ventana centrada ================= */
+.dlg-capa { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; }
+.dlg-velo { position: absolute; inset: 0; background: var(--velo); opacity: 0; transition: opacity 240ms ease; }
+.dlg { position: relative; width: min(980px, 100%); max-height: min(88vh, 900px); display: flex; flex-direction: column; background: var(--fondo-panel); border-radius: var(--r-hoja); box-shadow: 0 24px 64px -16px rgba(17, 19, 23, .35); transform: translateY(16px) scale(.98); opacity: 0; transition: transform 300ms var(--ease), opacity 200ms ease; }
+.dlg--angosta { width: min(760px, 100%); }
+.dlg-capa.abierta .dlg-velo { opacity: 1; }
+.dlg-capa.abierta .dlg { transform: none; opacity: 1; }
+.dlg__cab { display: flex; align-items: center; gap: 8px; padding: 16px 12px 8px 24px; }
+.dlg__cab .btn-atras { margin-left: -8px; }
+.dlg__cab h2 { margin: 0; font-size: 21px; line-height: 1.2; font-weight: 800; outline: none; }
+.dlg__meta { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-secondary); }
+.dlg__acc { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.dlg__cuerpo { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 24px 24px; }
+
+/* Elegir: dos tarjetas */
+.tuto-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.tuto-op { display: flex; flex-direction: column; gap: 6px; padding: 12px 12px 18px; border: 0; border-radius: var(--r-w); background: var(--tarjeta); box-shadow: var(--filo); text-align: left; cursor: pointer; transition: background 150ms; }
+.tuto-op:hover { background: color-mix(in srgb, var(--tarjeta) 95%, var(--graphite)); }
+.tuto-op__img { position: relative; aspect-ratio: 3 / 2; border-radius: calc(var(--r-w) - 8px); background: var(--tarjeta-2); overflow: hidden; margin-bottom: 8px; }
+.tuto-op__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tuto-op__img--masc img { object-fit: contain; padding: 14px 0 0; }
+.tuto-op__t { padding: 0 6px; font-size: 18px; font-weight: 800; }
+.tuto-op__d { padding: 0 6px; font-size: 13.5px; line-height: 1.4; color: var(--text-secondary); }
+.tuto-op__tag { position: absolute; left: 10px; top: 10px; right: 10px; width: fit-content; padding: 6px 12px; border-radius: var(--r-ctl); background: var(--tarjeta); box-shadow: var(--flota-sombra); font-size: 12.5px; font-weight: 700; line-height: 1.3; }
+.tuto-op__tag::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: var(--d-actual); vertical-align: 1px; }
+
+/* Manual */
+.man-pasos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.man-paso { display: flex; flex-direction: column; gap: 4px; padding: 10px 10px 14px; border-radius: var(--r-w); background: var(--tarjeta); box-shadow: var(--filo); break-inside: avoid; }
+.man-paso__img { aspect-ratio: 3 / 2; border-radius: calc(var(--r-w) - 8px); overflow: hidden; background: var(--tarjeta-2); margin-bottom: 6px; }
+.man-paso__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.man-paso h3 { margin: 0; padding: 0 4px; display: flex; gap: 8px; align-items: baseline; font-size: 15px; line-height: 1.25; font-weight: 800; }
+.man-paso h3 span { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; color: var(--text-secondary); }
+.man-paso p { margin: 0 0 4px; padding: 0 4px; font-size: 13px; line-height: 1.4; color: var(--text-secondary); }
+.man-paso .check { min-height: 32px; padding: 0 4px; font-size: 12.5px; line-height: 1.3; align-items: flex-start; gap: 8px; }
+.man-paso .check input { width: 16px; height: 16px; margin: 1px 0 0; }
+/* Videos del paso: chips que abren el clip en otra pestaña */
+.man-clips { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 4px 0; }
+.man-clips a, .man-clips button { display: inline-flex; border: 0; cursor: pointer; font-family: inherit; align-items: center; gap: 6px; min-height: 30px; padding: 0 11px 0 9px; border-radius: 999px; background: var(--tarjeta-2); color: var(--text-primary, inherit); font-size: 12.5px; font-weight: 700; text-decoration: none; }
+.man-clips a::before, .man-clips button::before { content: ""; width: 0; height: 0; border-left: 7px solid currentColor; border-top: 4.5px solid transparent; border-bottom: 4.5px solid transparent; }
+.man-clips a:hover, .man-clips button:hover { background: var(--mist, var(--tarjeta-2)); }
+@media print { .man-clips { display: none; } }
+.man-pie { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 14px; padding: 12px 16px; border-radius: var(--r-celda); background: var(--tarjeta-2); font-size: 13px; }
+.man-pie b { font-weight: 800; }
+
+/* ================= Recorrido guiado ================= */
+.tour { position: fixed; inset: 0; z-index: 100; pointer-events: none; }
+.tour__velo { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tour__velo path { fill: rgba(18, 24, 38, .64); pointer-events: visiblePainted; }
+.tour__aro { position: absolute; border-radius: 16px; box-shadow: 0 0 0 3px var(--d-actual), 0 0 0 9px color-mix(in srgb, var(--d-actual) 28%, transparent); pointer-events: none; }
+.tour__aro[data-pulsa="1"] { animation: aro 1.6s ease-in-out infinite; }
+.tour--libre .tour__velo, .tour--libre .tour__aro, .tour--libre .tour__clic { display: none !important; }
+@keyframes aro { 50% { box-shadow: 0 0 0 3px var(--d-actual), 0 0 0 14px color-mix(in srgb, var(--d-actual) 10%, transparent); } }
+
+
+.tour__pop { position: absolute; width: 380px; max-width: calc(100vw - 28px); padding: 18px 18px 14px; border-radius: 22px; background: var(--tarjeta); color: var(--text); box-shadow: 0 24px 60px -18px rgba(10, 14, 24, .5), 0 0 0 1px rgba(16, 24, 40, .06); pointer-events: auto; outline: none; }
+.tour__pop--ancho { width: 460px; }
+.tour__pop--centro { width: 600px; }
+/* Durante el recorrido, la Fresa que habla es la del globo */
+body.con-tour .w-masc { visibility: hidden; }
+.tour__tit { margin: 8px 0 6px; font-size: 18px; line-height: 1.25; font-weight: 800; outline: none; }
+.tour__txt { margin: 0; font-size: 14.5px; line-height: 1.5; }
+.tour__txt + .tour__txt { margin-top: 8px; }
+.tour__txt b { font-weight: 800; }
+.tour__fig { margin: 12px 0 2px; border-radius: 14px; overflow: hidden; background: var(--tarjeta-2); aspect-ratio: 3 / 2; }
+.tour__fig img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* Videos de las manos (videos.js) */
+.tour__fig--video { aspect-ratio: 1 / 1; width: min(100%, 260px); margin-inline: auto; }
+.vid { width: 100%; height: 100%; object-fit: cover; display: block; background: var(--tarjeta-2); }
+.vid-capa { position: fixed; inset: 0; z-index: 1000; background: rgba(17,19,23,.72); display: grid; place-items: center; padding: 16px; }
+.vid-capa__caja { margin: 0; width: min(640px, 100%, calc(80vh - 40px)); background: var(--tarjeta, #fff); border-radius: 16px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+.vid-capa__caja video { width: 100%; display: block; background: #000; aspect-ratio: 1 / 1; max-height: 80vh; }
+.vid-capa__caja figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 8px 8px 16px; font-weight: 800; font-size: 14px; }
+.ex-video { margin: 0 auto 10px; border-radius: 12px; overflow: hidden; aspect-ratio: 1 / 1; width: min(100%, 260px); }
+.tour__pista { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, var(--d-actual) 10%, var(--tarjeta)); font-size: 13.5px; font-weight: 700; }
+.tour__pie { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 14px; }
+.tour__pie .btn-texto { padding: 0 10px; }
+.tour__pie .btn-pill { min-height: 44px; }
+.tour__pie .btn-pill--main { min-width: 120px; }
+.tour__flecha { position: absolute; width: 16px; height: 16px; background: var(--tarjeta); transform: rotate(45deg); border-radius: 3px; }
+.tour__pop[data-lado="izq"] .tour__flecha { right: -7px; }
+.tour__pop[data-lado="der"] .tour__flecha { left: -7px; }
+.tour__pop[data-lado="abajo"] .tour__flecha { top: -7px; }
+.tour__pop[data-lado="arriba"] .tour__flecha { bottom: -7px; }
+.tour__pop[data-lado="centro"] .tour__flecha, .tour__pop[data-lado="dentro"] .tour__flecha, .tour__pop[data-lado="libre"] .tour__flecha { display: none; }
+.tour__pop--entra { animation: popEntra 260ms var(--ease); }
+@keyframes popEntra { from { opacity: 0; transform: translateY(8px); } }
+
+@media (max-width: 900px) {
+  .tuto-opciones { grid-template-columns: 1fr; }
+  .man-pasos { grid-template-columns: 1fr 1fr; }
+  .tour__pop--centro .tour__cuerpo { grid-template-columns: 76px minmax(0, 1fr); }
+  .tour__pop--centro .tour__masc { width: 76px; }
+}
+@media (max-width: 560px) { .man-pasos { grid-template-columns: 1fr; } .dlg-capa { padding: 8px; } }
+/* Teléfono: el globo va a todo lo ancho, abajo o arriba del objetivo; mascota más chica */
+@media (max-width: 719px) {
+  .tour__cuerpo, .tour__pop--centro .tour__cuerpo { grid-template-columns: 56px minmax(0, 1fr); gap: 12px; }
+  .tour__masc, .tour__pop--centro .tour__masc { width: 56px; }
+  .tour__cab .fases { width: 96px; }
+  .tour__pop { padding: 14px 14px 12px; }
+  .dlg__cab { flex-wrap: wrap; padding: 12px 8px 6px 16px; }
+  .dlg__cab h2 { font-size: 18px; }
+  .dlg__cuerpo { padding: 8px 16px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dlg, .dlg-velo { transition: none; }
+  .tour__aro[data-pulsa="1"], .tour__pop--entra { animation: none; }
+}
+
+/* Imprimir el manual: solo la ventana */
+@media print {
+  html, body { height: auto; overflow: visible; background: var(--technical-white); }
+  .app, .tour { display: none !important; }
+  .dlg-capa { position: static; padding: 0; display: block; }
+  .dlg-velo, .dlg__acc, .dlg__cab .btn-atras { display: none !important; }
+  .dlg { width: 100%; max-height: none; box-shadow: none; transform: none; opacity: 1; background: var(--technical-white); }
+  .dlg__cuerpo { overflow: visible; padding: 0 0 12px; }
+  .man-pasos { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .man-paso { box-shadow: 0 0 0 1px var(--mist); }
+}
+
+
+/* ================= Tarjeta del recorrido (v2) =================
+   Arriba: dónde vas (Paso n de 6 · nombre, con la barra de los 6 pasos).
+   Cuerpo: Fresa siempre a la izquierda y, junto a ella, el tipo de tarjeta, el título y el texto.
+   Abajo: tarjeta n de m del paso, con puntos. */
+.tour__cab { display: flex; align-items: center; gap: 10px; padding-bottom: 10px; margin-bottom: 12px; border-bottom: 1px solid var(--mist); font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
+.tour__cab .fases { width: 132px; flex: none; margin-left: auto; }
+.tour__cab .fases i.actual, .ex-prog i.actual { background: var(--d-actual); }
+.tour__cuerpo { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 14px; align-items: start; }
+.tour__cuerpo:not(:has(> .tour__masc)) { grid-template-columns: minmax(0, 1fr); }
+.tour__masc { width: 72px; height: auto; pointer-events: none; filter: drop-shadow(0 6px 10px rgba(10, 14, 24, .2)); }
+.tour__pop--centro .tour__cuerpo { grid-template-columns: 124px minmax(0, 1fr); gap: 20px; }
+.tour__pop--centro .tour__masc { width: 124px; }
+.tour__main { min-width: 0; }
+.tour__chip { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px 0 8px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.tour__chip .ico { width: 16px; height: 16px; }
+.tour__chip--info { background: color-mix(in srgb, var(--d-pistas) 12%, var(--tarjeta)); color: #1D4ED8; }
+.tour__chip--interfaz { background: var(--tarjeta-2); color: var(--text); }
+.tour__chip--accion { background: color-mix(in srgb, var(--d-actual) 15%, var(--tarjeta)); color: #B23A0B; }
+.tour__pista .ico { width: 18px; height: 18px; flex: none; color: #B23A0B; }
+.tour__cuenta { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+.tour__cuenta i { width: 6px; height: 6px; border-radius: 50%; background: var(--riel); }
+.tour__cuenta i.on { background: var(--graphite); }
+.tour__cuenta span { margin-left: 6px; white-space: nowrap; }
+/* Ícono de clic pegado a lo que hay que pulsar */
+.tour__clic { position: absolute; display: none; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--d-actual); color: #fff; box-shadow: 0 6px 16px -4px rgba(10, 14, 24, .45); pointer-events: none; animation: clic 1.4s ease-in-out infinite; }
+.tour__clic .ico { width: 22px; height: 22px; }
+@keyframes clic { 50% { transform: translate(-3px, -3px) scale(.92); } }
+
+/* Elegir: escena del manual con Fresa adentro */
+.tuto-op__img--escena .tuto-op__fresa { position: absolute; right: 5%; bottom: -6%; width: auto; height: 86%; object-fit: contain; filter: drop-shadow(0 10px 14px rgba(10, 14, 24, .35)); }
+.tuto-examen { display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 14px; padding: 10px 18px 10px 12px; border: 0; border-radius: var(--r-w); background: var(--tarjeta); box-shadow: var(--filo); text-align: left; cursor: pointer; }
+.tuto-examen:hover { background: color-mix(in srgb, var(--tarjeta) 95%, var(--graphite)); }
+.tuto-examen img { height: 58px; width: auto; }
+.tuto-examen span { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.tuto-examen b { font-size: 16px; font-weight: 800; }
+.tuto-examen small { font-size: 13px; color: var(--text-secondary); }
+.tuto-examen .ico { width: 20px; height: 20px; color: var(--text-secondary); }
+
+/* Manual por secciones: Antes · Los 6 pasos · Al terminar */
+.man-sec + .man-sec { margin-top: 20px; }
+.man-sec__t { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 10px; font-size: 16px; font-weight: 800; }
+.man-sec__t small { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); }
+.man-sec--extra .man-paso { background: var(--tarjeta-2); box-shadow: none; }
+
+/* ================= Examen y certificado ================= */
+.ex-portada { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 20px; align-items: center; }
+.ex-masc { width: 120px; height: auto; }
+.ex-portada h3 { margin: 0 0 6px; font-size: 20px; font-weight: 800; }
+.ex-portada p { margin: 0 0 8px; font-size: 14.5px; line-height: 1.5; }
+.ex-cifra { font-size: 56px !important; font-weight: 800; line-height: 1; }
+.ex-cifra small { font-size: 24px; }
+.ex-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 20px; }
+.ex-pie .btn-pill { min-height: 46px; }
+.ex-prog { display: flex; gap: 3px; margin-bottom: 18px; }
+.ex-prog i { flex: 1; height: 5px; border-radius: 3px; background: var(--riel); }
+.ex-prog i.on { background: var(--graphite); }
+.ex-preg { margin: 0; padding: 0; border: 0; }
+.ex-preg legend { margin-bottom: 14px; padding: 0; font-size: 18px; font-weight: 800; line-height: 1.35; }
+.ex-op { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; padding: 13px 16px; border-radius: 14px; background: var(--tarjeta-2); font-size: 15px; line-height: 1.4; cursor: pointer; }
+.ex-op input { width: 18px; height: 18px; margin: 2px 0 0; flex: none; accent-color: var(--graphite); }
+.ex-op:has(input:checked) { background: var(--tarjeta); box-shadow: inset 0 0 0 2px var(--graphite); }
+.ex-op:has(input:focus-visible) { outline: 2px solid var(--graphite); outline-offset: 2px; }
+.ex-sub { margin: 22px 0 8px; font-size: 15px; font-weight: 800; }
+.ex-repaso { margin: 0; padding-left: 20px; }
+.ex-repaso li { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; font-size: 14px; line-height: 1.4; }
+.ex-repaso span { color: var(--text-secondary); }
+.ex-nombre { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; font-weight: 700; }
+.ex-nombre input { height: 50px; padding: 0 14px; border: 0; border-radius: var(--r-campo); background: var(--tarjeta-2); box-shadow: inset 0 0 0 1px var(--mist); font-size: 17px; font-weight: 600; }
+.ex-cert { margin-top: 14px; }
+.ex-cert canvas { display: block; width: 100%; height: auto; border-radius: 10px; box-shadow: var(--filo), 0 10px 30px -14px rgba(10, 14, 24, .35); }
+@media (max-width: 560px) { .ex-portada { grid-template-columns: 72px minmax(0, 1fr); } .ex-masc { width: 72px; } }
+@media (prefers-reduced-motion: reduce) { .tour__clic { animation: none; } }
+/* Con una hoja abierta, la Fresa que habla es la de la hoja */
+body.con-hoja .tour--libre .tour__masc { display: none; }
+body.con-hoja .tour--libre .tour__cuerpo { grid-template-columns: minmax(0, 1fr); }
+
+/* Tarjeta con video: sin Fresa; el video grande arriba (ya trae la instrucción) y el texto corto debajo */
+.tour__pop--video, .tour__pop--video.tour__pop--centro { width: 520px; }
+.tour__pop--video .tour__cuerpo, .tour__pop--video.tour__pop--centro .tour__cuerpo { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.tour__pop--video .tour__cuerpo > .tour__fig--video { margin: 0 auto; width: min(100%, 480px, 60vh); max-width: none; aspect-ratio: 1 / 1; }
+.tour__pop--video .tour__tit { font-size: 16px; }
+.tour__pop--video .tour__txt { font-size: 13.5px; }
+
+/* Pregunta con video: el video a la izquierda y la pregunta con sus opciones a un lado */
+.ex-con-video { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.ex-con-video .ex-video { margin: 0; width: 100%; max-width: 340px; }
+@media (max-width: 720px) { .ex-con-video { grid-template-columns: minmax(0, 1fr); } .ex-con-video .ex-video { max-width: 260px; justify-self: center; } }

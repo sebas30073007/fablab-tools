@@ -1,0 +1,18 @@
+/* fablab-tools — capa 2 (proyecto). Registro: sebs-brand/references/subbrands.md §5 (FAB-01).
+   Acento del proyecto: Copper = el cobre de la placa que se fresa (trayectorias de pistas,
+   paso activo, acción principal). Como PLOT-01, el rojo queda solo para PARO y foco.
+   Copper no sirve como texto chico sobre blanco: el texto con acento usa --accent-hover. */
+:root {
+  --accent: var(--copper);
+  --accent-hover: #C2410C;
+  --accent-tint: rgba(255, 107, 53, 0.12);
+  --on-accent: var(--graphite);
+  --ok: #16A34A;
+  --warn: var(--engine-yellow);
+  /* Color por eje (contenido, capa 3): el mismo en el jog, la lectura y el 3D */
+  --eje-x: var(--electric-blue);
+  --eje-y: var(--cyber-teal);
+  --eje-z: var(--graphite);
+}
+
+.dot--active { background: var(--accent); }

@@ -1,0 +1,184 @@
+/* CNC — capa 3 (app), lo propio de la CNC: material, herramientas y sus dibujos.
+   Requiere tokens, chrome, project y los componentes compartidos (shared/css/app.css). */
+
+/* Materiales en los dibujos (contenido, capa 3: los mismos tonos que el gemelo 3D) */
+:root {
+  --m-cobre: #D28B53; --m-cobre-borde: #A8673D; --m-fr4: #3F6E4A; --m-mdf: #C8A27A;
+  --m-acero: #AEB4BB; --m-acero-osc: #737A82; --m-fuera: #DC2626;
+}
+/* Otros materiales (Placa → Material): el mismo dibujo con su color; sin capa de cobre visible */
+:root[data-mat="acrilico"] { --m-fr4: #CFE0E8; --m-cobre: #CFE0E8; --m-cobre-borde: #8FA7B3; }
+:root[data-mat="mdf"]      { --m-fr4: #A97C52; --m-cobre: #A97C52; --m-cobre-borde: #7A5634; }
+:root[data-mat="madera"]   { --m-fr4: #CFA36C; --m-cobre: #CFA36C; --m-cobre-borde: #9A7243; }
+:root[data-mat="otro"]     { --m-fr4: #9AA3AD; --m-cobre: #9AA3AD; --m-cobre-borde: #6B737C; }
+:root[data-mat="acrilico"] .dib__rot--claro, :root[data-mat="madera"] .dib__rot--claro { fill: var(--text); }
+/* Qué material: discreto, en la cabecera del widget Material */
+.mat__tipo { height: 30px; max-width: 60%; padding: 0 8px; border: 0; border-radius: var(--r-campo, 12px); background: var(--tarjeta-2); box-shadow: inset 0 0 0 1px var(--mist); font-size: 13px; font-weight: 600; cursor: pointer; }
+.mat__tipo:focus-visible { outline: 2px solid var(--d-pistas); outline-offset: 1px; }
+
+/* Material: la placa en isométrico y, debajo, sus tres medidas en un renglón */
+.mat__dib { display: flex; justify-content: center; margin: 6px 0 4px; }
+.mat-iso { display: block; width: 100%; max-width: 300px; max-height: 190px; overflow: visible; }
+.iso-arriba { fill: var(--m-cobre); stroke: var(--m-cobre-borde); stroke-width: .6; vector-effect: non-scaling-stroke; }
+.iso-frente { fill: color-mix(in srgb, var(--m-fr4) 92%, #000); }
+.iso-lado { fill: color-mix(in srgb, var(--m-fr4) 70%, #000); }
+.iso-corte { fill: rgba(17, 19, 23, .10); }
+.iso-corte.es-fuera { fill: color-mix(in srgb, var(--m-fuera) 18%, transparent); }
+.iso-diseno { fill: none; stroke: var(--text); stroke-width: 1.2; stroke-dasharray: 4 3; }
+.iso-diseno.es-fuera { stroke: var(--m-fuera); }
+.iso-cero { fill: var(--text); }
+.iso-eje { stroke-width: 2; vector-effect: non-scaling-stroke; }
+.iso-eje.x, .iso-punta.x { stroke: var(--d-x); fill: var(--d-x); }
+.iso-eje.y, .iso-punta.y { stroke: var(--d-y); fill: var(--d-y); }
+.iso-eje.z, .iso-punta.z { stroke: var(--d-z); fill: var(--d-z); }
+.mat__dims { margin-top: 4px; }
+.mat__campo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.mat__campo > span:first-child { display: flex; align-items: baseline; gap: 5px; font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.mat__campo b { font-weight: 800; }
+.mat__campo b[data-eje="X"] { color: var(--d-x); }
+.mat__campo b[data-eje="Y"] { color: var(--d-y); }
+.mat__campo b[data-eje="Z"] { color: var(--d-z); }
+.mat__campo input { width: 100%; height: 44px; padding: 0 34px 0 10px; border: 0; border-radius: var(--r-campo); background: var(--tarjeta-2); box-shadow: inset 0 0 0 1px var(--mist); font-family: var(--font-mono); font-size: 15px; }
+.mat__campo input:focus { outline: 2px solid var(--d-actual); outline-offset: 0; }
+
+/* Botones centrados, del mismo ancho (no ocupan toda la tarjeta) */
+.w-acc--centro { justify-content: center; }
+.w-acc--centro > .btn-pill, .btn-igual { min-width: 140px; }
+.btn-pill .ico { flex: none; display: block; }
+
+/* Botón terciario: solo el texto, sobre el fondo; al pasar el puntero, una sombra */
+.btn-terc { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--r-ctl);
+  background: transparent; color: var(--text); font-size: 14px; font-weight: 700; white-space: nowrap; cursor: pointer; transition: box-shadow 150ms, background 150ms; }
+.btn-terc:hover:not(:disabled) { background: var(--tarjeta); box-shadow: 0 2px 10px rgba(17, 19, 23, .14); }
+.btn-terc:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Inicio: Origen y Curso en renglones discretos, debajo de lo principal */
+.w-sec { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.w-sec__fila { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 4px 6px 4px 14px; border: 0; border-radius: var(--r-ctl); background: transparent; color: var(--text); text-align: left; font: inherit; }
+button.w-sec__fila { cursor: pointer; transition: box-shadow 150ms, background 150ms; }
+button.w-sec__fila:hover { background: var(--tarjeta); box-shadow: 0 2px 10px rgba(17, 19, 23, .12); }
+.w-sec__fila .ico { width: 16px; height: 16px; color: var(--text-secondary); flex: none; }
+.w-sec__t { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--text-secondary); }
+.w-sec__chips, .w-sec__acc { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.w-sec__acc .btn-terc { min-height: 36px; padding: 0 10px; font-size: 13.5px; }
+.w-sec__acc .btn-pill { min-height: 36px; padding: 0 14px; font-size: 13.5px; }
+/* Trabajo pendiente: cada trabajo con su casilla (del color del trabajo); hecho = palomita */
+.tarea__check { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--c); color: #fff; }
+.tarea__check .ico { width: 14px; height: 14px; stroke-width: 3; color: #fff; }
+.tarea[data-hecho="1"] .tarea__check { background: var(--c); box-shadow: none; }
+.tarea[data-hecho="1"] .fila__nom { color: var(--text-secondary); text-decoration: line-through; text-decoration-thickness: 1px; }
+.chip-sec { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--text-secondary); }
+.chip-sec i { width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--text-secondary); }
+.chip-sec[data-ok="1"] { color: var(--text); }
+.chip-sec[data-ok="1"] i { background: var(--d-hecho); box-shadow: none; }
+
+/* Archivo en Inicio: la miniatura grande */
+.con-thumb--grande { min-height: 150px; }
+.con-thumb--grande .w-thumb { top: 16px; width: 104px; height: 118px; }
+.con-thumb--grande .w-texto, .con-thumb--grande .w-sub { margin-right: 118px; }
+
+/* Configuraciones de CNC: lo importante de cada herramienta en columnas */
+.cfg-res { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 10px; margin-top: 8px; }
+.cfg-res__col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cfg-res__t { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 800; margin-bottom: 2px; }
+.cfg-res__d { display: flex; flex-direction: column; line-height: 1.15; }
+.cfg-res__d small { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+.cfg-res__d b { font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; overflow-wrap: anywhere; }
+
+/* Configuración: cada herramienta con sus dibujos */
+.herr__t { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; }
+.herr__dib { display: flex; flex-direction: column; gap: 6px; margin: 8px 0 2px; padding: 8px; border-radius: var(--r-celda); background: var(--tarjeta-2); }
+.dib { display: block; width: 100%; height: auto; overflow: visible; }
+.dib text { font: 600 10.5px var(--font-sans, system-ui); fill: var(--text); }
+.dib__eti { fill: var(--tarjeta); opacity: .92; }
+.herr__fila { display: flex; gap: 8px; align-items: stretch; }
+.herr__fila .dib { flex: 1; min-width: 0; }
+.herr__fila .dib--sil { flex: none; width: 30px; }
+.dib__lupa { fill: none; stroke: var(--d-actual); stroke-width: 1.4; }
+.u input::-webkit-inner-spin-button, .u input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.u input { -moz-appearance: textfield; }
+.dib .cota line, .dib .cota polyline, .dib .cota path { stroke: var(--text-secondary); stroke-width: 1.2; }
+.dib .cota.hl line, .dib .cota.hl polyline, .dib .cota.hl path { stroke: var(--d-actual); stroke-width: 2.4; }
+.dib .cota.hl text { fill: var(--text); font-weight: 800; }
+.dib [data-k].hl .m-acero, .dib .m-acero.hl { stroke: var(--d-actual); stroke-width: 2; }
+/* Mapa de alturas: la malla sobre la placa; cada punto se llena al tocarlo */
+.malla { display: block; width: auto; max-width: 100%; height: auto; max-height: 150px; margin: 0 auto; }
+.malla__placa { fill: color-mix(in srgb, var(--m-cobre) 55%, var(--tarjeta)); stroke: var(--m-cobre-borde); stroke-width: 1; }
+.malla__p { fill: var(--tarjeta); stroke: var(--text-secondary); stroke-width: 1.4; }
+.malla__p.on { fill: var(--d-actual); stroke: var(--d-actual); }
+/* Fuera de rango: el campo, su cota y el aviso en el rojo de «no cabe» (no se genera así) */
+.dib .cota.es-fuera line, .dib .cota.es-fuera polyline { stroke: var(--m-fuera); stroke-width: 2.4; }
+.dib .cota.es-fuera text { fill: var(--m-fuera); font-weight: 800; }
+.campo.es-fuera input { box-shadow: inset 0 0 0 2px var(--m-fuera); }
+.campo.es-fuera > span:first-child { color: var(--m-fuera); }
+.aviso--fuera { background: color-mix(in srgb, var(--m-fuera) 9%, var(--tarjeta)); }
+.aviso--fuera .ico { color: var(--m-fuera); }
+.dib__escala line { stroke: var(--text-secondary); stroke-width: 1; }
+.dib .dib__rot, .dib .dib__num { font-size: 10px; }
+.dib .dib__rot--claro { fill: var(--technical-white); }
+.dib__nivel { stroke: var(--technical-white); stroke-width: 1; stroke-dasharray: 3 2; opacity: .9; }
+.m-cobre { fill: var(--m-cobre); }
+.m-pista { fill: var(--m-cobre); stroke: var(--m-cobre-borde); stroke-width: 1.5; }
+.m-fr4 { fill: var(--m-fr4); }
+.m-mdf { fill: var(--m-mdf); }
+.m-acero { fill: var(--m-acero); stroke: var(--m-acero-osc); stroke-width: 1; }
+.m-helice line { stroke: var(--m-acero-osc); stroke-width: 1.4; opacity: .8; }
+.m-surco { fill: var(--m-fr4); opacity: .62; stroke: var(--technical-white); stroke-width: .6; stroke-dasharray: 2 2; }
+.m-hueco { fill: var(--tarjeta-2); stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 3 2; }
+.m-placa { fill: color-mix(in srgb, var(--m-cobre) 45%, var(--tarjeta)); stroke: var(--m-cobre-borde); stroke-width: 1; }
+.m-contorno { fill: none; stroke: var(--d-contorno); stroke-width: 3; }
+.m-puente { fill: var(--m-cobre); stroke: var(--text); stroke-width: 1; }
+.m-hoyo { fill: var(--tarjeta-2); stroke: var(--text); stroke-width: 1.2; }
+.dib--fig { margin: 6px 0 4px; }
+.dib__ref { stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 4 3; }
+.dib__arco { fill: none; stroke: var(--d-actual); stroke-width: 1.6; }
+.dib__pto { fill: var(--d-actual); }
+.dib__fantasma { fill: none; stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 4 3; }
+.chips-d { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Vista previa: la placa desde arriba como va a quedar (previa.js) */
+.previa { display: block; width: 100%; height: auto; margin-top: 8px; border-radius: var(--r-campo); background: #D9DDE2; cursor: zoom-in; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; font-size: 12.5px; color: var(--text-secondary); }
+.leyenda > span { display: inline-flex; align-items: center; gap: 6px; }
+/* ancho fijo: si dependiera del contenido, el canvas ampliado empujaría la ventana fuera de la pantalla */
+.dlg.dlg--previa { width: min(980px, calc(100vw - 48px)); }
+.dlg--previa .dlg__cuerpo { min-width: 0; }
+.previa-zoom { display: flex; width: 100%; min-width: 0; height: min(64vh, 640px); overflow: auto; background: #D9DDE2; border-radius: var(--r-campo); cursor: grab; overscroll-behavior: contain; }
+.previa-zoom.arrastrando { cursor: grabbing; }
+.previa-grande { display: block; flex: none; max-width: none; margin: auto; }   /* centrada; con zoom, el margen se vuelve 0 y se desplaza */
+.previa-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.previa-ctl .mono { min-width: 3.5em; text-align: center; }
+.previa-ctl--arriba { margin: 0 0 10px; }
+.previa-ctl .seg button svg { width: 16px; height: 16px; margin-right: 4px; vertical-align: -3px; }
+.previa-dato { flex: 1; min-width: 12em; font-size: 13px; color: var(--text-secondary); }
+.previa-lienzo { position: relative; flex: none; margin: auto; }
+.previa-lienzo .previa-grande { width: 100%; height: 100%; }
+.previa-capa { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.previa-zoom[data-modo="regla"] { cursor: crosshair; }
+.previa-zoom[data-modo="zonas"] { cursor: crosshair; touch-action: none; }
+.previa-zoom[data-modo="zonas"] .previa-capa, .previa-zoom[data-modo="zonas"] .previa-zona { pointer-events: auto; }
+.previa-zona { fill: rgba(37, 99, 235, .14); stroke: #2563EB; stroke-width: 2; stroke-dasharray: 6 4; cursor: pointer; }
+.previa-zona:hover { fill: rgba(37, 99, 235, .28); }
+.previa-zona--nueva { pointer-events: none; }
+.previa-regla { stroke: #111; stroke-width: 2; }
+.previa-regla__p { fill: #fff; stroke: #111; stroke-width: 2; }
+.previa-regla__t { fill: #111; text-anchor: middle; font-family: var(--mono, ui-monospace, monospace); paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+.seg--chico button { min-height: 30px; padding: 0 10px; }
+.chip-d { display: inline-flex; align-items: baseline; gap: 3px; padding: 4px 9px; border-radius: var(--r-ctl); font-family: var(--font-mono); font-size: 12.5px; background: var(--tarjeta-2); color: var(--text-secondary); box-shadow: inset 0 0 0 1px var(--mist); }
+.chip-d small { font-size: 11px; }
+.chip-d[data-on="1"] { background: color-mix(in srgb, var(--d-hoyos) 16%, var(--tarjeta)); color: var(--text); box-shadow: none; }
+
+/* Etiqueta junto al puntero (qué hace cada campo de Configuración) */
+.tip { position: fixed; z-index: 60; max-width: 250px; padding: 8px 11px; border-radius: var(--r-celda); background: var(--graphite); color: var(--technical-white); font-size: 12.5px; line-height: 1.4; pointer-events: none; box-shadow: 0 6px 18px rgba(17, 19, 23, .22); }
+/* Hoyos: qué hoyos del diseño se perforan, como frase */
+.rango { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 13.5px; font-weight: 600; }
+.rango__campo { width: 92px; }
+.rango__campo input { width: 100%; height: 40px; padding: 0 34px 0 10px; border: 0; border-radius: var(--r-campo); background: var(--tarjeta-2); box-shadow: inset 0 0 0 1px var(--mist); font-family: var(--font-mono); font-size: 14px; }
+.rango__campo input:focus { outline: 2px solid var(--d-pistas); outline-offset: 0; }
+
+/* Fresando: la mascota no tapa la barra de progreso */
+.w-ahora.con-masc .progreso, .w-ahora.con-masc .tira { margin-right: 92px; width: auto; }
+
+/* Versión y autor: discreto, al final de Inicio */
+.firma { margin: 18px 0 4px; text-align: center; font-size: 11px; color: var(--text-secondary); opacity: .8; }
+.firma a { color: inherit; text-decoration: none; }
+.firma a:hover { text-decoration: underline; }
