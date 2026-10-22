@@ -2,6 +2,7 @@
 //
 //   node tools/paquete/empaquetar.mjs extraer   pone en tools/paquete/en/*.json los textos nuevos (en: "")
 //   node tools/paquete/empaquetar.mjs           arma el paquete; se detiene si falta traducir algo
+//   node tools/paquete/empaquetar.mjs rama      lo sube a la rama «cnc» de GitHub (solo la CNC)
 //
 // El código fuente sigue en español (fablab.sebs.mx no cambia). Cada JSON de en/ es la lista de textos de
 // un archivo: { es, en, l } (l = la línea donde aparece por primera vez). en: null = no es texto, se queda
@@ -229,8 +230,31 @@ function sitio() {
   console.log(`sitio: ${path.relative(RAIZ, SITIO)} (CNC ${VERSION} en inglés)`);
 }
 
+// rama: el paquete como rama «cnc» de GitHub (sin historia de main), para clonarla sola en otra página:
+//   git clone -b cnc --single-branch https://github.com/…/fablab-tools
+// Solo trae el paquete, todo con rutas relativas. Se arma en dist/rama (un worktree de esa rama) y se sube.
+function rama() {
+  empaquetar({ conZip: false });
+  const RAMA = path.join(RAIZ, "dist", "rama");
+  const git = (args, cwd = RAIZ) => execFileSync("git", args, { cwd, encoding: "utf8" }).trim();
+  if (!fs.existsSync(path.join(RAMA, ".git"))) {
+    git(["worktree", "prune"]);
+    const existe = git(["ls-remote", "--heads", "origin", "cnc"]) !== "";
+    if (existe) { git(["fetch", "origin", "cnc"]); git(["worktree", "add", "-B", "cnc", RAMA, "origin/cnc"]); }
+    else git(["worktree", "add", "--orphan", "-b", "cnc", RAMA]);
+  }
+  for (const n of fs.readdirSync(RAMA)) if (n !== ".git") fs.rmSync(path.join(RAMA, n), { recursive: true, force: true });
+  fs.cpSync(DIST, RAMA, { recursive: true });
+  git(["add", "-A"], RAMA);
+  if (!git(["status", "--porcelain"], RAMA)) { console.log("rama cnc: sin cambios"); return; }
+  git(["commit", "-m", `Fab Lab CNC ${VERSION} (English)`], RAMA);
+  git(["push", "-u", "origin", "cnc"], RAMA);
+  console.log(`rama cnc: CNC ${VERSION} subida`);
+}
+
 if (process.argv[2] === "extraer") extraer();
 else if (process.argv[2] === "sitio") sitio();
+else if (process.argv[2] === "rama") rama();
 else if (process.argv[2] === "revisar") revisar(process.argv.slice(3));
 else if (process.argv[2] === "lista") console.log(archivosPaquete().join("\n"));
 else empaquetar();

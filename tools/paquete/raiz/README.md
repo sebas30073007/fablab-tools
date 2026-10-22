@@ -20,8 +20,12 @@ a 3D twin of the machine, a tutorial and an exam for students.
    (for example `https://your-site/programs/fablab-cnc/`). Keep the folder structure.
 2. Open `https://your-site/programs/fablab-cnc/` — it goes to the app (`cnc/`).
 
-Each version lives in its own folder, so a new version can be published next to the old one and the
-links you already shared keep working.
+Or clone it with git (the `cnc` branch holds only this app):
+
+    git clone -b cnc --single-branch https://github.com/sebas30073007/fablab-tools.git fablab-cnc
+
+Every path inside is relative, so the folder works under any URL. Each version lives in its own folder,
+so a new version can be published next to the old one and the links you already shared keep working.
 
 ## Run it on one computer
 
