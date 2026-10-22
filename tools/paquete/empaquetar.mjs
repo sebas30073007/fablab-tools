@@ -152,7 +152,7 @@ function traducir(f, codigo) {
   return { out, errores };
 }
 
-function empaquetar() {
+function empaquetar({ conZip = true } = {}) {
   const todos = archivosPaquete();
   const trad = new Set(traducibles(todos));
   // Se vacía (no se borra): un servidor de prueba puede tener la carpeta abierta
@@ -186,6 +186,7 @@ function empaquetar() {
   }
   if (errores.length) { console.error(errores.join("\n")); console.error(`\n${errores.length} problemas: no se armó el zip.`); process.exit(1); }
   for (const f of fs.readdirSync(path.join(AQUI, "raiz"))) escribir(f, fs.readFileSync(path.join(AQUI, "raiz", f), "utf8").replaceAll("{{VERSION}}", VERSION));
+  if (!conZip) return todos;
   const zip = path.join(RAIZ, "dist", `${NOMBRE}.zip`);
   fs.rmSync(zip, { force: true });
   // el tar de Windows (bsdtar) sabe hacer .zip; el de Git Bash no
@@ -205,7 +206,31 @@ function revisar(fs_) {
   console.log(n ? `${n} problemas` : "sin problemas");
 }
 
+// sitio: lo que publica GitHub Pages (dist/sitio/). Es web/ con la CNC del paquete en inglés: cnc/ y los videos
+// salen tal cual del paquete. Los módulos de shared/js que usa la CNC van traducidos en shared-en/js/ (la CNC los
+// importa de ahí) para que el láser, el visor 3D y el escáner sigan con los suyos en español.
+function sitio() {
+  const todos = empaquetar({ conZip: false });
+  const SITIO = path.join(RAIZ, "dist", "sitio");
+  fs.rmSync(SITIO, { recursive: true, force: true });
+  fs.cpSync(WEB, SITIO, { recursive: true, filter: (p) => !p.includes(`${path.sep}_prueba`) });
+  fs.rmSync(path.join(SITIO, "cnc"), { recursive: true, force: true });
+  for (const f of todos.filter((f) => f.startsWith("cnc/") || f.startsWith("videos/manos/"))) {
+    const d = path.join(SITIO, f);
+    fs.mkdirSync(path.dirname(d), { recursive: true });
+    if (f.startsWith("cnc/js/") && f.endsWith(".js")) fs.writeFileSync(d, fs.readFileSync(path.join(DIST, f), "utf8").replaceAll("../../shared/js/", "../../shared-en/js/"));
+    else fs.copyFileSync(path.join(DIST, f), d);
+  }
+  for (const f of todos.filter((f) => f.startsWith("shared/js/"))) {
+    const d = path.join(SITIO, f.replace("shared/js/", "shared-en/js/"));
+    fs.mkdirSync(path.dirname(d), { recursive: true });
+    fs.copyFileSync(path.join(DIST, f), d);
+  }
+  console.log(`sitio: ${path.relative(RAIZ, SITIO)} (CNC ${VERSION} en inglés)`);
+}
+
 if (process.argv[2] === "extraer") extraer();
+else if (process.argv[2] === "sitio") sitio();
 else if (process.argv[2] === "revisar") revisar(process.argv.slice(3));
 else if (process.argv[2] === "lista") console.log(archivosPaquete().join("\n"));
 else empaquetar();
