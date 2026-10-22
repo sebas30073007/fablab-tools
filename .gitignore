@@ -4,6 +4,12 @@ __pycache__/
 .env
 .DS_Store
 Thumbs.db
+# capturas USB y fotos de prueba del Pika
+tools/pika/*.pcap
+tools/pika/*.tsv
+tools/pika/*.png
+tools/pika/recorte/
+
 # escaneos de prueba (pesados) para el Visor 3D
 web/_prueba/
 
