@@ -1,0 +1,62 @@
+[
+ {
+  "es": "(prefers-reduced-motion: reduce)",
+  "en": null,
+  "l": 13
+ },
+ {
+  "es": "</span>\n        <button type=\"button\" class=\"btn-icono\" data-cerrar aria-label=\"Cerrar\">",
+  "en": "</span>\n        <button type=\"button\" class=\"btn-icono\" data-cerrar aria-label=\"Close\">",
+  "l": 51
+ },
+ {
+  "es": "Tab",
+  "en": null,
+  "l": 81
+ },
+ {
+  "es": "\">\n      <header class=\"dlg__cab\">\n        <button type=\"button\" class=\"btn-atras\" data-atras hidden aria-label=\"Regresar\">",
+  "en": "\">\n      <header class=\"dlg__cab\">\n        <button type=\"button\" class=\"btn-atras\" data-atras hidden aria-label=\"Back\">",
+  "l": 111
+ },
+ {
+  "es": "\" tabindex=\"-1\"></h2><span class=\"dlg__meta\" data-meta></span>\n        <span class=\"dlg__acc\"><span data-extra></span><button type=\"button\" class=\"btn-icono\" data-cerrar aria-label=\"Cerrar\">",
+  "en": "\" tabindex=\"-1\"></h2><span class=\"dlg__meta\" data-meta></span>\n        <span class=\"dlg__acc\"><span data-extra></span><button type=\"button\" class=\"btn-icono\" data-cerrar aria-label=\"Close\">",
+  "l": 114
+ },
+ {
+  "es": "</div>\n        <h3 class=\"asis__tit\" tabindex=\"-1\"></h3>\n        <div class=\"asis__cuerpo pila\"></div>\n        <div class=\"hoja__pie\">\n          <button type=\"button\" class=\"btn-texto\" data-atras>Atrás</button>\n          <button type=\"button\" class=\"btn-pill btn-pill--main btn-pill--ancho\" data-sig>Siguiente</button>\n        </div>",
+  "en": "</div>\n        <h3 class=\"asis__tit\" tabindex=\"-1\"></h3>\n        <div class=\"asis__cuerpo pila\"></div>\n        <div class=\"hoja__pie\">\n          <button type=\"button\" class=\"btn-texto\" data-atras>Back</button>\n          <button type=\"button\" class=\"btn-pill btn-pill--main btn-pill--ancho\" data-sig>Next</button>\n        </div>",
+  "l": 165
+ },
+ {
+  "es": "Listo",
+  "en": "Done",
+  "l": 181
+ },
+ {
+  "es": "Siguiente",
+  "en": "Next",
+  "l": 181
+ },
+ {
+  "es": "Continuar",
+  "en": "Continue",
+  "l": 208
+ },
+ {
+  "es": "Cancelar",
+  "en": "Cancel",
+  "l": 208
+ },
+ {
+  "es": "XYZ",
+  "en": null,
+  "l": 231
+ },
+ {
+  "es": "\n      </div>\n      <div class=\"seg seg--mono\" role=\"radiogroup\" aria-label=\"Paso en mm\">\n        ",
+  "en": "\n      </div>\n      <div class=\"seg seg--mono\" role=\"radiogroup\" aria-label=\"Step in mm\">\n        ",
+  "l": 239
+ }
+]

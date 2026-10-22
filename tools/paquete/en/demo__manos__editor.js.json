@@ -1,0 +1,122 @@
+[
+ {
+  "es": "Pulgar",
+  "en": "Thumb",
+  "l": 15
+ },
+ {
+  "es": "Índice",
+  "en": "Index",
+  "l": 16
+ },
+ {
+  "es": "Medio",
+  "en": "Middle",
+  "l": 16
+ },
+ {
+  "es": "Anular",
+  "en": "Ring",
+  "l": 16
+ },
+ {
+  "es": "Meñique",
+  "en": "Pinky",
+  "l": 16
+ },
+ {
+  "es": "\n    <h2>Editor de manos <button data-a=\"camara\" title=\"Volver a la cámara del clip\">Cámara del clip</button></h2>\n    <div class=\"fila\"><button data-mano=\"der\">Derecha</button><button data-mano=\"izq\">Izquierda</button><button data-a=\"quitarMano\">Quitar mano</button></div>\n    <div class=\"fila\"><button data-a=\"previo\" title=\"Cuadro anterior (←)\">◀</button><button data-a=\"agregar\" title=\"Agregar cuadro aquí (K)\">+ Cuadro aquí</button>\n      <button data-a=\"siguiente\" title=\"Cuadro siguiente (→)\">▶</button><button data-a=\"borrar\" title=\"Borrar cuadro (Supr)\">Borrar</button></div>\n    <div class=\"fila\" data-zona=\"cuadro\"><label>Tiempo <input type=\"number\" step=\"0.1\" min=\"0\" data-c=\"t\"></label>\n      <label>Sigue a <select data-c=\"sigue\"></select></label></div>\n    <div class=\"fila\" data-zona=\"cuadro\"><button data-modo=\"translate\" title=\"W\">Mover</button><button data-modo=\"rotate\" title=\"E\">Girar</button>\n      <label>Pose <select data-c=\"pose\"><option value=\"\">—</option>",
+  "en": "\n    <h2>Hand editor <button data-a=\"camara\" title=\"Back to the clip camera\">Clip camera</button></h2>\n    <div class=\"fila\"><button data-mano=\"der\">Right</button><button data-mano=\"izq\">Left</button><button data-a=\"quitarMano\">Remove hand</button></div>\n    <div class=\"fila\"><button data-a=\"previo\" title=\"Previous keyframe (←)\">◀</button><button data-a=\"agregar\" title=\"Add keyframe here (K)\">+ Keyframe here</button>\n      <button data-a=\"siguiente\" title=\"Next keyframe (→)\">▶</button><button data-a=\"borrar\" title=\"Delete keyframe (Del)\">Delete</button></div>\n    <div class=\"fila\" data-zona=\"cuadro\"><label>Time <input type=\"number\" step=\"0.1\" min=\"0\" data-c=\"t\"></label>\n      <label>Follows <select data-c=\"sigue\"></select></label></div>\n    <div class=\"fila\" data-zona=\"cuadro\"><button data-modo=\"translate\" title=\"W\">Move</button><button data-modo=\"rotate\" title=\"E\">Rotate</button>\n      <label>Pose <select data-c=\"pose\"><option value=\"\">—</option>",
+  "l": 83
+ },
+ {
+  "es": "</select></label></div>\n    <div data-zona=\"cuadro\" data-dedos></div>\n    <div class=\"fila\"><button data-a=\"archivo\">Guardar archivo</button><button data-a=\"copiar\">Copiar</button><button data-a=\"descartar\">Descartar este clip</button></div>\n    <p class=\"nota\" data-estado>Elige un cuadro en las pistas de abajo o agrega uno.</p>",
+  "en": "</select></label></div>\n    <div data-zona=\"cuadro\" data-dedos></div>\n    <div class=\"fila\"><button data-a=\"archivo\">Save file</button><button data-a=\"copiar\">Copy</button><button data-a=\"descartar\">Discard this clip</button></div>\n    <p class=\"nota\" data-estado>Pick a keyframe in the tracks below or add one.</p>",
+  "l": 91
+ },
+ {
+  "es": "<div class=\"grupo\"><b>Separación</b><span>abrir</span><input type=\"range\" min=\"-10\" max=\"20\" step=\"0.5\" data-d=\"abrir\"><output></output></div>",
+  "en": "<div class=\"grupo\"><b>Spread</b><span>open</span><input type=\"range\" min=\"-10\" max=\"20\" step=\"0.5\" data-d=\"abrir\"><output></output></div>",
+  "l": 107
+ },
+ {
+  "es": "YXZ",
+  "en": null,
+  "l": 151
+ },
+ {
+  "es": "Guardado en este navegador. «Guardar archivo» para dejarlo fijo.",
+  "en": "Saved in this browser. “Save file” to make it permanent.",
+  "l": 200
+ },
+ {
+  "es": "No se pudo guardar el borrador en este navegador.",
+  "en": "Couldn’t save the draft in this browser.",
+  "l": 201
+ },
+ {
+  "es": "poses.json",
+  "en": null,
+  "l": 205
+ },
+ {
+  "es": "Descargado poses.json: pásamelo (o ponlo junto a index.html) para dejarlo fijo.",
+  "en": "Downloaded poses.json: send it to me (or put it next to index.html) to make it permanent.",
+  "l": 232
+ },
+ {
+  "es": "Copiado.",
+  "en": "Copied.",
+  "l": 234
+ },
+ {
+  "es": "input, select",
+  "en": null,
+  "l": 267
+ },
+ {
+  "es": "Delete",
+  "en": null,
+  "l": 271
+ },
+ {
+  "es": "ArrowRight",
+  "en": null,
+  "l": 272
+ },
+ {
+  "es": "ArrowLeft",
+  "en": null,
+  "l": 273
+ },
+ {
+  "es": "Derecha",
+  "en": "Right",
+  "l": 284
+ },
+ {
+  "es": "Izquierda",
+  "en": "Left",
+  "l": 284
+ },
+ {
+  "es": "Cuadro editado: se reproduce tal cual.",
+  "en": "Edited keyframe: plays back as is.",
+  "l": 298
+ },
+ {
+  "es": "Cuadro automático: al moverlo o doblar un dedo pasa a ser tuyo.",
+  "en": "Automatic keyframe: move it or bend a finger and it becomes yours.",
+  "l": 298
+ },
+ {
+  "es": "Der",
+  "en": "R",
+  "l": 304
+ },
+ {
+  "es": "Izq",
+  "en": "L",
+  "l": 304
+ }
+]

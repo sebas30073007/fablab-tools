@@ -10,6 +10,7 @@ import { esc, ico, mm, ls, miniJog, descargar, dialogo } from "./ui.js";
 import { aPNG, vista } from "./raster.js";
 import { anchoV, anchoAislado, igualHerr } from "./cam.js";
 import { MATERIALES } from "./materiales.js";
+import { VERSION } from "./version.js";
 import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, atraviesa, revisarRango, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun, dibujosGrabado, dibujosVaciado } from "./herramientas.js";
 
 const chev = ico("chev");
@@ -179,7 +180,8 @@ function inicio(pag, app) {
           <span class="w-sec__t">Curso básico de CNC${ls.get("examenAprobado", null) ? " · aprobado" : ""}</span>
           <span class="w-sec__acc">${btn("tutorial", "Tutorial")}${btn("examen", "Examen", { terc: true })}</span>
         </div>` : ""}
-      </nav>`;
+      </nav>
+      <p class="firma">Fab Lab CNC v${VERSION} · © 2026 <a href="https://sebs.mx" target="_blank" rel="noopener">Sebastián Méndez</a></p>`;
     cablear(pag, {
       __irA: app.irA,
       conectar: () => acc.conectar("real"), sim: () => acc.conectar("sim"), homing: acc.homing, desbloquear: acc.desbloquear,
@@ -496,7 +498,7 @@ function ampliarPrevia(app, { irInicio = false } = {}) {
           const [[ax, ay], [bx, by]] = pts, dx = Math.abs(bx - ax) / r.s, dy = Math.abs(by - ay) / r.s;
           dato.textContent = `${largo(Math.hypot(dx, dy))} · ΔX ${largo(dx)} · ΔY ${largo(dy)}`;
         } else dato.textContent = regla.length ? "Clic en el segundo punto" : "Clic en el primer punto";
-      } else if (modo === "zonas") dato.textContent = calculando ? "Calculando…" : S.zonas.length ? `${S.zonas.length} ${S.zonas.length === 1 ? "zona" : "zonas"} · toca una para quitarla${S.avisosGen.some((t) => t.startsWith("Las zonas")) ? " · solo hay cobre del diseño" : ""}` : "Arrastra un rectángulo donde no quieres cobre";
+      } else if (modo === "zonas") dato.textContent = calculando ? "Calculando…" : S.zonas.length ? `${S.zonas.length} ${S.zonas.length === 1 ? "zona" : "zonas"} · toca una para quitarla${S.zonasVacias ? " · solo hay cobre del diseño" : ""}` : "Arrastra un rectángulo donde no quieres cobre";
       else dato.textContent = "";
       borrarZonas.hidden = modo !== "zonas" || !S.zonas.length;
     };

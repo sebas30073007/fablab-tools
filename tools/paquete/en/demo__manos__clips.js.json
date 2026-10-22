@@ -1,0 +1,537 @@
+[
+ {
+  "es": "Enciende",
+  "en": "Power on",
+  "l": 197
+ },
+ {
+  "es": "Máquina",
+  "en": "Machine",
+  "l": 197
+ },
+ {
+  "es": "Revisa que la corriente esté conectada, atrás a la derecha",
+  "en": "Check the power cord is plugged in, back right",
+  "l": 203
+ },
+ {
+  "es": "El botón ON/OFF está en el costado derecho",
+  "en": "The ON/OFF button is on the right side",
+  "l": 203
+ },
+ {
+  "es": "Presiónalo una vez",
+  "en": "Press it once",
+  "l": 203
+ },
+ {
+  "es": "El rojo es el paro de emergencia",
+  "en": "The red one is the emergency stop",
+  "l": 203
+ },
+ {
+  "es": "Al frente se encienden la franja y la pantalla",
+  "en": "The light strip and screen turn on in front",
+  "l": 203
+ },
+ {
+  "es": "Conecta el USB",
+  "en": "Plug in the USB",
+  "l": 208
+ },
+ {
+  "es": "El USB entra atrás, en el costado derecho",
+  "en": "The USB goes in the back, on the right side",
+  "l": 211
+ },
+ {
+  "es": "La clavija cuadrada entra en un solo sentido",
+  "en": "The square plug only fits one way",
+  "l": 211
+ },
+ {
+  "es": "Empújala hasta el fondo",
+  "en": "Push it all the way in",
+  "l": 211
+ },
+ {
+  "es": "Listo: ahora conéctate desde la app",
+  "en": "Done: now connect from the app",
+  "l": 211
+ },
+ {
+  "es": "Quita la tapa",
+  "en": "Remove the lid",
+  "l": 230
+ },
+ {
+  "es": "Tapa",
+  "en": "Lid",
+  "l": 230
+ },
+ {
+  "es": "Toma la tapa de los costados",
+  "en": "Hold the lid by its sides",
+  "l": 233
+ },
+ {
+  "es": "Levántala derecho hacia arriba",
+  "en": "Lift it straight up",
+  "l": 233
+ },
+ {
+  "es": "Déjala a un lado, sobre la mesa",
+  "en": "Set it aside on the table",
+  "l": 233
+ },
+ {
+  "es": "Sin tapa la máquina se mueve y hace homing, pero el husillo no enciende",
+  "en": "Without the lid the machine moves and homes, but the spindle won’t start",
+  "l": 233
+ },
+ {
+  "es": "Pon la placa",
+  "en": "Place the board",
+  "l": 239
+ },
+ {
+  "es": "Placa",
+  "en": "Board",
+  "l": 239
+ },
+ {
+  "es": "Tómala de las orillas, con el cobre hacia arriba",
+  "en": "Hold it by the edges, copper side up",
+  "l": 242
+ },
+ {
+  "es": "Ponla al centro de la cama",
+  "en": "Put it in the middle of the bed",
+  "l": 242
+ },
+ {
+  "es": "Plana: que no quede nada debajo",
+  "en": "Flat: nothing underneath",
+  "l": 242
+ },
+ {
+  "es": "Sujeta la placa",
+  "en": "Clamp the board",
+  "l": 252
+ },
+ {
+  "es": "El tornillo va flojo en su rosca",
+  "en": "The screw sits loose in its hole",
+  "l": 257
+ },
+ {
+  "es": "Desliza el sujetador: la lengüeta sobre la orilla de la placa",
+  "en": "Slide the clamp: its lip over the board’s edge",
+  "l": 257
+ },
+ {
+  "es": "Aprieta con la llave Allen de 3 mm",
+  "en": "Tighten with the 3 mm Allen key",
+  "l": 257
+ },
+ {
+  "es": "Firme, sin forzar: la placa no debe moverse",
+  "en": "Snug, not forced: the board must not move",
+  "l": 257
+ },
+ {
+  "es": "Haz lo mismo con el otro sujetador",
+  "en": "Do the same with the other clamp",
+  "l": 257
+ },
+ {
+  "es": "Las herramientas",
+  "en": "The bits",
+  "l": 279
+ },
+ {
+  "es": "Herramienta",
+  "en": "Tool",
+  "l": 279
+ },
+ {
+  "es": "Punta en V: graba las pistas",
+  "en": "V-bit: engraves the traces",
+  "l": 283
+ },
+ {
+  "es": "Maíz: corta el contorno de la placa",
+  "en": "Corncob bit: cuts the board outline",
+  "l": 283
+ },
+ {
+  "es": "Broca: hace los hoyos",
+  "en": "Drill bit: makes the holes",
+  "l": 283
+ },
+ {
+  "es": "Fíjate en la punta para saber cuál está puesta",
+  "en": "Look at the tip to tell which one is in",
+  "l": 283
+ },
+ {
+  "es": "Pon la fresa en V",
+  "en": "Put in the V-bit",
+  "l": 296
+ },
+ {
+  "es": "Cambio de herramienta: aquí, de la broca a la V",
+  "en": "Tool change: here, drill bit to V-bit",
+  "l": 299
+ },
+ {
+  "es": "Una llave de 13 sostiene la pinza por sus caras planas",
+  "en": "A 13 mm wrench holds the collet by its flats",
+  "l": 299
+ },
+ {
+  "es": "Con la otra, afloja la tuerca",
+  "en": "With the other, loosen the nut",
+  "l": 299
+ },
+ {
+  "es": "Termina a mano y sostén la fresa: al aflojar se cae",
+  "en": "Finish by hand and hold the bit: it drops out",
+  "l": 299
+ },
+ {
+  "es": "Mete la nueva: que asome lo mismo que la anterior",
+  "en": "Insert the new one: same length sticking out",
+  "l": 300
+ },
+ {
+  "es": "Aprieta la tuerca a mano",
+  "en": "Tighten the nut by hand",
+  "l": 300
+ },
+ {
+  "es": "Y firme con las dos llaves",
+  "en": "Then snug with both wrenches",
+  "l": 300
+ },
+ {
+  "es": "Cambiaste la fresa: calibra Z otra vez",
+  "en": "New bit: probe Z again",
+  "l": 300
+ },
+ {
+  "es": "Homing",
+  "en": "Homing",
+  "l": 322
+ },
+ {
+  "es": "En la app, pulsa Homing",
+  "en": "In the app, press Homing",
+  "l": 325
+ },
+ {
+  "es": "Primero Z: sube hasta su tope",
+  "en": "Z first: up to its limit",
+  "l": 325
+ },
+ {
+  "es": "Se aleja un poco y vuelve a tocar, más despacio",
+  "en": "It backs off and touches again, slower",
+  "l": 325
+ },
+ {
+  "es": "Luego X y Y juntos, igual: dos toques",
+  "en": "Then X and Y together: two touches",
+  "l": 325
+ },
+ {
+  "es": "Listo: ya sabe dónde está. Manos fuera mientras se mueve",
+  "en": "Done: it knows where it is. Hands off while it moves",
+  "l": 326
+ },
+ {
+  "es": "En Mover, lleva la fresa a la esquina de adelante a la izquierda",
+  "en": "In Jog, move the bit to the front left corner",
+  "l": 357
+ },
+ {
+  "es": "Pasos de 10 mm para llegar",
+  "en": "10 mm steps to get there",
+  "l": 357
+ },
+ {
+  "es": "Baja Z con cuidado: pasos de 1 mm cerca de la placa",
+  "en": "Lower Z carefully: 1 mm steps near the board",
+  "l": 357
+ },
+ {
+  "es": "Afina hasta que quede justo sobre la esquina, sin tocar",
+  "en": "Fine-tune until it’s right over the corner, not touching",
+  "l": 357
+ },
+ {
+  "es": "Pulsa Fijar X0 Y0",
+  "en": "Press Set X0 Y0",
+  "l": 357
+ },
+ {
+  "es": "Conecta la sonda",
+  "en": "Connect the probe",
+  "l": 368
+ },
+ {
+  "es": "El conector blanco va en «Leveling», arriba a la derecha por dentro",
+  "en": "The white plug goes in “Leveling”, inside, top right",
+  "l": 373
+ },
+ {
+  "es": "La horquilla roja, bajo el tornillo del sujetador de adelante",
+  "en": "The red fork goes under the front clamp’s screw",
+  "l": 373
+ },
+ {
+  "es": "El sujetador toca el cobre: así la placa queda conectada",
+  "en": "The clamp touches the copper: that connects the board",
+  "l": 373
+ },
+ {
+  "es": "El caimán muerde la fresa, en el vástago",
+  "en": "The alligator clip bites the bit’s shank",
+  "l": 374
+ },
+ {
+  "es": "Suéltalo con cuidado: la fresa es frágil",
+  "en": "Let go gently: the bit is fragile",
+  "l": 374
+ },
+ {
+  "es": "Toca la placa",
+  "en": "Touch the board",
+  "l": 410
+ },
+ {
+  "es": "En el asistente, pulsa Bajar y tocar",
+  "en": "In the wizard, press Lower and touch",
+  "l": 413
+ },
+ {
+  "es": "La fresa baja despacio hasta el cobre…",
+  "en": "The bit slowly lowers to the copper…",
+  "l": 413
+ },
+ {
+  "es": "Contacto: la app lo marca y ahí queda Z0",
+  "en": "Contact: the app marks it and Z0 is set there",
+  "l": 413
+ },
+ {
+  "es": "Sube un poco y queda lista para el mapa",
+  "en": "It rises a bit, ready for the map",
+  "l": 413
+ },
+ {
+  "es": "Mapa de alturas",
+  "en": "Height map",
+  "l": 435
+ },
+ {
+  "es": "Deja el caimán puesto",
+  "en": "Leave the alligator clip on",
+  "l": 438
+ },
+ {
+  "es": "La fresa toca cada punto de la rejilla",
+  "en": "The bit touches each grid point",
+  "l": 438
+ },
+ {
+  "es": "Con esos puntos la app corrige Z mientras fresa",
+  "en": "With those points the app corrects Z while milling",
+  "l": 438
+ },
+ {
+  "es": "Mapa listo",
+  "en": "Map ready",
+  "l": 438
+ },
+ {
+  "es": "Quita la sonda",
+  "en": "Remove the probe",
+  "l": 451
+ },
+ {
+  "es": "Mapa listo: quita la sonda antes de fresar",
+  "en": "Map ready: remove the probe before milling",
+  "l": 455
+ },
+ {
+  "es": "Suelta el caimán de la fresa",
+  "en": "Unclip the alligator clip from the bit",
+  "l": 455
+ },
+ {
+  "es": "Afloja el tornillo y saca la horquilla",
+  "en": "Loosen the screw and pull out the fork",
+  "l": 455
+ },
+ {
+  "es": "Desconecta el conector de «Leveling»",
+  "en": "Unplug the “Leveling” connector",
+  "l": 456
+ },
+ {
+  "es": "Y llévate el cable: no debe quedar nada sobre la cama",
+  "en": "Take the cable away: nothing left on the bed",
+  "l": 456
+ },
+ {
+  "es": "Pon la tapa",
+  "en": "Put the lid on",
+  "l": 490
+ },
+ {
+  "es": "Llévala sobre la máquina",
+  "en": "Bring it over the machine",
+  "l": 493
+ },
+ {
+  "es": "Bájala derecho hasta que asiente",
+  "en": "Lower it straight until it sits",
+  "l": 493
+ },
+ {
+  "es": "Con la tapa puesta, el husillo ya puede encender",
+  "en": "With the lid on, the spindle can start",
+  "l": 493
+ },
+ {
+  "es": "Prueba en aire y fresa",
+  "en": "Air test and mill",
+  "l": 498
+ },
+ {
+  "es": "Fresar",
+  "en": "Mill",
+  "l": 498
+ },
+ {
+  "es": "Con la tapa puesta, primero la prueba en aire",
+  "en": "Lid on, do the air test first",
+  "l": 503
+ },
+ {
+  "es": "El mismo recorrido 5 mm arriba: revisa que quede dentro de la placa",
+  "en": "Same path 5 mm up: check it stays on the board",
+  "l": 503
+ },
+ {
+  "es": "Luego Fresar: la V corta el cobre",
+  "en": "Then Mill: the V-bit cuts the copper",
+  "l": 503
+ },
+ {
+  "es": "Gafas puestas y la mano cerca del PARO",
+  "en": "Glasses on, hand near the STOP",
+  "l": 503
+ },
+ {
+  "es": "No abras la tapa mientras corta",
+  "en": "Don’t open the lid while it cuts",
+  "l": 504
+ },
+ {
+  "es": "Al acabar las pistas, la app te pide la broca",
+  "en": "After the traces, the app asks for the drill bit",
+  "l": 504
+ },
+ {
+  "es": "Paro de emergencia",
+  "en": "Emergency stop",
+  "l": 523
+ },
+ {
+  "es": "Si algo suena raro o se mueve la placa: PARO",
+  "en": "Odd noise or the board moves: STOP",
+  "l": 526
+ },
+ {
+  "es": "El botón rojo, o Esc en la app",
+  "en": "The red button, or Esc in the app",
+  "l": 526
+ },
+ {
+  "es": "Se detienen la fresa y el movimiento",
+  "en": "The bit and all motion stop",
+  "l": 526
+ },
+ {
+  "es": "Antes de seguir, revisa en la app qué pasó",
+  "en": "Before going on, check the app for what happened",
+  "l": 526
+ },
+ {
+  "es": "Aspira el polvo",
+  "en": "Vacuum the dust",
+  "l": 540
+ },
+ {
+  "es": "Al terminar",
+  "en": "When done",
+  "l": 540
+ },
+ {
+  "es": "Al terminar, quita la tapa y aspira el polvo",
+  "en": "When done, remove the lid and vacuum the dust",
+  "l": 543
+ },
+ {
+  "es": "Pasa la boquilla cerca, sin tocar la placa",
+  "en": "Keep the nozzle close, not touching the board",
+  "l": 543
+ },
+ {
+  "es": "Así ves bien las pistas y no respiras el polvo",
+  "en": "You see the traces and don’t breathe the dust",
+  "l": 543
+ },
+ {
+  "es": "Saca la placa",
+  "en": "Remove the board",
+  "l": 558
+ },
+ {
+  "es": "Afloja los dos sujetadores con la llave Allen",
+  "en": "Loosen both clamps with the Allen key",
+  "l": 562
+ },
+ {
+  "es": "Retíralos de la orilla",
+  "en": "Move them off the edge",
+  "l": 562
+ },
+ {
+  "es": "Desliza la placa un poco hacia ti",
+  "en": "Slide the board a bit toward you",
+  "l": 562
+ },
+ {
+  "es": "Tómala de las orillas y sácala",
+  "en": "Hold it by the edges and lift it out",
+  "l": 562
+ },
+ {
+  "es": "Apaga",
+  "en": "Power off",
+  "l": 592
+ },
+ {
+  "es": "Para apagar, el mismo botón ON/OFF",
+  "en": "To power off, the same ON/OFF button",
+  "l": 596
+ },
+ {
+  "es": "Se apagan la franja, la pantalla y la luz",
+  "en": "The strip, screen and light turn off",
+  "l": 596
+ }
+]

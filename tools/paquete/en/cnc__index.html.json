@@ -1,0 +1,112 @@
+[
+ {
+  "es": "CNC · Fab Lab",
+  "en": "CNC · Fab Lab",
+  "l": 6
+ },
+ {
+  "es": "Control de la CNC Genmitsu Cubiko desde el navegador: de los Gerber de KiCad a la placa fresada, con calibración guiada y gemelo 3D.",
+  "en": "Control the Genmitsu Cubiko CNC from your browser: from KiCad Gerbers to a milled board, with guided calibration and a 3D twin.",
+  "l": 7
+ },
+ {
+  "es": "Barra superior",
+  "en": "Top bar",
+  "l": 29
+ },
+ {
+  "es": "Fab Lab: volver al catálogo",
+  "en": "Fab Lab: back to the catalog",
+  "l": 30
+ },
+ {
+  "es": "Fab Lab",
+  "en": "Fab Lab",
+  "l": 32
+ },
+ {
+  "es": "CNC",
+  "en": "CNC",
+  "l": 35
+ },
+ {
+  "es": "Tutorial",
+  "en": "Tutorial",
+  "l": 36
+ },
+ {
+  "es": "Esc",
+  "en": "Esc",
+  "l": 37
+ },
+ {
+  "es": "PARO",
+  "en": "STOP",
+  "l": 37
+ },
+ {
+  "es": "Gemelo 3D de la máquina",
+  "en": "3D twin of the machine",
+  "l": 41
+ },
+ {
+  "es": "Contacto",
+  "en": "Contact",
+  "l": 46
+ },
+ {
+  "es": "Vista",
+  "en": "View",
+  "l": 48
+ },
+ {
+  "es": "Arriba",
+  "en": "Top",
+  "l": 50
+ },
+ {
+  "es": "Frente",
+  "en": "Front",
+  "l": 51
+ },
+ {
+  "es": "Agrandar vista 3D",
+  "en": "Enlarge 3D view",
+  "l": 53
+ },
+ {
+  "es": "Suelta los Gerber, el .drl o el .nc",
+  "en": "Drop the Gerbers, the .drl or the .nc",
+  "l": 54
+ },
+ {
+  "es": "Controles",
+  "en": "Controls",
+  "l": 58
+ },
+ {
+  "es": "Secciones",
+  "en": "Sections",
+  "l": 60
+ },
+ {
+  "es": "Inicio",
+  "en": "Home",
+  "l": 62
+ },
+ {
+  "es": "Mover",
+  "en": "Jog",
+  "l": 63
+ },
+ {
+  "es": "Consola",
+  "en": "Console",
+  "l": 64
+ },
+ {
+  "es": "Acciones rápidas",
+  "en": "Quick actions",
+  "l": 66
+ }
+]

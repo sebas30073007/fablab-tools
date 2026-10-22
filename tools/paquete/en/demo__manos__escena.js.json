@@ -1,0 +1,82 @@
+[
+ {
+  "es": "mesa de trabajo",
+  "en": null,
+  "l": 34
+ },
+ {
+  "es": "máquina",
+  "en": null,
+  "l": 41
+ },
+ {
+  "es": "sujetador izq.",
+  "en": null,
+  "l": 95
+ },
+ {
+  "es": "sujetador der.",
+  "en": null,
+  "l": 95
+ },
+ {
+  "es": "caimán",
+  "en": null,
+  "l": 102
+ },
+ {
+  "es": "llave Allen",
+  "en": null,
+  "l": 105
+ },
+ {
+  "es": "llave fija ",
+  "en": null,
+  "l": 106
+ },
+ {
+  "es": "clavija USB",
+  "en": null,
+  "l": 107
+ },
+ {
+  "es": "herramienta suelta",
+  "en": null,
+  "l": 110
+ },
+ {
+  "es": "Punta en V",
+  "en": "V-bit",
+  "l": 114
+ },
+ {
+  "es": "Maíz",
+  "en": "Corncob bit",
+  "l": 114
+ },
+ {
+  "es": "Broca",
+  "en": "Drill bit",
+  "l": 114
+ },
+ {
+  "es": "700 34px Manrope, sans-serif",
+  "en": null,
+  "l": 118
+ },
+ {
+  "es": "clavija de corriente",
+  "en": null,
+  "l": 171
+ },
+ {
+  "es": "off",
+  "en": null,
+  "l": 185
+ },
+ {
+  "es": "PlaneGeometry",
+  "en": null,
+  "l": 216
+ }
+]

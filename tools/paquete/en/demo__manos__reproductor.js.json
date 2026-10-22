@@ -1,0 +1,87 @@
+[
+ {
+  "es": "poses.json",
+  "en": null,
+  "l": 45
+ },
+ {
+  "es": " · ",
+  "en": " · ",
+  "l": 200
+ },
+ {
+  "es": "video/webm;codecs=vp9",
+  "en": null,
+  "l": 214
+ },
+ {
+  "es": "Grabar",
+  "en": "Record",
+  "l": 219
+ },
+ {
+  "es": "Grabando…",
+  "en": "Recording…",
+  "l": 222
+ },
+ {
+  "es": "px Manrope, sans-serif",
+  "en": null,
+  "l": 228
+ },
+ {
+  "es": "700 14px 'IBM Plex Mono', monospace",
+  "en": null,
+  "l": 255
+ },
+ {
+  "es": "margin:0;background:#fff;display:block",
+  "en": null,
+  "l": 258
+ },
+ {
+  "es": "display:block;width:100%",
+  "en": null,
+  "l": 259
+ },
+ {
+  "es": "hoja lista",
+  "en": null,
+  "l": 261
+ },
+ {
+  "es": "POST",
+  "en": null,
+  "l": 285
+ },
+ {
+  "es": "grabación lista",
+  "en": null,
+  "l": 293
+ },
+ {
+  "es": "BoxGeometry",
+  "en": null,
+  "l": 301
+ },
+ {
+  "es": " · azul: pulgar · rojo: yema del índice",
+  "en": " · blue: thumb · red: index fingertip",
+  "l": 312
+ },
+ {
+  "es": "Geometry",
+  "en": null,
+  "l": 318
+ },
+ {
+  "es": "fluidez lista",
+  "en": null,
+  "l": 380
+ },
+ {
+  "es": "prueba lista",
+  "en": null,
+  "l": 400
+ }
+]

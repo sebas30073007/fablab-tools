@@ -1,0 +1,32 @@
+[
+ {
+  "es": "El SVG no se pudo leer",
+  "en": "The SVG couldn’t be read",
+  "l": 148
+ },
+ {
+  "es": "El SVG no dice su tamaño: se leyó a 96 px por pulgada",
+  "en": "The SVG doesn’t state its size: read at 96 px per inch",
+  "l": 156
+ },
+ {
+  "es": "texto no se corta",
+  "en": "text isn’t cut",
+  "l": 227
+ },
+ {
+  "es": "textos no se cortan",
+  "en": "texts aren’t cut",
+  "l": 227
+ },
+ {
+  "es": ": conviértelos a trayectos en tu programa de dibujo",
+  "en": ": convert them to paths in your drawing program",
+  "l": 227
+ },
+ {
+  "es": "El SVG no tiene líneas que cortar",
+  "en": "The SVG has no lines to cut",
+  "l": 228
+ }
+]

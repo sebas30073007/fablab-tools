@@ -1,0 +1,42 @@
+[
+ {
+  "es": "Un lazo no cerraba por ",
+  "en": "A loop was open by ",
+  "l": 127
+ },
+ {
+  "es": " mm: se cerró",
+  "en": " mm: it was closed",
+  "l": 127
+ },
+ {
+  "es": "No se usa la capa ",
+  "en": "Layer not used: ",
+  "l": 145
+ },
+ {
+  "es": "1 línea abierta va a Grabado: no encierra ninguna pieza",
+  "en": "1 open line goes to Engraving: it doesn’t enclose any part",
+  "l": 147
+ },
+ {
+  "es": " líneas abiertas van a Grabado: no encierran ninguna pieza",
+  "en": " open lines go to Engraving: they don’t enclose any part",
+  "l": 147
+ },
+ {
+  "es": "línea abierta",
+  "en": "open line",
+  "l": 148
+ },
+ {
+  "es": "líneas abiertas",
+  "en": "open lines",
+  "l": 148
+ },
+ {
+  "es": " de vaciado no cierran y no se vacían",
+  "en": " in Pocket: not closed, so not pocketed",
+  "l": 148
+ }
+]

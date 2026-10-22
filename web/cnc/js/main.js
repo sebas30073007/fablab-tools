@@ -496,7 +496,8 @@ async function generar() {
       // Zonas sin cobre: la misma fresa y profundidad, después del aislamiento
       const zonas = S.zonas.filter((z) => z.x1 - z.x0 > P.pistas.diam && z.y1 - z.y0 > P.pistas.diam);
       const limpieza = cam.trayectoriasLimpieza(img, zonas, m, P.pistas, P.comun, origen);
-      if (zonas.length && !limpieza.length) S.avisosGen.push("Las zonas sin cobre solo tienen cobre del diseño (pistas o relleno): no hay nada que quitar.");
+      S.zonasVacias = zonas.length > 0 && !limpieza.length;
+      if (S.zonasVacias) S.avisosGen.push("Las zonas sin cobre solo tienen cobre del diseño (pistas o relleno): no hay nada que quitar.");
       paths.push(...limpieza);
       nuevos.push({ id: "pistas", origen: "cam", nombre: "Pistas", herramienta: `V ${P.pistas.angulo}° punta ${P.pistas.punta} · corte ${P.pistas.diam} mm`, lineas: cam.gcodePistas(paths, P.pistas, P.comun, zonas.length) });
     }

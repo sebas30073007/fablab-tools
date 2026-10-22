@@ -1,0 +1,422 @@
+[
+ {
+  "es": "Final de carrera tocado",
+  "en": "Limit switch hit",
+  "l": 5
+ },
+ {
+  "es": "El pitido: un eje llegó al interruptor del extremo. La posición ya no es confiable.",
+  "en": "The beep: an axis reached the end switch. The position can’t be trusted anymore.",
+  "l": 5
+ },
+ {
+  "es": "Desbloquea",
+  "en": "Unlock",
+  "l": 6
+ },
+ {
+  "es": "Aleja el eje del extremo con pasos de 1 mm",
+  "en": "Move the axis away from the end in 1 mm steps",
+  "l": 6
+ },
+ {
+  "es": "Haz homing antes de volver a trabajar",
+  "en": "Run homing before working again",
+  "l": 6
+ },
+ {
+  "es": "Movimiento fuera del área",
+  "en": "Move outside the work area",
+  "l": 7
+ },
+ {
+  "es": "Se pidió ir más allá del recorrido de la máquina. No se movió nada.",
+  "en": "A move asked to go past the machine’s travel. Nothing moved.",
+  "l": 7
+ },
+ {
+  "es": "Revisa que el cero de trabajo (X0 Y0) esté donde crees",
+  "en": "Check that the work zero (X0 Y0) is where you think",
+  "l": 8
+ },
+ {
+  "es": "Revisa que la pieza quepa en el área",
+  "en": "Check that the part fits in the area",
+  "l": 8
+ },
+ {
+  "es": "Reset con la máquina en movimiento",
+  "en": "Reset while the machine was moving",
+  "l": 9
+ },
+ {
+  "es": "Se reinició mientras los ejes se movían; pudieron perderse pasos.",
+  "en": "It was reset while the axes were moving; steps may have been lost.",
+  "l": 9
+ },
+ {
+  "es": "Haz homing para recuperar la posición",
+  "en": "Run homing to recover the position",
+  "l": 10
+ },
+ {
+  "es": "Verifica el cero de trabajo antes de seguir",
+  "en": "Check the work zero before continuing",
+  "l": 10
+ },
+ {
+  "es": "Sonda ya en contacto",
+  "en": "Probe already touching",
+  "l": 11
+ },
+ {
+  "es": "La sonda marcaba contacto antes de empezar a bajar.",
+  "en": "The probe showed contact before it started going down.",
+  "l": 11
+ },
+ {
+  "es": "Revisa que la fresa no toque la placa",
+  "en": "Check that the bit isn’t touching the board",
+  "l": 12
+ },
+ {
+  "es": "Revisa que el caimán no esté tocando la placa ni el cable de la sonda",
+  "en": "Check that the alligator clip isn’t touching the board or the probe wire",
+  "l": 12
+ },
+ {
+  "es": "La sonda no tocó",
+  "en": "The probe didn’t touch",
+  "l": 13
+ },
+ {
+  "es": "La fresa bajó toda la distancia permitida y no hubo contacto.",
+  "en": "The bit went down the full allowed distance with no contact.",
+  "l": 13
+ },
+ {
+  "es": "Comprueba el caimán en la fresa y el cable en la placa",
+  "en": "Check the alligator clip on the bit and the wire on the board",
+  "l": 14
+ },
+ {
+  "es": "Acerca la fresa a la placa (unos 5 mm) y repite",
+  "en": "Bring the bit closer to the board (about 5 mm) and try again",
+  "l": 14
+ },
+ {
+  "es": "Si la placa tiene barniz u óxido, lija un punto",
+  "en": "If the board has varnish or oxide, sand a spot",
+  "l": 14
+ },
+ {
+  "es": "Homing interrumpido",
+  "en": "Homing interrupted",
+  "l": 15
+ },
+ {
+  "es": "Se pausó, reinició o abrió la puerta durante el homing.",
+  "en": "It was paused, reset, or the door was opened during homing.",
+  "l": 15
+ },
+ {
+  "es": "Repite el homing",
+  "en": "Run homing again",
+  "l": 15
+ },
+ {
+  "es": "Homing: puerta abierta",
+  "en": "Homing: door open",
+  "l": 16
+ },
+ {
+  "es": "Se abrió la puerta de seguridad durante el homing.",
+  "en": "The safety door was opened during homing.",
+  "l": 16
+ },
+ {
+  "es": "Cierra la puerta y repite",
+  "en": "Close the door and try again",
+  "l": 16
+ },
+ {
+  "es": "Homing: no soltó el límite",
+  "en": "Homing: limit switch did not release",
+  "l": 17
+ },
+ {
+  "es": "Al retroceder no se liberó el interruptor.",
+  "en": "The switch didn’t release when backing off.",
+  "l": 17
+ },
+ {
+  "es": "Revisa que nada empuje el eje contra el límite",
+  "en": "Check that nothing pushes the axis against the limit",
+  "l": 18
+ },
+ {
+  "es": "Homing: no encontró el límite",
+  "en": "Homing: limit switch not found",
+  "l": 19
+ },
+ {
+  "es": "El eje recorrió todo y no tocó el interruptor. A veces es un ruido raro del motor o algo que lo frena.",
+  "en": "The axis traveled all the way and didn’t touch the switch. Sometimes it’s an odd motor noise or something holding it back.",
+  "l": 19
+ },
+ {
+  "es": "Apaga la máquina y mueve el eje a mano: debe correr libre",
+  "en": "Turn off the machine and move the axis by hand: it should run freely",
+  "l": 20
+ },
+ {
+  "es": "Revisa el cable del interruptor",
+  "en": "Check the switch cable",
+  "l": 20
+ },
+ {
+  "es": "Homing: límite en el lado equivocado",
+  "en": "Homing: limit on the wrong side",
+  "l": 21
+ },
+ {
+  "es": "Se activó otro interruptor durante el homing.",
+  "en": "Another switch triggered during homing.",
+  "l": 21
+ },
+ {
+  "es": "Revisa el cableado de los límites",
+  "en": "Check the limit switch wiring",
+  "l": 21
+ },
+ {
+  "es": "Letra de G-code no reconocida",
+  "en": "Unrecognized G-code letter",
+  "l": 25
+ },
+ {
+  "es": "Falta el número después de una letra",
+  "en": "Missing number after a letter",
+  "l": 25
+ },
+ {
+  "es": "Comando $ no reconocido",
+  "en": "Unrecognized $ command",
+  "l": 25
+ },
+ {
+  "es": "Valor negativo no permitido",
+  "en": "Negative value not allowed",
+  "l": 26
+ },
+ {
+  "es": "Homing no está habilitado",
+  "en": "Homing is not enabled",
+  "l": 26
+ },
+ {
+  "es": "Pulso de paso demasiado corto",
+  "en": "Step pulse too short",
+  "l": 26
+ },
+ {
+  "es": "Error al leer la EEPROM",
+  "en": "EEPROM read error",
+  "l": 27
+ },
+ {
+  "es": "Comando $ solo cuando la máquina está quieta",
+  "en": "$ command only while the machine is idle",
+  "l": 27
+ },
+ {
+  "es": "Bloqueado: hay una alarma. Desbloquea o haz homing primero",
+  "en": "Locked: there is an alarm. Unlock or home first",
+  "l": 28
+ },
+ {
+  "es": "Límites por software requieren homing",
+  "en": "Soft limits require homing",
+  "l": 28
+ },
+ {
+  "es": "Línea demasiado larga",
+  "en": "Line too long",
+  "l": 29
+ },
+ {
+  "es": "Ajuste fuera de rango",
+  "en": "Setting out of range",
+  "l": 29
+ },
+ {
+  "es": "Puerta de seguridad abierta",
+  "en": "Safety door open",
+  "l": 29
+ },
+ {
+  "es": "Línea de inicio demasiado larga",
+  "en": "Startup line too long",
+  "l": 30
+ },
+ {
+  "es": "El jog se saldría del área de trabajo",
+  "en": "The jog would leave the work area",
+  "l": 30
+ },
+ {
+  "es": "Comando de jog inválido",
+  "en": "Invalid jog command",
+  "l": 30
+ },
+ {
+  "es": "Modo láser requiere salida PWM",
+  "en": "Laser mode requires PWM output",
+  "l": 31
+ },
+ {
+  "es": "Comando G-code no soportado",
+  "en": "Unsupported G-code command",
+  "l": 31
+ },
+ {
+  "es": "Dos comandos del mismo grupo en una línea",
+  "en": "Two commands from the same group on one line",
+  "l": 31
+ },
+ {
+  "es": "Falta la velocidad de avance (F)",
+  "en": "Missing feed rate (F)",
+  "l": 32
+ },
+ {
+  "es": "Se esperaba un número entero",
+  "en": "An integer was expected",
+  "l": 32
+ },
+ {
+  "es": "Dos comandos usan los mismos ejes",
+  "en": "Two commands use the same axes",
+  "l": 32
+ },
+ {
+  "es": "Letra repetida en la línea",
+  "en": "Repeated letter on the line",
+  "l": 33
+ },
+ {
+  "es": "Falta el eje en el comando",
+  "en": "Missing axis in the command",
+  "l": 33
+ },
+ {
+  "es": "Número de línea inválido",
+  "en": "Invalid line number",
+  "l": 33
+ },
+ {
+  "es": "Faltan valores en el comando",
+  "en": "Missing values in the command",
+  "l": 34
+ },
+ {
+  "es": "G59.x no soportado",
+  "en": "G59.x not supported",
+  "l": 34
+ },
+ {
+  "es": "G53 solo con G0 o G1",
+  "en": "G53 only with G0 or G1",
+  "l": 34
+ },
+ {
+  "es": "Sobran palabras de eje",
+  "en": "Too many axis words",
+  "l": 35
+ },
+ {
+  "es": "G2/G3 necesita al menos un eje del plano",
+  "en": "G2/G3 needs at least one axis in the plane",
+  "l": 35
+ },
+ {
+  "es": "Destino del movimiento inválido",
+  "en": "Invalid move target",
+  "l": 35
+ },
+ {
+  "es": "Radio del arco inválido",
+  "en": "Invalid arc radius",
+  "l": 36
+ },
+ {
+  "es": "G2/G3 necesita centro o radio",
+  "en": "G2/G3 needs a center or a radius",
+  "l": 36
+ },
+ {
+  "es": "Sobran valores",
+  "en": "Too many values",
+  "l": 36
+ },
+ {
+  "es": "Compensación de herramienta: eje inválido",
+  "en": "Tool offset: invalid axis",
+  "l": 37
+ },
+ {
+  "es": "Número de herramienta demasiado grande",
+  "en": "Tool number too large",
+  "l": 37
+ },
+ {
+  "es": "Quieta",
+  "en": "Idle",
+  "l": 41
+ },
+ {
+  "es": "Trabajando",
+  "en": "Running",
+  "l": 41
+ },
+ {
+  "es": "En pausa",
+  "en": "Paused",
+  "l": 41
+ },
+ {
+  "es": "Moviendo",
+  "en": "Jogging",
+  "l": 41
+ },
+ {
+  "es": "Alarma",
+  "en": "Alarm",
+  "l": 41
+ },
+ {
+  "es": "Puerta abierta",
+  "en": "Door open",
+  "l": 42
+ },
+ {
+  "es": "Revisión",
+  "en": "Check mode",
+  "l": 42
+ },
+ {
+  "es": "Homing",
+  "en": "Homing",
+  "l": 42
+ },
+ {
+  "es": "Dormida",
+  "en": "Sleeping",
+  "l": 42
+ },
+ {
+  "es": "Desconectada",
+  "en": "Disconnected",
+  "l": 42
+ }
+]

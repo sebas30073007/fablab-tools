@@ -1,0 +1,37 @@
+[
+ {
+  "es": "Placa de cobre",
+  "en": "Copper-clad board",
+  "l": 19
+ },
+ {
+  "es": "Acrílico",
+  "en": "Acrylic",
+  "l": 20
+ },
+ {
+  "es": "MDF",
+  "en": null,
+  "l": 21
+ },
+ {
+  "es": "Madera o triplay",
+  "en": "Wood or plywood",
+  "l": 22
+ },
+ {
+  "es": "Madera",
+  "en": "Wood",
+  "l": 22
+ },
+ {
+  "es": "Otro",
+  "en": "Other",
+  "l": 23
+ },
+ {
+  "es": "Material",
+  "en": "Material",
+  "l": 23
+ }
+]

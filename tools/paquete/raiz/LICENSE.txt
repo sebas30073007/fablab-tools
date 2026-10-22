@@ -1,0 +1,16 @@
+Fab Lab CNC {{VERSION}}
+Copyright (c) 2026 Sebastián Méndez (https://sebs.mx). All rights reserved.
+
+You may use this software, and host this package unmodified on your own website, free of charge for
+teaching and for use in Fab Labs, schools and universities. Please keep this notice and the author credit
+shown in the app. Redistributing modified versions or using it commercially requires the author's
+written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IT CONTROLS A MACHINE
+THAT CAN CAUSE INJURY OR DAMAGE; YOU ARE RESPONSIBLE FOR ITS SAFE OPERATION. IN NO EVENT SHALL THE AUTHOR
+BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+Genmitsu and Cubiko are trademarks of their respective owners; this project is not affiliated with them.
+
+Third-party software included:
+- three.js (shared/vendor/three) — MIT License, Copyright (c) 2010-2025 three.js authors.

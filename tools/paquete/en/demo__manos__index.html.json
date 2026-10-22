@@ -1,0 +1,32 @@
+[
+ {
+  "es": "Clips con manos · Fab Lab",
+  "en": "Hand clips · Fab Lab",
+  "l": 6
+ },
+ {
+  "es": "Muestras de clips 3D con manos animadas para el tutorial de la CNC.",
+  "en": "Example 3D clips with animated hands for the CNC tutorial.",
+  "l": 7
+ },
+ {
+  "es": "Reproducir",
+  "en": "Play",
+  "l": 45
+ },
+ {
+  "es": "Tiempo",
+  "en": "Time",
+  "l": 46
+ },
+ {
+  "es": "Graba el clip completo a un video .webm",
+  "en": "Record the whole clip to a .webm video",
+  "l": 48
+ },
+ {
+  "es": "Grabar",
+  "en": "Record",
+  "l": 48
+ }
+]

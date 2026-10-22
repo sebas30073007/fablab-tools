@@ -6,3 +6,6 @@ __pycache__/
 Thumbs.db
 # escaneos de prueba (pesados) para el Visor 3D
 web/_prueba/
+
+# paquete en inglés (tools/paquete/empaquetar.mjs)
+dist/

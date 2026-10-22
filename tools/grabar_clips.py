@@ -2,6 +2,8 @@
 
     python tools/grabar_clips.py              (todos)
     python tools/grabar_clips.py usb,sonda    (solo esos)
+    python tools/grabar_clips.py --raiz dist/grabar --salida dist/fablab-cnc-1.0.0/videos/manos
+                                              (los del paquete en inglés: ver tools/paquete/empaquetar.mjs)
 
 Abre la página en Edge sin ventana con ?grabar: la página dibuja cada clip cuadro por cuadro (30 por segundo, en
 tiempo exacto) y manda cada cuadro aquí por POST. Con ffmpeg se arma un MP4 (H.264, 1080 × 1080) y un póster JPEG por
@@ -81,7 +83,18 @@ def armar(q):
 
 
 def main():
-    ids = sys.argv[1] if len(sys.argv) > 1 else "todos"
+    global RAIZ, SALIDA
+    args = sys.argv[1:]
+    for op in ("--raiz", "--salida"):
+        if op in args:
+            i = args.index(op)
+            valor = os.path.abspath(args[i + 1])
+            del args[i:i + 2]
+            if op == "--raiz":
+                RAIZ = valor
+            else:
+                SALIDA = valor
+    ids = args[0] if args else "todos"
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", PUERTO), functools.partial(Manejador, directory=RAIZ))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     perfil = os.path.join(tmp, "perfil")

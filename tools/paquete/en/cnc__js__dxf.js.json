@@ -1,0 +1,207 @@
+[
+ {
+  "es": "TEXT",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "MTEXT",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "ATTRIB",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "ATTDEF",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "DIMENSION",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "LEADER",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "MLEADER",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "MULTILEADER",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "TOLERANCE",
+  "en": null,
+  "l": 14
+ },
+ {
+  "es": "DXF binario: guárdalo como DXF de texto (ASCII)",
+  "en": "Binary DXF: save it as a text (ASCII) DXF",
+  "l": 73
+ },
+ {
+  "es": "SECTION",
+  "en": null,
+  "l": 86
+ },
+ {
+  "es": "HEADER",
+  "en": null,
+  "l": 88
+ },
+ {
+  "es": "ENDSEC",
+  "en": null,
+  "l": 91
+ },
+ {
+  "es": "EOF",
+  "en": null,
+  "l": 92
+ },
+ {
+  "es": "TABLES",
+  "en": null,
+  "l": 93
+ },
+ {
+  "es": "LAYER",
+  "en": null,
+  "l": 94
+ },
+ {
+  "es": "BLOCKS",
+  "en": null,
+  "l": 97
+ },
+ {
+  "es": "BLOCK",
+  "en": null,
+  "l": 98
+ },
+ {
+  "es": "ENDBLK",
+  "en": null,
+  "l": 99
+ },
+ {
+  "es": "ENTITIES",
+  "en": null,
+  "l": 101
+ },
+ {
+  "es": "VERTEX",
+  "en": null,
+  "l": 105
+ },
+ {
+  "es": "SEQEND",
+  "en": null,
+  "l": 106
+ },
+ {
+  "es": "POLYLINE",
+  "en": null,
+  "l": 108
+ },
+ {
+  "es": "INSERT",
+  "en": null,
+  "l": 109
+ },
+ {
+  "es": "El archivo no dice sus unidades: se leyó en milímetros",
+  "en": "The file doesn’t state its units: read as millimeters",
+  "l": 115
+ },
+ {
+  "es": "DEFPOINTS",
+  "en": null,
+  "l": 122
+ },
+ {
+  "es": "LINE",
+  "en": null,
+  "l": 142
+ },
+ {
+  "es": "CIRCLE",
+  "en": null,
+  "l": 143
+ },
+ {
+  "es": "ARC",
+  "en": null,
+  "l": 149
+ },
+ {
+  "es": "ELLIPSE",
+  "en": null,
+  "l": 157
+ },
+ {
+  "es": "LWPOLYLINE",
+  "en": null,
+  "l": 170
+ },
+ {
+  "es": "SPLINE",
+  "en": null,
+  "l": 183
+ },
+ {
+  "es": "HATCH",
+  "en": null,
+  "l": 210
+ },
+ {
+  "es": "POINT",
+  "en": null,
+  "l": 210
+ },
+ {
+  "es": "SOLID",
+  "en": null,
+  "l": 210
+ },
+ {
+  "es": "3DFACE",
+  "en": null,
+  "l": 210
+ },
+ {
+  "es": "texto no se corta",
+  "en": "text isn’t cut",
+  "l": 224
+ },
+ {
+  "es": "textos no se cortan",
+  "en": "texts aren’t cut",
+  "l": 224
+ },
+ {
+  "es": ": conviértelos a curvas en tu programa de dibujo",
+  "en": ": convert them to curves in your drawing program",
+  "l": 224
+ },
+ {
+  "es": "Las mallas 3D no se cortan",
+  "en": "3D meshes aren’t cut",
+  "l": 225
+ },
+ {
+  "es": "El DXF no tiene líneas que cortar",
+  "en": "The DXF has no lines to cut",
+  "l": 226
+ }
+]

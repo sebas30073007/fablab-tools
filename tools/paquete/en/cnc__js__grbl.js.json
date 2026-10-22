@@ -1,0 +1,67 @@
+[
+ {
+  "es": "Candle, la app de Genmitsu",
+  "en": "Candle, the Genmitsu app",
+  "l": 23
+ },
+ {
+  "es": "Desconectado",
+  "en": null,
+  "l": 25
+ },
+ {
+  "es": "Puerto abierto. Esperando a GRBL…",
+  "en": "Port open. Waiting for GRBL…",
+  "l": 39
+ },
+ {
+  "es": "Simulador iniciado: GRBL emulado, sin hardware.",
+  "en": "Simulator started: emulated GRBL, no hardware.",
+  "l": 48
+ },
+ {
+  "es": "ALARM:",
+  "en": null,
+  "l": 90
+ },
+ {
+  "es": "Alarm",
+  "en": null,
+  "l": 93
+ },
+ {
+  "es": "WCO",
+  "en": null,
+  "l": 134
+ },
+ {
+  "es": "Pn",
+  "en": null,
+  "l": 137
+ },
+ {
+  "es": "Ov",
+  "en": null,
+  "l": 138
+ },
+ {
+  "es": "Bf",
+  "en": null,
+  "l": 139
+ },
+ {
+  "es": "GRBL respondió.",
+  "en": "GRBL responded.",
+  "l": 149
+ },
+ {
+  "es": "Idle",
+  "en": null,
+  "l": 170
+ },
+ {
+  "es": "Sondeo terminado sin [PRB] legible: se usa la posición actual",
+  "en": "Probing finished without a readable [PRB]: using the current position",
+  "l": 196
+ }
+]

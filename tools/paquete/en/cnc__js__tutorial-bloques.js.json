@@ -1,0 +1,567 @@
+[
+ {
+  "es": "Mapa de alturas",
+  "en": "Height map",
+  "l": 44
+ },
+ {
+  "es": "Introducción",
+  "en": "Introduction",
+  "l": 57
+ },
+ {
+  "es": "Hola, soy Fresa",
+  "en": "Hi, I’m Fresa",
+  "l": 58
+ },
+ {
+  "es": "Vamos a fabricar una placa en simulación: nada se mueve de verdad. Sales cuando quieras con Salir o Esc.",
+  "en": "We’re going to make a board in simulation: nothing really moves. Leave anytime with Exit or Esc.",
+  "l": 59
+ },
+ {
+  "es": "¿Qué es una CNC?",
+  "en": "What is a CNC?",
+  "l": 60
+ },
+ {
+  "es": "Mueve una <b>fresa</b> que gira siguiendo coordenadas. En una PCB quita el cobre alrededor de cada pista: es el fresado de aislamiento.",
+  "en": "It moves a spinning <b>bit</b> along coordinates. On a PCB it removes the copper around each trace: that’s isolation milling.",
+  "l": 61
+ },
+ {
+  "es": "señala",
+  "en": null,
+  "l": 62
+ },
+ {
+  "es": "El gemelo 3D",
+  "en": "The 3D twin",
+  "l": 62
+ },
+ {
+  "es": "Es la Cubiko tal como está ahora. Abajo cambias la vista: <b>Arriba</b> para las trayectorias, <b>Frente</b> para la altura de la fresa.",
+  "en": "It’s the Cubiko exactly as it is now. Change the view below: <b>Top</b> for the toolpaths, <b>Front</b> for the bit height.",
+  "l": 63
+ },
+ {
+  "es": "Los 6 pasos",
+  "en": "The 6 steps",
+  "l": 64
+ },
+ {
+  "es": "En qué paso vas y el botón de lo que sigue. El <b>PARO</b> rojo (o Esc) detiene todo.",
+  "en": "Which step you’re on and the button for what’s next. The red <b>STOP</b> (or Esc) stops everything.",
+  "l": 65
+ },
+ {
+  "es": "Máquina",
+  "en": "Machine",
+  "l": 69
+ },
+ {
+  "es": "Con la Cubiko real",
+  "en": "With the real Cubiko",
+  "l": 70
+ },
+ {
+  "es": "Aquí lo hacemos en simulación; con la máquina real se enciende así.",
+  "en": "Here we do it in simulation; this is how you turn on the real machine.",
+  "l": 71
+ },
+ {
+  "es": "Conecta en simulación",
+  "en": "Connect in simulation",
+  "l": 73
+ },
+ {
+  "es": "Con la Cubiko real pulsarías Conectar y elegirías su puerto USB.",
+  "en": "With the real Cubiko you’d press Connect and pick its USB port.",
+  "l": 73
+ },
+ {
+  "es": "Pulsa Simulación",
+  "en": "Press Simulation",
+  "l": 73
+ },
+ {
+  "es": "Conectando…",
+  "en": "Connecting…",
+  "l": 75
+ },
+ {
+  "es": "Un momento.",
+  "en": "One moment.",
+  "l": 75
+ },
+ {
+  "es": "Dónde está la punta de la fresa, en milímetros. En la Cubiko, Y mueve la cama, no la fresa.",
+  "en": "Where the bit tip is, in millimeters. On the Cubiko, Y moves the bed, not the bit.",
+  "l": 77
+ },
+ {
+  "es": "Homing",
+  "en": "Homing",
+  "l": 79
+ },
+ {
+  "es": "Al encender no sabe dónde está. El homing busca sus topes: su origen de máquina.",
+  "en": "When it powers on it doesn’t know where it is. Homing finds its limits: its machine origin.",
+  "l": 79
+ },
+ {
+  "es": "Pulsa Homing",
+  "en": "Press Homing",
+  "l": 79
+ },
+ {
+  "es": "Archivos",
+  "en": "Files",
+  "l": 84
+ },
+ {
+  "es": "Lo que necesitas de KiCad",
+  "en": "What you need from KiCad",
+  "l": 85
+ },
+ {
+  "es": "<b>F.Cu</b> (cobre), <b>Edge.Cuts</b> (contorno) y el <b>.drl</b> (taladros). Puedes abrir la carpeta completa: lo que no sirve se ignora.",
+  "en": "<b>F.Cu</b> (copper), <b>Edge.Cuts</b> (outline) and the <b>.drl</b> (holes). You can open the whole folder: anything it can’t use is ignored.",
+  "l": 86
+ },
+ {
+  "es": "Abre la placa de ejemplo",
+  "en": "Open the sample board",
+  "l": 88
+ },
+ {
+  "es": "La del curso básico de KiCad. Con la tuya pulsarías Abrir archivos.",
+  "en": "The one from the basic KiCad course. With yours you’d press Open files.",
+  "l": 88
+ },
+ {
+  "es": "Pulsa Ejemplo",
+  "en": "Press Example",
+  "l": 88
+ },
+ {
+  "es": "Trayectorias",
+  "en": "Toolpaths",
+  "l": 93
+ },
+ {
+  "es": "Abre el archivo",
+  "en": "Open the file",
+  "l": 95
+ },
+ {
+  "es": "Aquí están el material, las herramientas y la imagen de la placa.",
+  "en": "Here are the stock, the tools and the board image.",
+  "l": 95
+ },
+ {
+  "es": "Pulsa Archivo",
+  "en": "Press File",
+  "l": 95
+ },
+ {
+  "es": "Material",
+  "en": "Material",
+  "l": 97
+ },
+ {
+  "es": "Escribe su ancho y alto. Mide el grosor con vernier, con el cobre: de él sale cuánto bajan hoyos y contorno.",
+  "en": "Enter its width and height. Measure the thickness with calipers, copper included: it sets how deep the holes and outline go.",
+  "l": 98
+ },
+ {
+  "es": "Configuraciones de CNC",
+  "en": "CNC settings",
+  "l": 99
+ },
+ {
+  "es": "Debe decir <b>Valores de la Cubiko</b>: ya funcionan. Si algo se sale de rango, se pone en rojo y no deja generar.",
+  "en": "It should say <b>Cubiko values</b>: they already work. If something is out of range, it turns red and won’t let you generate.",
+  "l": 100
+ },
+ {
+  "es": "Mira cómo corta",
+  "en": "See how it cuts",
+  "l": 102
+ },
+ {
+  "es": "Cada herramienta, dibujada con sus valores.",
+  "en": "Each tool, drawn with its values.",
+  "l": 102
+ },
+ {
+  "es": "Pulsa Configuraciones de CNC",
+  "en": "Press CNC settings",
+  "l": 102
+ },
+ {
+  "es": "Profundidad de las pistas",
+  "en": "Traces depth",
+  "l": 103
+ },
+ {
+  "es": "La V entra <b>0.1 mm</b>: lo justo para atravesar el cobre. Más hondo, abre un surco ancho y se come las pistas.",
+  "en": "The V goes in <b>0.1 mm</b>: just enough to cut through the copper. Deeper, it opens a wide groove and eats the traces.",
+  "l": 104
+ },
+ {
+  "es": "Imagen en blanco y negro",
+  "en": "Black-and-white image",
+  "l": 106
+ },
+ {
+  "es": "Así lee la app tu diseño: lo blanco es cobre que se queda. Si dos pistas se ven unidas aquí, saldrán unidas.",
+  "en": "This is how the app reads your design: white is copper that stays. If two traces look joined here, they’ll come out joined.",
+  "l": 107
+ },
+ {
+  "es": "Genera las trayectorias",
+  "en": "Generate the toolpaths",
+  "l": 109
+ },
+ {
+  "es": "La app calcula por dónde pasa la fresa.",
+  "en": "The app works out where the bit goes.",
+  "l": 109
+ },
+ {
+  "es": "Pulsa Generar",
+  "en": "Press Generate",
+  "l": 109
+ },
+ {
+  "es": "Vista previa",
+  "en": "Preview",
+  "l": 112
+ },
+ {
+  "es": "Así quedará la placa. Ciérrala con la ✕ para seguir.",
+  "en": "This is how the board will look. Close it with the ✕ to continue.",
+  "l": 113
+ },
+ {
+  "es": "Un trabajo por herramienta",
+  "en": "One job per tool",
+  "l": 115
+ },
+ {
+  "es": "Pistas con la V, hoyos con la broca y contorno con la de maíz. Fíjate en la punta para saber cuál está puesta.",
+  "en": "Traces with the V, holes with the drill bit and outline with the corncob bit. Look at the tip to know which one is in.",
+  "l": 116
+ },
+ {
+  "es": "La placa, sujeta",
+  "en": "The board, clamped",
+  "l": 121
+ },
+ {
+  "es": "Al centro de la cama, con los dos sujetadores apretados con la llave Allen de 3 mm.",
+  "en": "Centered on the bed, with both clamps tightened with the 3 mm Allen key.",
+  "l": 122
+ },
+ {
+  "es": "Cero de trabajo",
+  "en": "Work zero",
+  "l": 123
+ },
+ {
+  "es": "El homing dice dónde está la máquina; tú dices dónde está tu placa. X0 Y0 va en su esquina de adelante a la izquierda.",
+  "en": "Homing says where the machine is; you say where your board is. X0 Y0 goes at its front-left corner.",
+  "l": 124
+ },
+ {
+  "es": "Ve a Mover",
+  "en": "Go to Jog",
+  "l": 126
+ },
+ {
+  "es": "Aquí mueves la fresa a mano.",
+  "en": "Here you move the bit by hand.",
+  "l": 126
+ },
+ {
+  "es": "Pulsa Mover",
+  "en": "Press Jog",
+  "l": 126
+ },
+ {
+  "es": "Lleva la fresa a la esquina",
+  "en": "Move the bit to the corner",
+  "l": 128
+ },
+ {
+  "es": "Hacia adelante y a la izquierda. Pasos de 10 mm para llegar y de 0.1 mm para afinar.",
+  "en": "Toward the front and left. 10 mm steps to get there and 0.1 mm to fine-tune.",
+  "l": 128
+ },
+ {
+  "es": "Usa X− y Y−",
+  "en": "Use X− and Y−",
+  "l": 128
+ },
+ {
+  "es": "Llévala por mí",
+  "en": "Move it for me",
+  "l": 129
+ },
+ {
+  "es": "Fija X0 Y0",
+  "en": "Set X0 Y0",
+  "l": 131
+ },
+ {
+  "es": "Desde aquí se miden todos los trabajos: las trayectorias se acomodan sobre la placa.",
+  "en": "Every job is measured from here: the toolpaths line up on the board.",
+  "l": 131
+ },
+ {
+  "es": "Pulsa Fijar X0 Y0 aquí",
+  "en": "Press Set X0 Y0 here",
+  "l": 131
+ },
+ {
+  "es": "Z0 con la sonda",
+  "en": "Z0 with the probe",
+  "l": 137
+ },
+ {
+  "es": "Al tocar el cobre se cierra el circuito y Z0 queda justo en la superficie.",
+  "en": "Touching the copper closes the circuit and Z0 lands right on the surface.",
+  "l": 138
+ },
+ {
+  "es": "Calibra Z",
+  "en": "Calibrate Z",
+  "l": 140
+ },
+ {
+  "es": "Se abre un asistente.",
+  "en": "A wizard opens.",
+  "l": 140
+ },
+ {
+  "es": "Pulsa Empezar",
+  "en": "Press Start",
+  "l": 140
+ },
+ {
+  "es": "Sigue el asistente",
+  "en": "Follow the wizard",
+  "l": 143
+ },
+ {
+  "es": "Baja a unos 5 mm de la placa y pulsa <b>Bajar y tocar</b>. En simulación, mantén <b>Mantén para simular el toque</b>.",
+  "en": "Lower to about 5 mm above the board and press <b>Lower and touch</b>. In simulation, hold <b>Hold to simulate the touch</b>.",
+  "l": 143
+ },
+ {
+  "es": "Acércala por mí",
+  "en": "Bring it closer for me",
+  "l": 144
+ },
+ {
+  "es": "Idle",
+  "en": null,
+  "l": 145
+ },
+ {
+  "es": "Deja el caimán puesto y pulsa <b>Medir</b>. La app corrige Z mientras fresa.",
+  "en": "Leave the alligator clip on and press <b>Measure</b>. The app corrects Z while it mills.",
+  "l": 147
+ },
+ {
+  "es": "Mídelo por mí",
+  "en": "Measure it for me",
+  "l": 148
+ },
+ {
+  "es": "Quita la sonda",
+  "en": "Remove the probe",
+  "l": 151
+ },
+ {
+  "es": "Antes de fresar. Luego pulsa Siguiente y Listo para cerrar el asistente.",
+  "en": "Before milling. Then press Next and Done to close the wizard.",
+  "l": 151
+ },
+ {
+  "es": "Fresar",
+  "en": "Mill",
+  "l": 155
+ },
+ {
+  "es": "Pon la tapa",
+  "en": "Close the lid",
+  "l": 156
+ },
+ {
+  "es": "Tiene un sensor: sin la tapa el husillo no enciende.",
+  "en": "It has a sensor: without the lid the spindle won’t turn on.",
+  "l": 157
+ },
+ {
+  "es": "Prueba en aire",
+  "en": "Air test",
+  "l": 159
+ },
+ {
+  "es": "El mismo trabajo, 5 mm más arriba: ves el recorrido completo sin tocar la placa. Siempre antes de cortar.",
+  "en": "The same job, 5 mm higher: you see the full path without touching the board. Always before cutting.",
+  "l": 159
+ },
+ {
+  "es": "Pulsa Prueba en aire",
+  "en": "Press Air test",
+  "l": 159
+ },
+ {
+  "es": "Confirma",
+  "en": "Confirm",
+  "l": 161
+ },
+ {
+  "es": "Revisa lo que dice la hoja.",
+  "en": "Check what the sheet says.",
+  "l": 161
+ },
+ {
+  "es": "Pulsa Probar",
+  "en": "Press Test",
+  "l": 161
+ },
+ {
+  "es": "En curso",
+  "en": "Running",
+  "l": 162
+ },
+ {
+  "es": "Cuánto lleva, cuánto falta y qué sigue. En el 3D la fresa recorre las pistas.",
+  "en": "How much is done, how much is left and what’s next. In the 3D view the bit follows the traces.",
+  "l": 163
+ },
+ {
+  "es": "Practica el PARO",
+  "en": "Practice STOP",
+  "l": 165
+ },
+ {
+  "es": "Párala ahora para saber dónde está. La posición se conserva.",
+  "en": "Stop it now so you know where it is. The position is kept.",
+  "l": 165
+ },
+ {
+  "es": "Pulsa PARO",
+  "en": "Press STOP",
+  "l": 165
+ },
+ {
+  "es": "Con una placa real",
+  "en": "With a real board",
+  "l": 167
+ },
+ {
+  "es": "Con una placa real, después de las pistas la app te pide la broca y calibrar Z otra vez.",
+  "en": "With a real board, after the traces the app asks for the drill bit and to calibrate Z again.",
+  "l": 168
+ },
+ {
+  "es": "Alarmas",
+  "en": "Alarms",
+  "l": 173
+ },
+ {
+  "es": "El pitido del tope",
+  "en": "The limit beep",
+  "l": 174
+ },
+ {
+  "es": "Si un eje llega a su tope (el final de carrera), suena un pitido y la máquina se bloquea.",
+  "en": "If an axis reaches its limit (the limit switch), it beeps and the machine locks.",
+  "l": 175
+ },
+ {
+  "es": "Alarm",
+  "en": null,
+  "l": 176
+ },
+ {
+  "es": "Provoca una alarma",
+  "en": "Trigger an alarm",
+  "l": 177
+ },
+ {
+  "es": "En simulación, pide un movimiento fuera del área. Con la real, no lo hagas a propósito.",
+  "en": "In simulation, ask for a move outside the area. On the real one, don’t do it on purpose.",
+  "l": 177
+ },
+ {
+  "es": "Provócala",
+  "en": "Trigger it",
+  "l": 178
+ },
+ {
+  "es": "Lee y desbloquea",
+  "en": "Read and unlock",
+  "l": 180
+ },
+ {
+  "es": "Arriba dice qué pasó. Desbloquea, aleja el eje 1 mm y haz Homing; luego revisa X0 Y0.",
+  "en": "The top says what happened. Unlock, move the axis 1 mm away and run Homing; then check X0 Y0.",
+  "l": 180
+ },
+ {
+  "es": "Pulsa Desbloquear",
+  "en": "Press Unlock",
+  "l": 180
+ },
+ {
+  "es": "Extras",
+  "en": "Extras",
+  "l": 185
+ },
+ {
+  "es": "Se mide al calibrar Z. Para repetirlo, está aquí en Origen.",
+  "en": "It’s measured when you calibrate Z. To redo it, it’s here in Origin.",
+  "l": 187
+ },
+ {
+  "es": "Calibración fina (opcional)",
+  "en": "Fine calibration (optional)",
+  "l": 188
+ },
+ {
+  "es": "Corrige el giro si la placa quedó chueca.",
+  "en": "Corrects the rotation if the board ended up crooked.",
+  "l": 189
+ },
+ {
+  "es": "Cuando quieras",
+  "en": "Anytime",
+  "l": 190
+ },
+ {
+  "es": "Aquí vuelves al tutorial, al manual y al examen.",
+  "en": "Come back here for the tutorial, the manual and the exam.",
+  "l": 191
+ },
+ {
+  "es": "Final",
+  "en": "Final",
+  "l": 195
+ },
+ {
+  "es": "¡Lo lograste!",
+  "en": "You did it!",
+  "l": 196
+ },
+ {
+  "es": "Ya conoces los 6 pasos. Para tu certificado, responde el examen: 15 preguntas, apruebas con 80 %.",
+  "en": "Now you know the 6 steps. For your certificate, take the exam: 15 questions, pass with 80 %.",
+  "l": 197
+ }
+]

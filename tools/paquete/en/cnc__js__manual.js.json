@@ -1,0 +1,367 @@
+[
+ {
+  "es": "Manual de uso",
+  "en": "User manual",
+  "l": 13
+ },
+ {
+  "es": "Fabricar una PCB en la Cubiko",
+  "en": "Make a PCB on the Cubiko",
+  "l": 14
+ },
+ {
+  "es": "Exporta desde KiCad",
+  "en": "Export from KiCad",
+  "l": 16
+ },
+ {
+  "es": "Gerber de F.Cu y Edge.Cuts, y el .drl en milímetros, en una carpeta.",
+  "en": "Gerbers for F.Cu and Edge.Cuts, and the .drl in millimeters, in one folder.",
+  "l": 17
+ },
+ {
+  "es": "Separación entre pistas de 0.3 mm o más",
+  "en": "Trace clearance of 0.3 mm or more",
+  "l": 18
+ },
+ {
+  "es": "Contorno cerrado en Edge.Cuts",
+  "en": "Closed outline on Edge.Cuts",
+  "l": 18
+ },
+ {
+  "es": "Taladros con el mismo origen que los Gerber",
+  "en": "Drill file with the same origin as the Gerbers",
+  "l": 18
+ },
+ {
+  "es": "Fija la placa",
+  "en": "Secure the board",
+  "l": 19
+ },
+ {
+  "es": "Sin tapa, al centro de la cama con el cobre arriba, sujeta con los dos sujetadores de aluminio.",
+  "en": "Lid off, centered on the bed with the copper up, held by the two aluminum clamps.",
+  "l": 20
+ },
+ {
+  "es": "Cobre limpio con alcohol",
+  "en": "Copper cleaned with alcohol",
+  "l": 21
+ },
+ {
+  "es": "Plana: sin burbujas ni esquinas levantadas",
+  "en": "Flat: no bubbles or lifted corners",
+  "l": 21
+ },
+ {
+  "es": "Sujetadores firmes con la llave Allen de 3 mm",
+  "en": "Clamps tightened with the 3 mm Allen key",
+  "l": 21
+ },
+ {
+  "es": "Quita la tapa",
+  "en": "Remove the lid",
+  "l": 22
+ },
+ {
+  "es": "Pon la placa",
+  "en": "Place the board",
+  "l": 22
+ },
+ {
+  "es": "Sujeta la placa",
+  "en": "Clamp the board",
+  "l": 22
+ },
+ {
+  "es": "Máquina",
+  "en": "Machine",
+  "l": 25
+ },
+ {
+  "es": "Conecta por USB y haz homing: la máquina busca sus topes y sabe dónde está.",
+  "en": "Connect over USB and run homing: the machine finds its limits and knows where it is.",
+  "l": 26
+ },
+ {
+  "es": "Ninguna otra app usa el puerto",
+  "en": "No other app is using the port",
+  "l": 27
+ },
+ {
+  "es": "Homing sin alarmas",
+  "en": "Homing with no alarms",
+  "l": 27
+ },
+ {
+  "es": "Fresa de pistas apretada en la pinza ER11",
+  "en": "Traces bit tight in the ER11 collet",
+  "l": 27
+ },
+ {
+  "es": "Enciende",
+  "en": "Turn on",
+  "l": 28
+ },
+ {
+  "es": "USB",
+  "en": null,
+  "l": 28
+ },
+ {
+  "es": "Las herramientas",
+  "en": "The tools",
+  "l": 28
+ },
+ {
+  "es": "Cambia la fresa",
+  "en": "Change the bit",
+  "l": 28
+ },
+ {
+  "es": "Homing",
+  "en": "Homing",
+  "l": 28
+ },
+ {
+  "es": "Archivos",
+  "en": "Files",
+  "l": 29
+ },
+ {
+  "es": "Abre la carpeta de KiCad en la app. Lo que no sirve se ignora.",
+  "en": "Open the KiCad folder in the app. Anything it can’t use is ignored.",
+  "l": 30
+ },
+ {
+  "es": "Aparecen el cobre, el contorno y los taladros",
+  "en": "Copper, outline and holes show up",
+  "l": 31
+ },
+ {
+  "es": "La placa se ve completa en la imagen",
+  "en": "The whole board shows in the image",
+  "l": 31
+ },
+ {
+  "es": "Medidas de la placa como en KiCad",
+  "en": "Board size matches KiCad",
+  "l": 31
+ },
+ {
+  "es": "Trayectorias",
+  "en": "Toolpaths",
+  "l": 32
+ },
+ {
+  "es": "Escribe las medidas del material, revisa la imagen en blanco y negro y pulsa Generar.",
+  "en": "Enter the stock size, check the black-and-white image and press Generate.",
+  "l": 33
+ },
+ {
+  "es": "Grosor medido con vernier, con el cobre",
+  "en": "Thickness measured with calipers, copper included",
+  "l": 34
+ },
+ {
+  "es": "Configuraciones de CNC en «Valores de la Cubiko»: no las cambies",
+  "en": "CNC settings on “Cubiko defaults”: don’t change them",
+  "l": 34
+ },
+ {
+  "es": "Todas las pistas se ven separadas en la imagen",
+  "en": "All traces look separate in the image",
+  "l": 34
+ },
+ {
+  "es": "Tres trabajos: pistas, hoyos y contorno",
+  "en": "Three jobs: traces, holes and outline",
+  "l": 34
+ },
+ {
+  "es": "En Mover, lleva la fresa a la esquina inferior izquierda de la placa y fija X0 Y0.",
+  "en": "In Jog, move the bit to the bottom-left corner of the board and set X0 Y0.",
+  "l": 36
+ },
+ {
+  "es": "Empieza con pasos de 10 mm y afina con 0.1 mm",
+  "en": "Start with 10 mm steps and fine-tune with 0.1 mm",
+  "l": 37
+ },
+ {
+  "es": "La fresa sobre la esquina, sin tocar el cobre",
+  "en": "Bit over the corner, not touching the copper",
+  "l": 37
+ },
+ {
+  "es": "Recorrer el área: no sale de la placa",
+  "en": "Trace the area: it stays on the board",
+  "l": 37
+ },
+ {
+  "es": "Caimán en la fresa y cable en el cobre; el asistente baja hasta el contacto y luego mide el mapa de alturas.",
+  "en": "Alligator clip on the bit and cable on the copper; the wizard lowers until contact and then measures the height map.",
+  "l": 40
+ },
+ {
+  "es": "La app marca «Contacto» al tocar la placa",
+  "en": "The app shows “Contact” when it touches the board",
+  "l": 41
+ },
+ {
+  "es": "Mapa de alturas medido, con el caimán puesto hasta el final",
+  "en": "Height map measured, with the alligator clip on until the end",
+  "l": 41
+ },
+ {
+  "es": "Sonda desconectada y retirada al terminar",
+  "en": "Probe disconnected and removed when done",
+  "l": 41
+ },
+ {
+  "es": "Z de nuevo después de cada cambio de fresa",
+  "en": "Z again after every bit change",
+  "l": 41
+ },
+ {
+  "es": "Conecta la sonda",
+  "en": "Connect the probe",
+  "l": 42
+ },
+ {
+  "es": "Toca la placa",
+  "en": "Touch the board",
+  "l": 42
+ },
+ {
+  "es": "Mapa de alturas",
+  "en": "Height map",
+  "l": 42
+ },
+ {
+  "es": "Quita la sonda",
+  "en": "Remove the probe",
+  "l": 42
+ },
+ {
+  "es": "Fresar",
+  "en": "Mill",
+  "l": 43
+ },
+ {
+  "es": "Primero la prueba en aire (5 mm arriba), luego pistas, hoyos y contorno.",
+  "en": "First the air test (5 mm up), then traces, holes and outline.",
+  "l": 44
+ },
+ {
+  "es": "Prueba en aire: el recorrido queda dentro de la placa",
+  "en": "Air test: the path stays inside the board",
+  "l": 45
+ },
+ {
+  "es": "Gafas puestas, tapa cerrada y mano cerca del PARO",
+  "en": "Safety glasses on, lid closed and hand near STOP",
+  "l": 45
+ },
+ {
+  "es": "Pistas: fresa en V · hoyos: broca 1 mm · contorno: fresa de maíz 1 mm",
+  "en": "Traces: V-bit · holes: 1 mm drill bit · outline: 1 mm corncob bit",
+  "l": 45
+ },
+ {
+  "es": "Pon la tapa",
+  "en": "Close the lid",
+  "l": 46
+ },
+ {
+  "es": "Prueba en aire y fresa",
+  "en": "Air test and mill",
+  "l": 46
+ },
+ {
+  "es": "Paro",
+  "en": "Stop",
+  "l": 46
+ },
+ {
+  "es": "Acaba y revisa",
+  "en": "Finish and check",
+  "l": 49
+ },
+ {
+  "es": "Lija las rebabas, limpia y prueba con el multímetro.",
+  "en": "Sand the burrs, clean and test with the multimeter.",
+  "l": 50
+ },
+ {
+  "es": "Sin cobre que una pistas (revisa con lupa)",
+  "en": "No copper bridging traces (check with a magnifier)",
+  "l": 51
+ },
+ {
+  "es": "Continuidad en cada red, sin cortos",
+  "en": "Continuity on every net, no shorts",
+  "l": 51
+ },
+ {
+  "es": "Hoyos limpios para los componentes",
+  "en": "Clean holes for the components",
+  "l": 51
+ },
+ {
+  "es": "Aspira",
+  "en": "Vacuum",
+  "l": 52
+ },
+ {
+  "es": "Saca la placa",
+  "en": "Remove the board",
+  "l": 52
+ },
+ {
+  "es": "Apaga",
+  "en": "Turn off",
+  "l": 52
+ },
+ {
+  "es": "PARO",
+  "en": "STOP",
+  "l": 55
+ },
+ {
+  "es": "botón rojo o Esc",
+  "en": "red button or Esc",
+  "l": 55
+ },
+ {
+  "es": "Pitido del tope",
+  "en": "Limit beep",
+  "l": 55
+ },
+ {
+  "es": "Desbloquear, aleja el eje 1 mm y haz Homing; luego revisa X0 Y0",
+  "en": "Unlock, move the axis 1 mm away and run Homing; then check X0 Y0",
+  "l": 55
+ },
+ {
+  "es": "Alarma",
+  "en": "Alarm",
+  "l": 55
+ },
+ {
+  "es": "la app dice qué pasó y cómo salir",
+  "en": "the app says what happened and how to get out",
+  "l": 55
+ },
+ {
+  "es": "Fresas",
+  "en": "Bits",
+  "l": 55
+ },
+ {
+  "es": "se rompen fácil: nunca bajes Z con paso de 10 mm cerca de la placa",
+  "en": "break easily: never lower Z with a 10 mm step near the board",
+  "l": 55
+ }
+]

@@ -1,0 +1,189 @@
+[
+ {
+  "es": "(prefers-reduced-motion: reduce)",
+  "en": null,
+  "l": 17
+ },
+ {
+  "es": "Tutorial",
+  "en": "Tutorial",
+  "l": 26
+ },
+ {
+  "es": "\" alt=\"\" onerror=\"this.remove()\"></span>\n      <span class=\"tuto-op__t\">Manual de uso</span>\n      <span class=\"tuto-op__d\">Los ",
+  "en": "\" alt=\"\" onerror=\"this.remove()\"></span>\n      <span class=\"tuto-op__t\">User manual</span>\n      <span class=\"tuto-op__d\">The ",
+  "l": 37
+ },
+ {
+  "es": " pasos de tu placa, de KiCad a la placa terminada, con sus checks.</span>\n    </button>\n    <button type=\"button\" class=\"tuto-op\" data-op=\"guiado\">\n      <span class=\"tuto-op__img tuto-op__img--escena\"><img src=\"",
+  "en": " steps for your board, from KiCad to the finished board, with their checks.</span>\n    </button>\n    <button type=\"button\" class=\"tuto-op\" data-op=\"guiado\">\n      <span class=\"tuto-op__img tuto-op__img--escena\"><img src=\"",
+  "l": 39
+ },
+ {
+  "es": "\" alt=\"\" onerror=\"this.remove()\">\n        <span class=\"tuto-op__tag\">Si es tu primera PCB, te recomendamos esta opción</span></span>\n      <span class=\"tuto-op__t\">Tutorial guiado</span>\n      <span class=\"tuto-op__d\">Fresa te lleva por los 6 pasos y fabrican juntos una placa en simulación. Unos 10 minutos.</span>\n    </button>\n  </div>\n  <button type=\"button\" class=\"tuto-examen\" data-op=\"examen\">\n    <img src=\"",
+  "en": "\" alt=\"\" onerror=\"this.remove()\">\n        <span class=\"tuto-op__tag\">If this is your first PCB, we recommend this option</span></span>\n      <span class=\"tuto-op__t\">Guided tutorial</span>\n      <span class=\"tuto-op__d\">Fresa walks you through the 6 steps and you make a board together in simulation. About 10 minutes.</span>\n    </button>\n  </div>\n  <button type=\"button\" class=\"tuto-examen\" data-op=\"examen\">\n    <img src=\"",
+  "l": 43
+ },
+ {
+  "es": "\" alt=\"\" onerror=\"this.remove()\">\n    <span><b>Examen y certificado</b><small>",
+  "en": "\" alt=\"\" onerror=\"this.remove()\">\n    <span><b>Exam and certificate</b><small>",
+  "l": 50
+ },
+ {
+  "es": "Aprobado · descarga tu certificado cuando quieras",
+  "en": "Passed · download your certificate anytime",
+  "l": 51
+ },
+ {
+  "es": "15 preguntas; con 80 % obtienes el certificado del Curso básico de CNC",
+  "en": "15 questions; score 80 % to get the Basic CNC Course certificate",
+  "l": 51
+ },
+ {
+  "es": " pasos",
+  "en": " steps",
+  "l": 60,
+  "forzar": true
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-texto\" data-imprimir>Imprimir</button>",
+  "en": "<button type=\"button\" class=\"btn-texto\" data-imprimir>Print</button>",
+  "l": 63
+ },
+ {
+  "es": "Antes",
+  "en": "Before",
+  "l": 76
+ },
+ {
+  "es": "fuera de la app",
+  "en": "outside the app",
+  "l": 76
+ },
+ {
+  "es": "Los 6 pasos de tu placa",
+  "en": "The 6 steps for your board",
+  "l": 77
+ },
+ {
+  "es": "los mismos de Inicio y del tutorial guiado",
+  "en": "the same as in Home and the guided tutorial",
+  "l": 77
+ },
+ {
+  "es": "Al terminar",
+  "en": "When you finish",
+  "l": 78
+ },
+ {
+  "es": "señala",
+  "en": null,
+  "l": 175
+ },
+ {
+  "es": "auto",
+  "en": null,
+  "l": 181
+ },
+ {
+  "es": "smooth",
+  "en": null,
+  "l": 181
+ },
+ {
+  "es": "libre",
+  "en": null,
+  "l": 184
+ },
+ {
+  "es": "objetivo",
+  "en": null,
+  "l": 184
+ },
+ {
+  "es": "centro",
+  "en": null,
+  "l": 184
+ },
+ {
+  "es": "Paso ",
+  "en": "Step ",
+  "l": 204
+ },
+ {
+  "es": " de ",
+  "en": " of ",
+  "l": 204
+ },
+ {
+  "es": " · ",
+  "en": null,
+  "l": 204
+ },
+ {
+  "es": "tour__pop tour__pop--",
+  "en": null,
+  "l": 210
+ },
+ {
+  "es": "actual",
+  "en": null,
+  "l": 214
+ },
+ {
+  "es": ", tarjeta ",
+  "en": ", card ",
+  "l": 215,
+  "forzar": true
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-texto\" data-terminar>Terminar</button>",
+  "en": "<button type=\"button\" class=\"btn-texto\" data-terminar>Finish</button>",
+  "l": 227
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-texto\" data-salir>Salir</button>",
+  "en": "<button type=\"button\" class=\"btn-texto\" data-salir>Exit</button>",
+  "l": 227
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-texto\" data-atras>Atrás</button>",
+  "en": "<button type=\"button\" class=\"btn-texto\" data-atras>Back</button>",
+  "l": 228
+ },
+ {
+  "es": "Hazlo por mí",
+  "en": "Do it for me",
+  "l": 230
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-pill btn-pill--suave\" data-manual>Manual</button><button type=\"button\" class=\"btn-pill btn-pill--main\" data-examen>Hacer el examen</button>",
+  "en": "<button type=\"button\" class=\"btn-pill btn-pill--suave\" data-manual>Manual</button><button type=\"button\" class=\"btn-pill btn-pill--main\" data-examen>Take the exam</button>",
+  "l": 231
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-pill btn-pill--main\" data-sig>Siguiente</button>",
+  "en": "<button type=\"button\" class=\"btn-pill btn-pill--main\" data-sig>Next</button>",
+  "l": 232
+ },
+ {
+  "es": "izq",
+  "en": null,
+  "l": 319
+ },
+ {
+  "es": "abajo",
+  "en": null,
+  "l": 319
+ },
+ {
+  "es": "dentro",
+  "en": null,
+  "l": 319
+ },
+ {
+  "es": "Tab",
+  "en": null,
+  "l": 361
+ }
+]

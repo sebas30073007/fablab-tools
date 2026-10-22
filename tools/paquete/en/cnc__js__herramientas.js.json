@@ -1,0 +1,639 @@
+[
+ {
+  "es": "Punta",
+  "en": "Tip",
+  "l": 15
+ },
+ {
+  "es": "Ángulo",
+  "en": "Angle",
+  "l": 15
+ },
+ {
+  "es": "Profundidad",
+  "en": "Depth",
+  "l": 16
+ },
+ {
+  "es": "Pasadas",
+  "en": "Passes",
+  "l": 17
+ },
+ {
+  "es": "Traslape",
+  "en": "Overlap",
+  "l": 17
+ },
+ {
+  "es": "Avance",
+  "en": "Feed rate",
+  "l": 18
+ },
+ {
+  "es": "Bajada",
+  "en": "Plunge rate",
+  "l": 18
+ },
+ {
+  "es": "Broca Ø",
+  "en": "Drill bit Ø",
+  "l": 21
+ },
+ {
+  "es": "Fresa Ø",
+  "en": "End mill Ø",
+  "l": 25
+ },
+ {
+  "es": "Puentes",
+  "en": "Tabs",
+  "l": 26
+ },
+ {
+  "es": "Ancho puente",
+  "en": "Tab width",
+  "l": 27
+ },
+ {
+  "es": "Z puente",
+  "en": "Tab Z",
+  "l": 27
+ },
+ {
+  "es": "Acabado",
+  "en": "Finish",
+  "l": 29
+ },
+ {
+  "es": "Z seguro",
+  "en": "Safe Z",
+  "l": 42
+ },
+ {
+  "es": "Husillo",
+  "en": "Spindle",
+  "l": 42
+ },
+ {
+  "es": "Arranque",
+  "en": "Spin-up",
+  "l": 42
+ },
+ {
+  "es": "Pistas",
+  "en": "Traces",
+  "l": 47
+ },
+ {
+  "es": "Hoyos",
+  "en": "Holes",
+  "l": 48
+ },
+ {
+  "es": "Contorno",
+  "en": "Outline",
+  "l": 49
+ },
+ {
+  "es": "Grabado",
+  "en": "Engraving",
+  "l": 50
+ },
+ {
+  "es": "Vaciado",
+  "en": "Pocket",
+  "l": 51
+ },
+ {
+  "es": "Husillo y alturas",
+  "en": "Spindle and heights",
+  "l": 52
+ },
+ {
+  "es": "Ancho de la punta plana de la V; viene en la caja o grabado en la fresa (por ejemplo, 20° 0.1 mm).",
+  "en": "Width of the flat tip of the V; it’s on the box or engraved on the bit (for example, 20° 0.1 mm).",
+  "l": 59
+ },
+ {
+  "es": "Ángulo de la V. Con la profundidad decide el ancho que raya en el cobre.",
+  "en": "Angle of the V. Together with the depth it sets the width it scratches in the copper.",
+  "l": 60
+ },
+ {
+  "es": "Cuánto entra la punta bajo el cobre (el cobre mide 0.035 mm).",
+  "en": "How far the tip goes below the copper (the copper is 0.035 mm thick).",
+  "l": 61
+ },
+ {
+  "es": "Vueltas alrededor de cada pista, cada una más afuera. Más pasadas, menos hilos de cobre sueltos.",
+  "en": "Loops around each trace, each one farther out. More passes, fewer loose copper slivers.",
+  "l": 62
+ },
+ {
+  "es": "Cuánto se encima cada pasada sobre la anterior.",
+  "en": "How much each pass overlaps the previous one.",
+  "l": 63
+ },
+ {
+  "es": "Velocidad al avanzar cortando.",
+  "en": "Speed while moving and cutting.",
+  "l": 64
+ },
+ {
+  "es": "Velocidad al bajar a cortar.",
+  "en": "Speed when going down to cut.",
+  "l": 65
+ },
+ {
+  "es": "Las pasadas también corren por dentro del borde de la placa: no queda un anillo de cobre suelto entre tu diseño y el contorno.",
+  "en": "The passes also run inside the board edge: no loose ring of copper is left between your design and the outline.",
+  "l": 66
+ },
+ {
+  "es": "Diámetro de la broca: todos los hoyos del rango salen de este tamaño. Solo perfora hacia abajo; no corta de lado.",
+  "en": "Drill bit diameter: every hole in the range comes out this size. It only drills down; it doesn’t cut sideways.",
+  "l": 69
+ },
+ {
+  "es": "Tiene que atravesar la placa y entrar un poco en el MDF.",
+  "en": "It has to go through the board and a little into the MDF.",
+  "l": 70
+ },
+ {
+  "es": "Velocidad al perforar.",
+  "en": "Speed while drilling.",
+  "l": 71
+ },
+ {
+  "es": "Los hoyos del diseño más chicos que esto no se perforan.",
+  "en": "Holes in the design smaller than this aren’t drilled.",
+  "l": 72
+ },
+ {
+  "es": "Los hoyos del diseño más grandes que esto no se perforan (un hoyo grande se hace aparte).",
+  "en": "Holes in the design larger than this aren’t drilled (a large hole is made separately).",
+  "l": 73
+ },
+ {
+  "es": "Diámetro de la fresa de maíz: corta de lado y de punta. Una broca no sirve para el contorno. El vaciado usa la misma.",
+  "en": "Diameter of the corncob bit: it cuts sideways and at the tip. A drill bit won’t work for the outline. The pocket uses the same one.",
+  "l": 76
+ },
+ {
+  "es": "Profundidad total: el grosor del material y un poco más. Sigue al grosor cuando eliges el material.",
+  "en": "Total depth: the material thickness plus a little. It follows the thickness when you pick the material.",
+  "l": 77
+ },
+ {
+  "es": "La profundidad se reparte en varias bajadas para no forzar la fresa.",
+  "en": "The depth is split into several step downs so the bit isn’t strained.",
+  "l": 78
+ },
+ {
+  "es": "Pestañas que sostienen la placa para que no se suelte al terminar.",
+  "en": "Small bridges that hold the board so it doesn’t come loose at the end.",
+  "l": 79
+ },
+ {
+  "es": "Largo de cada puente a lo largo del corte.",
+  "en": "Length of each tab along the cut.",
+  "l": 80
+ },
+ {
+  "es": "Hasta dónde baja en los puentes; lo que queda abajo sostiene la placa.",
+  "en": "How far it goes down at the tabs; what’s left below holds the board.",
+  "l": 81
+ },
+ {
+  "es": "Lo que el desbaste deja junto a la pieza para una última vuelta fina a toda profundidad: borde más limpio y medida más exacta. 0 = sin acabado.",
+  "en": "What roughing leaves next to the part for a last fine pass at full depth: cleaner edge and more exact size. 0 = no finish.",
+  "l": 84
+ },
+ {
+  "es": "Ancho de la punta plana de la fresa en V.",
+  "en": "Width of the flat tip of the V-bit.",
+  "l": 87
+ },
+ {
+  "es": "Ángulo de la V. Con la profundidad decide el ancho de la línea grabada.",
+  "en": "Angle of the V. Together with the depth it sets the width of the engraved line.",
+  "l": 88
+ },
+ {
+  "es": "Cuánto entra la punta en el material.",
+  "en": "How far the tip goes into the material.",
+  "l": 89
+ },
+ {
+  "es": "La profundidad se reparte en varias bajadas.",
+  "en": "The depth is split into several step downs.",
+  "l": 90
+ },
+ {
+  "es": "Velocidad al avanzar grabando.",
+  "en": "Speed while moving and engraving.",
+  "l": 91
+ },
+ {
+  "es": "Velocidad al bajar.",
+  "en": "Speed when going down.",
+  "l": 92
+ },
+ {
+  "es": "Hasta dónde se rebaja la zona, desde la superficie.",
+  "en": "How deep the area is cut, from the surface.",
+  "l": 95
+ },
+ {
+  "es": "Cuánto se encima cada vuelta sobre la anterior. Desde 50 % no quedan crestas sin cortar.",
+  "en": "How much each loop overlaps the previous one. From 50 % on, no uncut ridges are left.",
+  "l": 97
+ },
+ {
+  "es": "Altura sobre la placa para moverse de un corte a otro sin tocarla.",
+  "en": "Height above the board to move from one cut to the next without touching it.",
+  "l": 102
+ },
+ {
+  "es": "Vueltas por minuto de la fresa.",
+  "en": "Revolutions per minute of the bit.",
+  "l": 103
+ },
+ {
+  "es": "Segundos de espera para que el husillo tome velocidad antes de cortar.",
+  "en": "Seconds to wait for the spindle to reach speed before cutting.",
+  "l": 104
+ },
+ {
+  "es": "Concordancia: la fresa gira a favor del avance; se calienta menos y deja mejor borde en cobre y acrílico. Sin marcar (convencional): en madera o MDF evita que la fresa jale hacia el material.",
+  "en": "Climb: the bit turns with the feed; it runs cooler and leaves a better edge in copper and acrylic. Unchecked (conventional): in wood or MDF it keeps the bit from pulling into the material.",
+  "l": 105
+ },
+ {
+  "es": " mm es demasiado: el surco mide ",
+  "en": " mm is too much: the groove is ",
+  "l": 115
+ },
+ {
+  "es": " mm y se come las pistas. Usa 0.05 a 0.2 mm.",
+  "en": " mm wide and eats the traces. Use 0.05 to 0.2 mm.",
+  "l": 115
+ },
+ {
+  "es": "Con ",
+  "en": "At ",
+  "l": 116
+ },
+ {
+  "es": " mm la punta apenas raya y deja cobre. Usa 0.05 a 0.2 mm.",
+  "en": " mm the tip barely scratches and leaves copper. Use 0.05 to 0.2 mm.",
+  "l": 116
+ },
+ {
+  "es": "Usa de 1 a 10 pasadas.",
+  "en": "Use 1 to 10 passes.",
+  "l": 117
+ },
+ {
+  "es": "La punta de una fresa en V mide de 0.05 a 0.5 mm.",
+  "en": "A V-bit tip is 0.05 to 0.5 mm wide.",
+  "l": 118
+ },
+ {
+  "es": "El ángulo de una fresa en V va de 10° a 90°.",
+  "en": "A V-bit angle goes from 10° to 90°.",
+  "l": 119
+ },
+ {
+  "es": "Avance seguro: 30 a 600 mm/min.",
+  "en": "Safe feed rate: 30 to 600 mm/min.",
+  "l": 120
+ },
+ {
+  "es": "Bajada segura: 10 a 300 mm/min.",
+  "en": "Safe plunge rate: 10 to 300 mm/min.",
+  "l": 121
+ },
+ {
+  "es": "Entra ",
+  "en": "It goes ",
+  "l": 124
+ },
+ {
+  "es": " mm en el MDF: con ",
+  "en": " mm into the MDF: ",
+  "l": 124
+ },
+ {
+  "es": " mm basta.",
+  "en": " mm is enough.",
+  "l": 124
+ },
+ {
+  "es": "Bajada segura: 10 a 200 mm/min.",
+  "en": "Safe plunge rate: 10 to 200 mm/min.",
+  "l": 125
+ },
+ {
+  "es": "Cada bajada sería de ",
+  "en": "Each step down would be ",
+  "l": 129
+ },
+ {
+  "es": " mm y fuerza la fresa: usa ",
+  "en": " mm and strains the bit: use ",
+  "l": 129
+ },
+ {
+  "es": " pasadas o más.",
+  "en": " passes or more.",
+  "l": 129
+ },
+ {
+  "es": "Usa de 1 a 30 pasadas.",
+  "en": "Use 1 to 30 passes.",
+  "l": 129
+ },
+ {
+  "es": "La fresa de maíz va de 0.5 a 3.175 mm.",
+  "en": "The corncob bit goes from 0.5 to 3.175 mm.",
+  "l": 130
+ },
+ {
+  "es": "Avance seguro: 30 a 800 mm/min.",
+  "en": "Safe feed rate: 30 to 800 mm/min.",
+  "l": 131
+ },
+ {
+  "es": "Usa 0.02 a 1 mm.",
+  "en": "Use 0.02 to 1 mm.",
+  "l": 135
+ },
+ {
+  "es": " mm: usa ",
+  "en": " mm: use ",
+  "l": 139
+ },
+ {
+  "es": "Z seguro: de 1 a 15 mm sobre la placa.",
+  "en": "Safe Z: 1 to 15 mm above the board.",
+  "l": 143
+ },
+ {
+  "es": " mm · ",
+  "en": null,
+  "l": 158
+ },
+ {
+  "es": " puentes",
+  "en": " tabs",
+  "l": 160,
+  "forzar": true
+ },
+ {
+  "es": "° · ",
+  "en": null,
+  "l": 161
+ },
+ {
+  "es": " · ",
+  "en": null,
+  "l": 163
+ },
+ {
+  "es": "\" y=\"",
+  "en": null,
+  "l": 172
+ },
+ {
+  "es": "\" y1=\"",
+  "en": null,
+  "l": 177
+ },
+ {
+  "es": "\" y2=\"",
+  "en": null,
+  "l": 177
+ },
+ {
+  "es": "end",
+  "en": null,
+  "l": 183
+ },
+ {
+  "es": "start",
+  "en": null,
+  "l": 183
+ },
+ {
+  "es": "\" x2=\"32\" y2=\"",
+  "en": null,
+  "l": 196
+ },
+ {
+  "es": "De lado: la punta en V ",
+  "en": "Side view: the V tip ",
+  "l": 244
+ },
+ {
+  "es": "graba",
+  "en": "engraves",
+  "l": 244
+ },
+ {
+  "es": "entra",
+  "en": "goes",
+  "l": 244
+ },
+ {
+  "es": " mm y corta ",
+  "en": " mm deep, cutting ",
+  "l": 244
+ },
+ {
+  "es": " mm de ancho",
+  "en": " mm wide",
+  "l": 244
+ },
+ {
+  "es": "pista",
+  "en": "trace",
+  "l": 246,
+  "forzar": true
+ },
+ {
+  "es": "Corte ",
+  "en": "Cut ",
+  "l": 247
+ },
+ {
+  "es": "Profundidad ",
+  "en": "Depth ",
+  "l": 248
+ },
+ {
+  "es": "Bajada ",
+  "en": "Plunge ",
+  "l": 249
+ },
+ {
+  "es": "Traslape ",
+  "en": "Overlap ",
+  "l": 258
+ },
+ {
+  "es": "De arriba: ",
+  "en": "Top view: ",
+  "l": 259
+ },
+ {
+  "es": " pasadas junto a la pista, aíslan ",
+  "en": " passes beside the trace isolate ",
+  "l": 259
+ },
+ {
+  "es": "Avance ",
+  "en": "Feed ",
+  "l": 265
+ },
+ {
+  "es": "pasadas",
+  "en": "passes",
+  "l": 266
+ },
+ {
+  "es": "pasada",
+  "en": "pass",
+  "l": 266
+ },
+ {
+  "es": " · aísla ",
+  "en": " · isolates ",
+  "l": 266
+ },
+ {
+  "es": "De lado: broca de ",
+  "en": "Side view: ",
+  "l": 284
+ },
+ {
+  "es": " mm que baja ",
+  "en": " mm drill bit goes down ",
+  "l": 284
+ },
+ {
+  "es": " mm en una placa de ",
+  "en": " mm; the board is ",
+  "l": 284
+ },
+ {
+  "es": "MDF",
+  "en": null,
+  "l": 286
+ },
+ {
+  "es": "Broca Ø ",
+  "en": "Drill bit Ø ",
+  "l": 287
+ },
+ {
+  "es": "\" y1=\"0\" x2=\"",
+  "en": null,
+  "l": 309
+ },
+ {
+  "es": "\" y=\"0\" width=\"",
+  "en": null,
+  "l": 317
+ },
+ {
+  "es": "De lado: fresa de ",
+  "en": "Side view: end mill ",
+  "l": 320
+ },
+ {
+  "es": " bajadas hasta ",
+  "en": " steps down to ",
+  "l": 320
+ },
+ {
+  "es": "Fresa Ø ",
+  "en": "End mill Ø ",
+  "l": 323
+ },
+ {
+  "es": " puentes; cada uno de ",
+  "en": " tabs; each one of ",
+  "l": 345
+ },
+ {
+  "es": " mm deja ",
+  "en": " mm leaves ",
+  "l": 345
+ },
+ {
+  "es": " mm de placa",
+  "en": " mm of board",
+  "l": 345
+ },
+ {
+  "es": "Sin puentes",
+  "en": "No tabs",
+  "l": 345
+ },
+ {
+  "es": "puente",
+  "en": "tab",
+  "l": 348
+ },
+ {
+  "es": "puentes",
+  "en": "tabs",
+  "l": 348
+ },
+ {
+  "es": "De lado: se rebaja ",
+  "en": "Side view: cuts down ",
+  "l": 375
+ },
+ {
+  "es": " mm en ",
+  "en": " mm in ",
+  "l": 375
+ },
+ {
+  "es": "bajadas",
+  "en": "steps",
+  "l": 375
+ },
+ {
+  "es": "bajada",
+  "en": "step",
+  "l": 375
+ },
+ {
+  "es": "del centro a la pared",
+  "en": "center to wall",
+  "l": 382
+ },
+ {
+  "es": "La fresa se mueve ",
+  "en": "The bit travels ",
+  "l": 392
+ },
+ {
+  "es": " mm sobre la placa, a ",
+  "en": " mm above the board, at ",
+  "l": 392
+ },
+ {
+  "es": "\" y=\"0\" width=\"12\" height=\"",
+  "en": null,
+  "l": 394
+ },
+ {
+  "es": "al siguiente corte",
+  "en": "to the next cut",
+  "l": 397
+ }
+]

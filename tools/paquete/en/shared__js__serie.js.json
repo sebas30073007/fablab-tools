@@ -1,0 +1,67 @@
+[
+ {
+  "es": "otra pestaña",
+  "en": "another tab",
+  "l": 17
+ },
+ {
+  "es": "Este navegador no tiene Web Serial: usa Chrome o Edge.",
+  "en": "This browser has no Web Serial: use Chrome or Edge.",
+  "l": 36
+ },
+ {
+  "es": "sys err",
+  "en": null,
+  "l": 36
+ },
+ {
+  "es": "NotFoundError",
+  "en": null,
+  "l": 41
+ },
+ {
+  "es": "NetworkError",
+  "en": null,
+  "l": 42
+ },
+ {
+  "es": "El puerto está ocupado: cierra ",
+  "en": "The port is busy: close ",
+  "l": 44
+ },
+ {
+  "es": " u otra pestaña que lo tenga abierto.",
+  "en": " or any other tab that has it open.",
+  "l": 44
+ },
+ {
+  "es": "No se abrió el puerto: ",
+  "en": "Could not open the port: ",
+  "l": 45
+ },
+ {
+  "es": "Se desconectó el cable USB.",
+  "en": "The USB cable was disconnected.",
+  "l": 53
+ },
+ {
+  "es": "Desconectado.",
+  "en": "Disconnected.",
+  "l": 78
+ },
+ {
+  "es": "sin conexión",
+  "en": "not connected",
+  "l": 112
+ },
+ {
+  "es": "rx ok",
+  "en": null,
+  "l": 163
+ },
+ {
+  "es": "ya hay un programa",
+  "en": "a program is already running",
+  "l": 187
+ }
+]

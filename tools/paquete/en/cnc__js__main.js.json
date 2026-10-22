@@ -1,0 +1,1274 @@
+[
+ {
+  "es": "¿${herr} puesta?",
+  "en": "Is ${herr} mounted?",
+  "l": 743,
+  "plantilla": true
+ },
+ {
+  "es": "Homing hecho",
+  "en": "Homing done",
+  "l": 103
+ },
+ {
+  "es": "PARO: pausa y reinicio. La posición se conserva.",
+  "en": "STOP: hold and reset. The position is kept.",
+  "l": 125
+ },
+ {
+  "es": "sys err",
+  "en": null,
+  "l": 125
+ },
+ {
+  "es": "Paro",
+  "en": "Stop",
+  "l": 126
+ },
+ {
+  "es": "XYZ",
+  "en": null,
+  "l": 139
+ },
+ {
+  "es": "Alarma ",
+  "en": "Alarm ",
+  "l": 142
+ },
+ {
+  "es": "Alarm",
+  "en": null,
+  "l": 164
+ },
+ {
+  "es": "Inicio, hay una alarma",
+  "en": "Home, there is an alarm",
+  "l": 182
+ },
+ {
+  "es": "Inicio",
+  "en": "Home",
+  "l": 182
+ },
+ {
+  "es": "Respuestas de la máquina",
+  "en": "Machine responses",
+  "l": 191
+ },
+ {
+  "es": "Z sube ",
+  "en": "Z rises ",
+  "l": 235
+ },
+ {
+  "es": " mm más de lo que llega la máquina",
+  "en": " mm more than the machine can reach",
+  "l": 235
+ },
+ {
+  "es": "Z baja ",
+  "en": "Z drops ",
+  "l": 235
+ },
+ {
+  "es": " mm más de lo que llega la máquina: Z0 está muy abajo",
+  "en": " mm more than the machine can reach: Z0 is too low",
+  "l": 235
+ },
+ {
+  "es": "Se pasa ",
+  "en": "Goes ",
+  "l": 236
+ },
+ {
+  "es": " mm del tope de ",
+  "en": " mm past the limit of ",
+  "l": 236
+ },
+ {
+  "es": "Tope: ",
+  "en": "Limit: ",
+  "l": 248
+ },
+ {
+  "es": " no ",
+  "en": " won’t ",
+  "l": 248
+ },
+ {
+  "es": "avanzan",
+  "en": "go",
+  "l": 248
+ },
+ {
+  "es": "avanza",
+  "en": "go",
+  "l": 248
+ },
+ {
+  "es": " más en esa dirección.",
+  "en": " any further in that direction.",
+  "l": 248
+ },
+ {
+  "es": "Tope de ",
+  "en": "Limit on ",
+  "l": 248
+ },
+ {
+  "es": " y ",
+  "en": " and ",
+  "l": 248
+ },
+ {
+  "es": "Revisa el origen",
+  "en": "Check the origin",
+  "l": 254
+ },
+ {
+  "es": "<p>Hubo una alarma de posición. Con <b>Ir a X0 Y0</b> en Origen, mira que la fresa quede sobre la esquina del material.</p>",
+  "en": "<p>There was a position alarm. With <b>Go to X0 Y0</b> in Origin, check that the bit sits over the corner of the material.</p>",
+  "l": 255
+ },
+ {
+  "es": "Ya lo revisé",
+  "en": "I checked it",
+  "l": 256
+ },
+ {
+  "es": "Ir a Origen",
+  "en": "Go to Origin",
+  "l": 256
+ },
+ {
+  "es": "No cabe en la máquina",
+  "en": "Doesn’t fit in the machine",
+  "l": 275
+ },
+ {
+  "es": "Cerrar",
+  "en": "Close",
+  "l": 275
+ },
+ {
+  "es": "Recorrer el borde",
+  "en": "Trace the edge",
+  "l": 276
+ },
+ {
+  "es": "<p>La fresa no gira: sube a ",
+  "en": "<p>The bit doesn’t spin: it rises to ",
+  "l": 277
+ },
+ {
+  "es": " mm y da una vuelta al rectángulo que ocupa la placa (",
+  "en": " mm and goes once around the rectangle the board takes up (",
+  "l": 277
+ },
+ {
+  "es": " mm).</p><p class=\"muted\">Míralo desde arriba: el recorrido debe quedar dentro del material.</p>",
+  "en": " mm).</p><p class=\"muted\">Watch from above: the path must stay inside the material.</p>",
+  "l": 277
+ },
+ {
+  "es": "Recorrer",
+  "en": "Trace",
+  "l": 278
+ },
+ {
+  "es": "Mapa de alturas: ",
+  "en": "Height map: ",
+  "l": 295
+ },
+ {
+  "es": "Hay Gerber y dibujo: se usa el Gerber; ",
+  "en": "There are Gerber and drawing files: the Gerber is used; ",
+  "l": 333
+ },
+ {
+  "es": " no se usa.",
+  "en": " is not used.",
+  "l": 333
+ },
+ {
+  "es": "Diseño girado ",
+  "en": "Design rotated ",
+  "l": 403
+ },
+ {
+  "es": "La del archivo",
+  "en": "The one in the file",
+  "l": 428
+ },
+ {
+  "es": "F_Cu.gbr",
+  "en": null,
+  "l": 434
+ },
+ {
+  "es": "Edge_Cuts.gbr",
+  "en": null,
+  "l": 434
+ },
+ {
+  "es": "PTH.drl",
+  "en": null,
+  "l": 434
+ },
+ {
+  "es": "NPTH.drl",
+  "en": null,
+  "l": 434
+ },
+ {
+  "es": "job.gbrjob",
+  "en": null,
+  "l": 434
+ },
+ {
+  "es": "kicad basics course-",
+  "en": null,
+  "l": 434
+ },
+ {
+  "es": "Atraviesa los ",
+  "en": "Goes through the ",
+  "l": 457
+ },
+ {
+  "es": " mm y entra ",
+  "en": " mm and goes ",
+  "l": 457
+ },
+ {
+  "es": " mm en el MDF",
+  "en": " mm into the MDF",
+  "l": 457
+ },
+ {
+  "es": "Entra ",
+  "en": "Goes ",
+  "l": 458
+ },
+ {
+  "es": "bajo el cobre",
+  "en": "below the copper",
+  "l": 458
+ },
+ {
+  "es": "en el material",
+  "en": "into the material",
+  "l": 458
+ },
+ {
+  "es": "Revisa la configuración",
+  "en": "Check the settings",
+  "l": 465
+ },
+ {
+  "es": "</b> · ",
+  "en": null,
+  "l": 465
+ },
+ {
+  "es": "Ir a Configuración",
+  "en": "Go to Settings",
+  "l": 465
+ },
+ {
+  "es": "Grabado",
+  "en": "Engraving",
+  "l": 478
+ },
+ {
+  "es": "Hoyos",
+  "en": "Holes",
+  "l": 481
+ },
+ {
+  "es": "Broca ",
+  "en": "Drill bit ",
+  "l": 481
+ },
+ {
+  "es": "Vaciado",
+  "en": "Pocket",
+  "l": 484
+ },
+ {
+  "es": "Fresa ",
+  "en": "End mill ",
+  "l": 484
+ },
+ {
+  "es": "La fresa de ",
+  "en": "The ",
+  "l": 485
+ },
+ {
+  "es": " mm no cabe en lo que hay que vaciar.",
+  "en": " mm end mill doesn’t fit in the area to pocket.",
+  "l": 485
+ },
+ {
+  "es": "Contorno",
+  "en": "Outline",
+  "l": 489
+ },
+ {
+  "es": "círculo más chico",
+  "en": "circle is smaller",
+  "l": 491
+ },
+ {
+  "es": "círculos más chicos",
+  "en": "circles are smaller",
+  "l": 491
+ },
+ {
+  "es": " que la fresa quedan fuera del rango de Hoyos.",
+  "en": " than the bit: outside the Holes range.",
+  "l": 491
+ },
+ {
+  "es": "Las zonas sin cobre solo tienen cobre del diseño (pistas o relleno): no hay nada que quitar.",
+  "en": "The copper-free zones only have design copper (traces or fill): there is nothing to remove.",
+  "l": 500
+ },
+ {
+  "es": "Pistas",
+  "en": "Traces",
+  "l": 502
+ },
+ {
+  "es": "° punta ",
+  "en": "° tip ",
+  "l": 502,
+  "forzar": true
+ },
+ {
+  "es": " · corte ",
+  "en": " · cut ",
+  "l": 502
+ },
+ {
+  "es": "(DISENO A X",
+  "en": "(DESIGN AT X",
+  "l": 512
+ },
+ {
+  "es": " DE LA ESQUINA DEL MATERIAL)",
+  "en": " FROM THE MATERIAL CORNER)",
+  "l": 512
+ },
+ {
+  "es": "Trayectorias listas: ",
+  "en": "Toolpaths ready: ",
+  "l": 520
+ },
+ {
+  "es": "Con el mapa de alturas aplicado: la fresa sigue la superficie",
+  "en": "Height map applied: the bit follows the surface",
+  "l": 556
+ },
+ {
+  "es": "Con el mapa medido, sin aplicar: así cortaría",
+  "en": "Map measured, not applied: this is how it would cut",
+  "l": 557
+ },
+ {
+  "es": "Sobre la superficie de la simulación, que no es plana",
+  "en": "On the simulation surface, which isn’t flat",
+  "l": 558
+ },
+ {
+  "es": "Superficie supuesta plana (sin mapa de alturas)",
+  "en": "Surface assumed flat (no height map)",
+  "l": 559
+ },
+ {
+  "es": "Superficie supuesta plana: calibra Z y mide el mapa para verla real",
+  "en": "Surface assumed flat: calibrate Z and measure the map to see the real one",
+  "l": 559
+ },
+ {
+  "es": "Material: ",
+  "en": "Material: ",
+  "l": 674
+ },
+ {
+  "es": "Material nuevo, sin cortes",
+  "en": "New material, no cuts",
+  "l": 689
+ },
+ {
+  "es": "<svg viewBox=\"0 0 320 130\" role=\"img\" aria-label=\"Caimán en la fresa y cable a la placa de cobre\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <rect x=\"135\" y=\"4\" width=\"50\" height=\"46\" rx=\"8\" fill=\"#1A1D22\"/><path d=\"M160 50v42\" stroke=\"#B7BCC4\" stroke-width=\"6\"/><path d=\"M157 92l3 8 3-8z\" fill=\"#FF6B35\"/>\n  <rect x=\"40\" y=\"104\" width=\"240\" height=\"6\" rx=\"2\" fill=\"#D28B53\"/><rect x=\"40\" y=\"110\" width=\"240\" height=\"9\" rx=\"2\" fill=\"#2F5E3A\"/>\n  <path d=\"M166 72c28-6 54 0 82-20\" stroke=\"#E30613\" stroke-width=\"2.5\"/><rect x=\"164\" y=\"67\" width=\"13\" height=\"9\" rx=\"2\" fill=\"#E30613\"/>\n  <path d=\"M248 52c18-12 36-2 36 18v34\" stroke=\"#111317\" stroke-width=\"2.5\"/><circle cx=\"284\" cy=\"104\" r=\"4\" fill=\"#111317\"/></svg>",
+  "en": "<svg viewBox=\"0 0 320 130\" role=\"img\" aria-label=\"Alligator clip on the bit and wire to the copper-clad board\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\">\n  <rect x=\"135\" y=\"4\" width=\"50\" height=\"46\" rx=\"8\" fill=\"#1A1D22\"/><path d=\"M160 50v42\" stroke=\"#B7BCC4\" stroke-width=\"6\"/><path d=\"M157 92l3 8 3-8z\" fill=\"#FF6B35\"/>\n  <rect x=\"40\" y=\"104\" width=\"240\" height=\"6\" rx=\"2\" fill=\"#D28B53\"/><rect x=\"40\" y=\"110\" width=\"240\" height=\"9\" rx=\"2\" fill=\"#2F5E3A\"/>\n  <path d=\"M166 72c28-6 54 0 82-20\" stroke=\"#E30613\" stroke-width=\"2.5\"/><rect x=\"164\" y=\"67\" width=\"13\" height=\"9\" rx=\"2\" fill=\"#E30613\"/>\n  <path d=\"M248 52c18-12 36-2 36 18v34\" stroke=\"#111317\" stroke-width=\"2.5\"/><circle cx=\"284\" cy=\"104\" r=\"4\" fill=\"#111317\"/></svg>",
+  "l": 703
+ },
+ {
+  "es": "Conecta la sonda",
+  "en": "Connect the probe",
+  "l": 713
+ },
+ {
+  "es": "<p>El ",
+  "en": "<p>The ",
+  "l": 715
+ },
+ {
+  "es": " no conduce: pon encima una placa de contacto metálica, con el cable de la sonda en ella.</p>",
+  "en": " doesn’t conduct: put a metal touch plate on top, with the probe wire on it.</p>",
+  "l": 715
+ },
+ {
+  "es": "\n          <p>Toca la placa con el caimán para probar.</p>\n          <div class=\"indicador\" data-on=\"0\" role=\"status\"><span class=\"foco\" aria-hidden=\"true\"></span><span data-t>Sin contacto</span></div>\n          ",
+  "en": "\n          <p>Touch the board with the alligator clip to test.</p>\n          <div class=\"indicador\" data-on=\"0\" role=\"status\"><span class=\"foco\" aria-hidden=\"true\"></span><span data-t>No contact</span></div>\n          ",
+  "l": 715
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-pill btn-pill--suave\" data-tocar>Mantén para simular el toque</button>",
+  "en": "<button type=\"button\" class=\"btn-pill btn-pill--suave\" data-tocar>Hold to simulate the touch</button>",
+  "l": 718
+ },
+ {
+  "es": "Contacto",
+  "en": "Contact",
+  "l": 724
+ },
+ {
+  "es": "La sonda funciona",
+  "en": "The probe works",
+  "l": 724
+ },
+ {
+  "es": "Sin contacto",
+  "en": "No contact",
+  "l": 724
+ },
+ {
+  "es": "Quita el caimán",
+  "en": "Remove the alligator clip",
+  "l": 733
+ },
+ {
+  "es": "la fresa",
+  "en": "the bit",
+  "l": 736
+ },
+ {
+  "es": "Cambio de fresa",
+  "en": "Bit change",
+  "l": 741
+ },
+ {
+  "es": "Calibrar Z",
+  "en": "Calibrate Z",
+  "l": 741
+ },
+ {
+  "es": "Pon ",
+  "en": "Insert ",
+  "l": 743
+ },
+ {
+  "es": "¿",
+  "en": "Is ",
+  "l": 743
+ },
+ {
+  "es": "<p>La fresa ya subió. Cambia la herramienta y apriétala.</p>",
+  "en": "<p>The bit is up. Change the tool and tighten it.</p>",
+  "l": 744
+ },
+ {
+  "es": "Acerca la fresa a unos 5 mm",
+  "en": "Bring the bit to about 5 mm",
+  "l": 747
+ },
+ {
+  "es": "<span>Hay contacto antes de bajar: el caimán no debe tocar la placa.</span></div>",
+  "en": "<span>Contact before lowering: the alligator clip must not touch the board.</span></div>",
+  "l": 749
+ },
+ {
+  "es": " (máquina)",
+  "en": " (machine)",
+  "l": 752
+ },
+ {
+  "es": "Idle",
+  "en": null,
+  "l": 753
+ },
+ {
+  "es": "Tocar la placa",
+  "en": "Touch the board",
+  "l": 757
+ },
+ {
+  "es": "<label class=\"campo\" style=\"max-width:200px\"><span>Placa de contacto mm</span><input type=\"number\" step=\"0.01\" min=\"0\" value=\"",
+  "en": "<label class=\"campo\" style=\"max-width:200px\"><span>Touch plate mm</span><input type=\"number\" step=\"0.01\" min=\"0\" value=\"",
+  "l": 759
+ },
+ {
+  "es": "Bajar y tocar",
+  "en": "Lower and touch",
+  "l": 761
+ },
+ {
+  "es": "Escribe el grosor de la placa de contacto: Z0 va debajo de ella.",
+  "en": "Enter the touch plate thickness: Z0 goes below it.",
+  "l": 767
+ },
+ {
+  "es": "Bajando…",
+  "en": "Lowering…",
+  "l": 768
+ },
+ {
+  "es": "No tocó. ",
+  "en": "No touch. ",
+  "l": 770
+ },
+ {
+  "es": "Reintentar",
+  "en": "Retry",
+  "l": 770
+ },
+ {
+  "es": "Z0 fijado · contacto en ",
+  "en": "Z0 set · contact at ",
+  "l": 771
+ },
+ {
+  "es": "Siguiente",
+  "en": "Next",
+  "l": 771
+ },
+ {
+  "es": "Primero genera las trayectorias.",
+  "en": "Generate the toolpaths first.",
+  "l": 803
+ },
+ {
+  "es": "El ",
+  "en": "The ",
+  "l": 804
+ },
+ {
+  "es": " no conduce: el mapa solo se mide sobre cobre.",
+  "en": " doesn’t conduct: the map can only be measured on copper.",
+  "l": 804
+ },
+ {
+  "es": "La máquina no está lista.",
+  "en": "The machine isn’t ready.",
+  "l": 805
+ },
+ {
+  "es": "Primero haz homing.",
+  "en": "Run homing first.",
+  "l": 806
+ },
+ {
+  "es": "Primero fija X0 Y0: la malla va sobre tu placa.",
+  "en": "Set X0 Y0 first: the grid goes over your board.",
+  "l": 807
+ },
+ {
+  "es": "Primero calibra Z: el mapa se mide desde Z0.",
+  "en": "Calibrate Z first: the map is measured from Z0.",
+  "l": 808
+ },
+ {
+  "es": "El sondeo falló en ",
+  "en": "Probing failed at ",
+  "l": 829
+ },
+ {
+  "es": " puntos, diferencia ",
+  "en": " points, difference ",
+  "l": 843
+ },
+ {
+  "es": "Mapa de alturas listo",
+  "en": "Height map ready",
+  "l": 844
+ },
+ {
+  "es": "\" role=\"img\" aria-label=\"Malla de ",
+  "en": "\" role=\"img\" aria-label=\"Grid of ",
+  "l": 855
+ },
+ {
+  "es": " por ",
+  "en": " by ",
+  "l": 855
+ },
+ {
+  "es": " puntos sobre la placa\">\n    <rect x=\"",
+  "en": " points over the board\">\n    <rect x=\"",
+  "l": 855
+ },
+ {
+  "es": "\" y=\"",
+  "en": null,
+  "l": 856
+ },
+ {
+  "es": "Mapa de alturas",
+  "en": "Height map",
+  "l": 861
+ },
+ {
+  "es": "<p data-txt></p>\n      <div class=\"figura\" data-fig></div>\n      <span class=\"progreso\" data-prog hidden><i></i></span>\n      <div class=\"resultado\" data-r hidden role=\"status\"></div>\n      <details class=\"desp\" data-av><summary><span></span><span>Avanzado</span><span></span>",
+  "en": "<p data-txt></p>\n      <div class=\"figura\" data-fig></div>\n      <span class=\"progreso\" data-prog hidden><i></i></span>\n      <div class=\"resultado\" data-r hidden role=\"status\"></div>\n      <details class=\"desp\" data-av><summary><span></span><span>Advanced</span><span></span>",
+  "l": 865
+ },
+ {
+  "es": "Separación",
+  "en": "Spacing",
+  "l": 870
+ },
+ {
+  "es": "Distancia entre puntos",
+  "en": "Distance between points",
+  "l": 870
+ },
+ {
+  "es": "Bajar hasta",
+  "en": "Max depth",
+  "l": 870
+ },
+ {
+  "es": "Lo más que baja bajo Z0 buscando la placa",
+  "en": "How far below Z0 it goes looking for the board",
+  "l": 870
+ },
+ {
+  "es": "Sondeo",
+  "en": "Probing",
+  "l": 870
+ },
+ {
+  "es": "Velocidad al bajar",
+  "en": "Plunge rate",
+  "l": 870
+ },
+ {
+  "es": "</div></details>\n      <div class=\"fila-wrap\" style=\"justify-content:center\"><button type=\"button\" class=\"btn-pill btn-pill--suave\" data-cancelar hidden>Cancelar</button>\n        <button type=\"button\" class=\"btn-texto\" data-sin>Sin mapa</button></div>",
+  "en": "</div></details>\n      <div class=\"fila-wrap\" style=\"justify-content:center\"><button type=\"button\" class=\"btn-pill btn-pill--suave\" data-cancelar hidden>Cancel</button>\n        <button type=\"button\" class=\"btn-texto\" data-sin>No map</button></div>",
+  "l": 870
+ },
+ {
+  "es": "Listo. Ahora sí puedes quitar el caimán.",
+  "en": "Done. Now you can remove the alligator clip.",
+  "l": 878
+ },
+ {
+  "es": "Deja el caimán puesto. La sonda toca <b>",
+  "en": "Leave the alligator clip on. The probe touches <b>",
+  "l": 879
+ },
+ {
+  "es": " puntos</b> sobre tu placa",
+  "en": " points</b> on your board",
+  "l": 879
+ },
+ {
+  "es": ", unos ",
+  "en": ", about ",
+  "l": 879,
+  "forzar": true
+ },
+ {
+  "es": "Cancelando al terminar este punto…",
+  "en": "Canceling after this point…",
+  "l": 895
+ },
+ {
+  "es": "Sin mapa de alturas",
+  "en": "No height map",
+  "l": 896
+ },
+ {
+  "es": "Diferencia ",
+  "en": "Difference ",
+  "l": 897
+ },
+ {
+  "es": " mm · el mapa se aplica al fresar",
+  "en": " mm · the map is applied when milling",
+  "l": 897
+ },
+ {
+  "es": "Medir",
+  "en": "Measure",
+  "l": 898
+ },
+ {
+  "es": "Hay contacto antes de empezar: el caimán no debe tocar la placa.",
+  "en": "Contact before starting: the alligator clip must not touch the board.",
+  "l": 904
+ },
+ {
+  "es": "Cancelado. Puedes medir de nuevo o seguir sin mapa.",
+  "en": "Canceled. You can measure again or continue without a map.",
+  "l": 912
+ },
+ {
+  "es": "La sonda no tocó en ",
+  "en": "The probe didn’t touch at ",
+  "l": 915
+ },
+ {
+  "es": ". Revisa el caimán en la fresa y el cable en el cobre. Si la placa está muy chueca, sube «Bajar hasta» en Avanzado. Lo medido se conserva.",
+  "en": ". Check the alligator clip on the bit and the wire on the copper. If the board is very warped, raise “Max depth” in Advanced. What was measured is kept.",
+  "l": 915
+ },
+ {
+  "es": "Entendido",
+  "en": "Got it",
+  "l": 925
+ },
+ {
+  "es": "Z sin sonda",
+  "en": "Z without probe",
+  "l": 950
+ },
+ {
+  "es": "Papel sobre el cobre",
+  "en": "Paper on the copper",
+  "l": 952
+ },
+ {
+  "es": "Papel sobre el material",
+  "en": "Paper on the material",
+  "l": 952
+ },
+ {
+  "es": " puesta y una hoja de papel bajo la fresa.</p>",
+  "en": " in place and a sheet of paper under the bit.</p>",
+  "l": 952
+ },
+ {
+  "es": "Baja hasta que el papel se atore",
+  "en": "Lower until the paper catches",
+  "l": 953
+ },
+ {
+  "es": "Fijar Z0",
+  "en": "Set Z0",
+  "l": 954
+ },
+ {
+  "es": "<p class=\"muted\">Se descuentan 0.1 mm del papel y la fresa sube 5 mm.</p>",
+  "en": "<p class=\"muted\">0.1 mm is subtracted for the paper and the bit rises 5 mm.</p>",
+  "l": 955
+ },
+ {
+  "es": "Mapa de alturas: referido al Z0 nuevo (",
+  "en": "Height map: shifted to the new Z0 (",
+  "l": 971
+ },
+ {
+  "es": " · ",
+  "en": null,
+  "l": 989
+ },
+ {
+  "es": "Alinear con 2 agujeros",
+  "en": "Align with 2 holes",
+  "l": 991
+ },
+ {
+  "es": "Dos agujeros separados",
+  "en": "Two holes far apart",
+  "l": 993
+ },
+ {
+  "es": "<label class=\"campo\"><span>Agujero A</span><select data-a>",
+  "en": "<label class=\"campo\"><span>Hole A</span><select data-a>",
+  "l": 994
+ },
+ {
+  "es": "</select></label>\n          <label class=\"campo\"><span>Agujero B</span><select data-b>",
+  "en": "</select></label>\n          <label class=\"campo\"><span>Hole B</span><select data-b>",
+  "l": 994
+ },
+ {
+  "es": "Centra la fresa en ",
+  "en": "Center the bit on ",
+  "l": 1000
+ },
+ {
+  "es": "Ir a donde debería estar</button>\n          <div data-jog></div><p class=\"mono muted\" data-p></p>",
+  "en": "Go to where it should be</button>\n          <div data-jog></div><p class=\"mono muted\" data-p></p>",
+  "l": 1002
+ },
+ {
+  "es": "Está centrada",
+  "en": "It’s centered",
+  "l": 1008
+ },
+ {
+  "es": "Resultado",
+  "en": "Result",
+  "l": 1011
+ },
+ {
+  "es": "<div class=\"celdas\"><div class=\"celda\"><span>Giro</span><b>",
+  "en": "<div class=\"celdas\"><div class=\"celda\"><span>Rotation</span><b>",
+  "l": 1014
+ },
+ {
+  "es": "<span>La distancia entre agujeros difiere ",
+  "en": "<span>The distance between holes differs by ",
+  "l": 1015
+ },
+ {
+  "es": " mm del diseño. ¿Son los agujeros elegidos?</span></div>",
+  "en": " mm from the design. Are these the right holes?</span></div>",
+  "l": 1015
+ },
+ {
+  "es": "Aplicar",
+  "en": "Apply",
+  "l": 1016
+ },
+ {
+  "es": "Alinear con el borde",
+  "en": "Align with the edge",
+  "l": 1031
+ },
+ {
+  "es": "La fresa sobre la esquina",
+  "en": "Bit over the corner",
+  "l": 1033
+ },
+ {
+  "es": "<p>Punta justo encima de la esquina inferior izquierda del material, casi tocando.</p><div data-jog></div>",
+  "en": "<p>Tip right above the bottom-left corner of the material, almost touching.</p><div data-jog></div>",
+  "l": 1034
+ },
+ {
+  "es": "Fijar X0 Y0 aquí",
+  "en": "Set X0 Y0 here",
+  "l": 1036
+ },
+ {
+  "es": "Ahora sobre el borde de abajo",
+  "en": "Now over the bottom edge",
+  "l": 1044
+ },
+ {
+  "es": "<p>Ve a la derecha, cerca de la otra esquina, y corrige Y hasta quedar justo encima del borde.</p>\n          <div data-jog></div><p class=\"mono muted\" data-p></p>",
+  "en": "<p>Go right, near the other corner, and adjust Y until it’s right above the edge.</p>\n          <div data-jog></div><p class=\"mono muted\" data-p></p>",
+  "l": 1045
+ },
+ {
+  "es": " · giro ",
+  "en": " · rotation ",
+  "l": 1050
+ },
+ {
+  "es": "Está sobre el borde",
+  "en": "It’s over the edge",
+  "l": 1054
+ },
+ {
+  "es": " mm se corre</span><b>",
+  "en": " mm it shifts</span><b>",
+  "l": 1059
+ },
+ {
+  "es": "<p>Tu material está derecho: no hace falta girar.</p>",
+  "en": "<p>Your material is straight: no rotation needed.</p>",
+  "l": 1060
+ },
+ {
+  "es": "<span>Más de 10° es mucho. ¿La fresa quedó sobre el borde de abajo?</span></div>",
+  "en": "<span>More than 10° is a lot. Was the bit over the bottom edge?</span></div>",
+  "l": 1061
+ },
+ {
+  "es": "Material alineado",
+  "en": "Material aligned",
+  "l": 1067
+ },
+ {
+  "es": "mapa.map",
+  "en": null,
+  "l": 1071
+ },
+ {
+  "es": "Hecho",
+  "en": "Done",
+  "l": 1079
+ },
+ {
+  "es": "Omitido",
+  "en": "Skipped",
+  "l": 1079
+ },
+ {
+  "es": "\n        <div class=\"celdas\" style=\"margin:0\">\n          <div class=\"celda\"><span>Herramienta</span><b>",
+  "en": "\n        <div class=\"celdas\" style=\"margin:0\">\n          <div class=\"celda\"><span>Tool</span><b>",
+  "l": 1081
+ },
+ {
+  "es": "</b></div>\n          <div class=\"celda\"><span>Tiempo</span><b>",
+  "en": "</b></div>\n          <div class=\"celda\"><span>Time</span><b>",
+  "l": 1083
+ },
+ {
+  "es": "</b></div>\n          <div class=\"celda\" style=\"grid-column:1 / -1\"><span>Profundidad</span><b style=\"font-size:14px;line-height:1.35\">",
+  "en": "</b></div>\n          <div class=\"celda\" style=\"grid-column:1 / -1\"><span>Depth</span><b style=\"font-size:14px;line-height:1.35\">",
+  "l": 1084
+ },
+ {
+  "es": "</b></div>\n        </div>\n        <div class=\"filas\">\n          <div class=\"fila\"><span></span><span class=\"fila__nom\">Líneas</span><span class=\"fila__val\">",
+  "en": "</b></div>\n        </div>\n        <div class=\"filas\">\n          <div class=\"fila\"><span></span><span class=\"fila__nom\">Lines</span><span class=\"fila__val\">",
+  "l": 1085
+ },
+ {
+  "es": "</span><span></span></div>\n        </div>\n        <label class=\"campo\" style=\"max-width:220px\"><span>Prueba en aire: subir mm</span><input type=\"number\" min=\"1\" step=\"1\" value=\"",
+  "en": "</span><span></span></div>\n        </div>\n        <label class=\"campo\" style=\"max-width:220px\"><span>Air test: raise mm</span><input type=\"number\" min=\"1\" step=\"1\" value=\"",
+  "l": 1088
+ },
+ {
+  "es": "\" data-dz></label>\n        <div class=\"hoja__pie\">\n          <button type=\"button\" class=\"btn-texto\" data-bajar aria-label=\"Descargar .nc\">",
+  "en": "\" data-dz></label>\n        <div class=\"hoja__pie\">\n          <button type=\"button\" class=\"btn-texto\" data-bajar aria-label=\"Download .nc\">",
+  "l": 1090
+ },
+ {
+  "es": "Prueba en aire</button>\n          <button type=\"button\" class=\"btn-pill btn-pill--main\" data-fresar style=\"flex:1\" data-foco>",
+  "en": "Air test</button>\n          <button type=\"button\" class=\"btn-pill btn-pill--main\" data-fresar style=\"flex:1\" data-foco>",
+  "l": 1093
+ },
+ {
+  "es": "Fresar</button>\n        </div>\n        ",
+  "en": "Mill</button>\n        </div>\n        ",
+  "l": 1094
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-texto\" data-omitir style=\"align-self:center\">Omitir este trabajo</button>",
+  "en": "<button type=\"button\" class=\"btn-texto\" data-omitir style=\"align-self:center\">Skip this job</button>",
+  "l": 1096
+ },
+ {
+  "es": "¿Omitir ",
+  "en": "Skip ",
+  "l": 1099
+ },
+ {
+  "es": "<p>No se fresa y la app pasa al siguiente trabajo. Puedes fresarlo después desde aquí.</p>",
+  "en": "<p>It won’t be milled and the app moves to the next job. You can mill it later from here.</p>",
+  "l": 1099
+ },
+ {
+  "es": "Omitir",
+  "en": "Skip",
+  "l": 1099
+ },
+ {
+  "es": "Cancelar",
+  "en": "Cancel",
+  "l": 1099
+ },
+ {
+  "es": " omitido",
+  "en": " skipped",
+  "l": 1100,
+  "forzar": true
+ },
+ {
+  "es": "Falta ",
+  "en": "Missing ",
+  "l": 1115
+ },
+ {
+  "es": "<p>Se fija en Origen.</p>",
+  "en": "<p>Set it in Origin.</p>",
+  "l": 1115
+ },
+ {
+  "es": "</ul><p>Mueve la placa hacia el centro de la cama y vuelve a fijar X0 Y0",
+  "en": "</ul><p>Move the board toward the center of the bed and set X0 Y0 again",
+  "l": 1122
+ },
+ {
+  "es": " y Z0",
+  "en": " and Z0",
+  "l": 1122
+ },
+ {
+  "es": "Cambiar a ",
+  "en": "Change to ",
+  "l": 1126
+ },
+ {
+  "es": "<p>Z se calibró con ",
+  "en": "<p>Z was calibrated with ",
+  "l": 1126
+ },
+ {
+  "es": ". La fresa sube para el cambio.</p>",
+  "en": ". The bit rises for the change.</p>",
+  "l": 1126
+ },
+ {
+  "es": "Subir la fresa",
+  "en": "Raise the bit",
+  "l": 1126
+ },
+ {
+  "es": "<p>El trabajo completo con la fresa ",
+  "en": "<p>The whole job with the bit ",
+  "l": 1134
+ },
+ {
+  "es": " mm más arriba.</p>",
+  "en": " mm higher.</p>",
+  "l": 1134
+ },
+ {
+  "es": "<span>Z0 se calibró con ",
+  "en": "<span>Z0 was set with ",
+  "l": 1134
+ },
+ {
+  "es": ". Si pusiste otra fresa, calíbrala antes: la altura puede no coincidir.</span></div>",
+  "en": ". If you put in another bit, calibrate it first: the height may not match.</span></div>",
+  "l": 1134
+ },
+ {
+  "es": "Puesta: ",
+  "en": "Mounted: ",
+  "l": 1135
+ },
+ {
+  "es": "Placa pegada, MDF debajo",
+  "en": "Board taped down, MDF underneath",
+  "l": 1135
+ },
+ {
+  "es": "Material sujeto, MDF debajo",
+  "en": "Material clamped, MDF underneath",
+  "l": 1135
+ },
+ {
+  "es": "Caimán quitado",
+  "en": "Alligator clip removed",
+  "l": 1135
+ },
+ {
+  "es": "Gafas y tapa",
+  "en": "Goggles and lid",
+  "l": 1135
+ },
+ {
+  "es": "<span>El corte se sale del material. Revísalo en Placa → Material.</span></div>",
+  "en": "<span>The cut goes outside the material. Check it in Board → Material.</span></div>",
+  "l": 1137
+ },
+ {
+  "es": "Prueba en aire · ",
+  "en": "Air test · ",
+  "l": 1138
+ },
+ {
+  "es": "Fresar ",
+  "en": "Mill ",
+  "l": 1138
+ },
+ {
+  "es": "Probar",
+  "en": "Test",
+  "l": 1138
+ },
+ {
+  "es": "Fresar",
+  "en": "Mill",
+  "l": 1138
+ },
+ {
+  "es": "Prueba en aire",
+  "en": "Air test",
+  "l": 1148
+ },
+ {
+  "es": ": terminado.",
+  "en": ": finished.",
+  "l": 1148,
+  "forzar": true
+ },
+ {
+  "es": " terminado",
+  "en": " finished",
+  "l": 1148,
+  "forzar": true
+ },
+ {
+  "es": ": detenido (",
+  "en": ": stopped (",
+  "l": 1150,
+  "forzar": true
+ },
+ {
+  "es": " en «",
+  "en": " at “",
+  "l": 1150
+ },
+ {
+  "es": "»",
+  "en": "”",
+  "l": 1150
+ },
+ {
+  "es": " se detuvo",
+  "en": " stopped",
+  "l": 1153
+ },
+ {
+  "es": "<p>GRBL rechazó la línea <code>",
+  "en": "<p>GRBL rejected the line <code>",
+  "l": 1153
+ },
+ {
+  "es": ".</p><p>La máquina terminó las líneas que ya tenía y se quedó quieta.</p>",
+  "en": ".</p><p>The machine finished the lines it already had and stopped.</p>",
+  "l": 1153
+ },
+ {
+  "es": "¿Saltar la calibración?",
+  "en": "Skip calibration?",
+  "l": 1172
+ },
+ {
+  "es": "<p>Z0 se queda como se calibró con ",
+  "en": "<p>Z0 stays as it was set with ",
+  "l": 1173
+ },
+ {
+  "es": ".</p><p>Solo si no sacaste ni moviste la fresa: si cambió su altura, ",
+  "en": ".</p><p>Only if you didn’t remove or move the bit: if its height changed, ",
+  "l": 1173
+ },
+ {
+  "es": " sale muy hondo o al aire.</p>",
+  "en": " comes out too deep or in the air.</p>",
+  "l": 1173
+ },
+ {
+  "es": "Saltar",
+  "en": "Skip",
+  "l": 1174
+ },
+ {
+  "es": "Calibrar",
+  "en": "Calibrate",
+  "l": 1174
+ },
+ {
+  "es": "Calibración saltada: ",
+  "en": "Calibration skipped: ",
+  "l": 1177
+ },
+ {
+  "es": " usa el Z0 de la fresa anterior.",
+  "en": " uses the Z0 of the previous bit.",
+  "l": 1177
+ },
+ {
+  "es": "Calibración saltada",
+  "en": "Calibration skipped",
+  "l": 1178
+ },
+ {
+  "es": "Abrir archivos",
+  "en": "Open files",
+  "l": 1190
+ },
+ {
+  "es": "Homing",
+  "en": "Homing",
+  "l": 1191
+ },
+ {
+  "es": "Desbloquear",
+  "en": "Unlock",
+  "l": 1192
+ },
+ {
+  "es": "Ir a X0 Y0",
+  "en": "Go to X0 Y0",
+  "l": 1193
+ },
+ {
+  "es": "Subir Z",
+  "en": "Raise Z",
+  "l": 1194
+ },
+ {
+  "es": "Recorrer el área",
+  "en": "Trace the area",
+  "l": 1195
+ },
+ {
+  "es": "Acciones rápidas",
+  "en": "Quick actions",
+  "l": 1200
+ },
+ {
+  "es": "disabled",
+  "en": null,
+  "l": 1202
+ },
+ {
+  "es": "Escape",
+  "en": null,
+  "l": 1213
+ },
+ {
+  "es": "Run",
+  "en": null,
+  "l": 1214
+ },
+ {
+  "es": "Jog",
+  "en": null,
+  "l": 1214
+ },
+ {
+  "es": "Home",
+  "en": null,
+  "l": 1214
+ },
+ {
+  "es": "Hold",
+  "en": null,
+  "l": 1214
+ },
+ {
+  "es": "input, textarea, select",
+  "en": null,
+  "l": 1221
+ },
+ {
+  "es": "Achicar vista 3D",
+  "en": "Shrink 3D view",
+  "l": 1232
+ },
+ {
+  "es": "Agrandar vista 3D",
+  "en": "Enlarge 3D view",
+  "l": 1232
+ },
+ {
+  "es": "Elige Simulación para practicar sin la máquina, o conecta la Cubiko por USB.",
+  "en": "Choose Simulation to practice without the machine, or connect the Cubiko over USB.",
+  "l": 1272
+ }
+]

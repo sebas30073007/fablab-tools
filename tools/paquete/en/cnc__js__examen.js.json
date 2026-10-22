@@ -1,0 +1,1419 @@
+[
+ {
+  "es": "Curso básico de CNC",
+  "en": "Basic CNC Course",
+  "l": 14
+ },
+ {
+  "es": "Genmitsu Cubiko",
+  "en": "Genmitsu Cubiko",
+  "l": 15
+ },
+ {
+  "es": "Quitaste la tapa, como en el video. ¿Qué hace la máquina mientras está quitada?",
+  "en": "You took the cover off, as in the video. What does the machine do while it is off?",
+  "l": 20
+ },
+ {
+  "es": "Se mueve y hace homing, pero el husillo no enciende",
+  "en": "It moves and homes, but the spindle won’t turn on",
+  "l": 21
+ },
+ {
+  "es": "No hace nada hasta que pongas la tapa",
+  "en": "Nothing until you put the cover back",
+  "l": 22
+ },
+ {
+  "es": "Funciona igual, la tapa solo detiene el polvo",
+  "en": "It works the same; the cover only stops dust",
+  "l": 22
+ },
+ {
+  "es": "Enciende el husillo pero a menor velocidad",
+  "en": "It turns on the spindle, but at a lower speed",
+  "l": 22
+ },
+ {
+  "es": "La tapa pisa un final de carrera: sin ella se puede mover y calibrar, pero no fresar.",
+  "en": "The cover presses a limit switch: without it you can jog and probe, but not mill.",
+  "l": 23
+ },
+ {
+  "es": "En el video la máquina hace homing. ¿En qué orden?",
+  "en": "In the video the machine homes. In what order?",
+  "l": 24
+ },
+ {
+  "es": "Primero Z hacia arriba; luego X y Y juntos. Cada eje toca dos veces, la segunda más despacio",
+  "en": "First Z goes up; then X and Y together. Each axis touches twice, the second time slower",
+  "l": 25
+ },
+ {
+  "es": "X, luego Y, luego Z, una vez cada uno",
+  "en": "X, then Y, then Z, once each",
+  "l": 26
+ },
+ {
+  "es": "Los tres ejes a la vez, una sola vez",
+  "en": "All three axes at once, a single time",
+  "l": 26
+ },
+ {
+  "es": "Primero baja Z hasta tocar la placa",
+  "en": "First Z goes down until it touches the board",
+  "l": 26
+ },
+ {
+  "es": "Z sube primero para no chocar; el segundo toque, lento, da la posición exacta.",
+  "en": "Z goes up first to avoid crashing; the second, slow touch gives the exact position.",
+  "l": 27
+ },
+ {
+  "es": "¿Cómo se sujeta la placa a la cama?",
+  "en": "How is the board held to the bed?",
+  "l": 28
+ },
+ {
+  "es": "Con los dos sujetadores de aluminio, la lengüeta sobre la orilla, apretados con la llave Allen de 3 mm",
+  "en": "With the two aluminum clamps, the lip on the edge, tightened with the 3 mm Allen key",
+  "l": 29
+ },
+ {
+  "es": "Con cinta doble cara bajo el cobre",
+  "en": "With double-sided tape under the copper",
+  "l": 30
+ },
+ {
+  "es": "Con los sujetadores tocando el centro de la placa",
+  "en": "With the clamps touching the center of the board",
+  "l": 30
+ },
+ {
+  "es": "Basta con apoyarla: la fresa no la mueve",
+  "en": "Just set it down: the bit won’t move it",
+  "l": 30
+ },
+ {
+  "es": "La lengüeta pisa solo la orilla; firme, sin forzar, para que la placa no se mueva.",
+  "en": "The lip presses only the edge; firm, without forcing, so the board doesn’t move.",
+  "l": 31
+ },
+ {
+  "es": "Fíjate en las puntas del video. ¿Cuál corta el contorno de la placa?",
+  "en": "Look at the bits in the video. Which one cuts the board outline?",
+  "l": 32
+ },
+ {
+  "es": "La de maíz: cilindro con rombos y punta plana",
+  "en": "The corncob bit: a cylinder with diamonds and a flat tip",
+  "l": 33
+ },
+ {
+  "es": "La punta en V",
+  "en": "The V-bit",
+  "l": 34
+ },
+ {
+  "es": "La broca delgada con anillo de color",
+  "en": "The thin drill bit with a colored ring",
+  "l": 34
+ },
+ {
+  "es": "Cualquiera de las tres",
+  "en": "Any of the three",
+  "l": 34
+ },
+ {
+  "es": "V para pistas, broca para hoyos, maíz para el contorno.",
+  "en": "V-bit for traces, drill bit for holes, corncob bit for the outline.",
+  "l": 35
+ },
+ {
+  "es": "¿Cómo se afloja la tuerca de la pinza para cambiar la fresa?",
+  "en": "How do you loosen the collet nut to change the bit?",
+  "l": 36
+ },
+ {
+  "es": "Con dos llaves de 13 mm: una sostiene la pinza por sus caras planas y la otra gira la tuerca",
+  "en": "With two 13 mm wrenches: one holds the collet by its flat sides and the other turns the nut",
+  "l": 37
+ },
+ {
+  "es": "Con una sola llave, girando todo el husillo",
+  "en": "With a single wrench, turning the whole spindle",
+  "l": 38
+ },
+ {
+  "es": "Con la llave Allen de 3 mm",
+  "en": "With the 3 mm Allen key",
+  "l": 38
+ },
+ {
+  "es": "A mano, sin llaves",
+  "en": "By hand, without wrenches",
+  "l": 38
+ },
+ {
+  "es": "Una llave sostiene y la otra gira; y al aflojar, sostén la fresa para que no caiga.",
+  "en": "One wrench holds and the other turns; and as you loosen it, hold the bit so it doesn’t fall.",
+  "l": 39
+ },
+ {
+  "es": "¿Dónde va cada punta del cable de la sonda?",
+  "en": "Where does each end of the probe cable go?",
+  "l": 40
+ },
+ {
+  "es": "Conector en «Leveling», horquilla bajo el sujetador que pisa el cobre y caimán en la fresa",
+  "en": "Connector in “Leveling”, fork terminal under the clamp on the copper, and alligator clip on the bit",
+  "l": 41
+ },
+ {
+  "es": "Caimán en el cobre y horquilla en la fresa",
+  "en": "Alligator clip on the copper and fork terminal on the bit",
+  "l": 42
+ },
+ {
+  "es": "Conector en el USB de atrás",
+  "en": "Connector in the USB port on the back",
+  "l": 42
+ },
+ {
+  "es": "Caimán en la tuerca de la pinza",
+  "en": "Alligator clip on the collet nut",
+  "l": 42
+ },
+ {
+  "es": "El circuito se cierra cuando la fresa toca el cobre: por eso una punta va a cada uno.",
+  "en": "The circuit closes when the bit touches the copper: that’s why one end goes to each.",
+  "l": 43
+ },
+ {
+  "es": "Terminó el mapa de alturas. ¿Qué haces con la sonda antes de fresar?",
+  "en": "The height map is done. What do you do with the probe before milling?",
+  "l": 44
+ },
+ {
+  "es": "Quitar el caimán, sacar la horquilla y desconectar el cable de «Leveling»",
+  "en": "Remove the alligator clip, pull out the fork terminal and unplug the cable from “Leveling”",
+  "l": 45
+ },
+ {
+  "es": "Dejarla puesta: así la app sigue corrigiendo Z",
+  "en": "Leave it on: that way the app keeps correcting Z",
+  "l": 46
+ },
+ {
+  "es": "Solo quitar el caimán y dejar el cable sobre la cama",
+  "en": "Only remove the alligator clip and leave the cable on the bed",
+  "l": 46
+ },
+ {
+  "es": "Desconectarla hasta terminar todos los trabajos",
+  "en": "Disconnect it after all the jobs are done",
+  "l": 46
+ },
+ {
+  "es": "Nada de la sonda debe quedar sobre la cama: el cable se enreda y el caimán gira con la fresa.",
+  "en": "Nothing from the probe should stay on the bed: the cable gets tangled and the clip spins with the bit.",
+  "l": 47
+ },
+ {
+  "es": "Enciendes la Cubiko y la app dice que está bloqueada. ¿Por qué?",
+  "en": "You turn on the Cubiko and the app says it is locked. Why?",
+  "l": 49
+ },
+ {
+  "es": "Todavía no sabe dónde está: hasta hacer homing no conoce su posición",
+  "en": "It doesn’t know where it is yet: until it homes it doesn’t know its position",
+  "l": 50
+ },
+ {
+  "es": "Falta calibrar Z antes de poder moverla",
+  "en": "Z must be probed before it can move",
+  "l": 51
+ },
+ {
+  "es": "Está en simulación y hay que conectar el USB",
+  "en": "It is in simulation and you need to connect the USB",
+  "l": 51
+ },
+ {
+  "es": "Falta abrir los archivos de la placa",
+  "en": "The board files haven’t been opened",
+  "l": 51
+ },
+ {
+  "es": "Al encender no conoce su posición; el homing busca los topes y fija el origen de máquina.",
+  "en": "At power-on it doesn’t know its position; homing finds the end stops and sets the machine origin.",
+  "l": 52
+ },
+ {
+  "es": "¿Cuál es la diferencia entre el origen de máquina y el cero de trabajo?",
+  "en": "What is the difference between the machine origin and the work zero?",
+  "l": 53
+ },
+ {
+  "es": "El origen lo encuentra el homing con los topes; el cero de trabajo lo eliges tú sobre la placa",
+  "en": "Homing finds the origin with the end stops; you choose the work zero on the board",
+  "l": 54
+ },
+ {
+  "es": "El cero de trabajo lo encuentra el homing; el origen lo eliges tú",
+  "en": "Homing finds the work zero; you choose the origin",
+  "l": 55
+ },
+ {
+  "es": "Son lo mismo con dos nombres distintos",
+  "en": "They are the same thing with two names",
+  "l": 55
+ },
+ {
+  "es": "El cero de trabajo lo calcula la app a partir del Gerber",
+  "en": "The app calculates the work zero from the Gerber",
+  "l": 55
+ },
+ {
+  "es": "El homing dice dónde está la máquina; tú dices dónde está tu placa.",
+  "en": "Homing says where the machine is; you say where your board is.",
+  "l": 56
+ },
+ {
+  "es": "En la imagen en blanco y negro, dos pistas se ven unidas. ¿Qué va a pasar?",
+  "en": "In the black-and-white image, two traces look joined. What will happen?",
+  "l": 57
+ },
+ {
+  "es": "Saldrán unidas en la placa: la fresa no tiene por dónde pasar entre ellas",
+  "en": "They will come out joined on the board: the bit has no room to pass between them",
+  "l": 58
+ },
+ {
+  "es": "La app las separa sola al generar las trayectorias",
+  "en": "The app separates them on its own when generating toolpaths",
+  "l": 59
+ },
+ {
+  "es": "Solo es un efecto de la vista previa",
+  "en": "It’s just a preview effect",
+  "l": 59
+ },
+ {
+  "es": "Se corrige haciendo la prueba en aire",
+  "en": "Doing the air test fixes it",
+  "l": 59
+ },
+ {
+  "es": "La imagen es exactamente lo que la app va a fresar.",
+  "en": "The image is exactly what the app will mill.",
+  "l": 60
+ },
+ {
+  "es": "Aparece el aviso «la fresa es más ancha que la separación mínima del diseño». ¿Qué ataca la causa?",
+  "en": "The warning “the bit is wider than the design’s minimum clearance” appears. What fixes the cause?",
+  "l": 61
+ },
+ {
+  "es": "Usar una fresa más fina o separar más esas pistas en KiCad",
+  "en": "Use a finer bit or space those traces further apart in KiCad",
+  "l": 62
+ },
+ {
+  "es": "Subir el avance F",
+  "en": "Raise the feed rate F",
+  "l": 63
+ },
+ {
+  "es": "Hacer más pasadas",
+  "en": "Do more passes",
+  "l": 63
+ },
+ {
+  "es": "Reducir la profundidad de corte",
+  "en": "Reduce the cut depth",
+  "l": 63
+ },
+ {
+  "es": "Si la fresa no cabe entre dos pistas, ninguna velocidad o profundidad lo arregla.",
+  "en": "If the bit doesn’t fit between two traces, no speed or depth will fix it.",
+  "l": 64
+ },
+ {
+  "es": "¿Por qué una placa se fresa en tres trabajos y no en uno?",
+  "en": "Why is a board milled in three jobs and not one?",
+  "l": 65
+ },
+ {
+  "es": "Cada trabajo usa otra herramienta: fresa fina, broca de 1 mm y fresa de contorno",
+  "en": "Each job uses a different tool: fine bit, 1 mm drill bit and outline bit",
+  "l": 66
+ },
+ {
+  "es": "Para que el husillo descanse entre trabajos",
+  "en": "So the spindle can rest between jobs",
+  "l": 67
+ },
+ {
+  "es": "Porque GRBL no acepta archivos grandes",
+  "en": "Because GRBL doesn’t accept large files",
+  "l": 67
+ },
+ {
+  "es": "Porque cada trabajo usa una profundidad distinta con la misma fresa",
+  "en": "Because each job uses a different depth with the same bit",
+  "l": 67
+ },
+ {
+  "es": "Pistas, hoyos y contorno: un trabajo por herramienta.",
+  "en": "Traces, holes and outline: one job per tool.",
+  "l": 68
+ },
+ {
+  "es": "Terminaste las pistas y cambiaste a la broca. ¿Qué tienes que volver a calibrar?",
+  "en": "You finished the traces and switched to the drill bit. What do you need to set again?",
+  "l": 69
+ },
+ {
+  "es": "Z0, porque la broca sobresale distinto de la pinza",
+  "en": "Z0, because the drill bit sticks out of the collet a different length",
+  "l": 70
+ },
+ {
+  "es": "X0 Y0, porque la broca está en otro lugar",
+  "en": "X0 Y0, because the drill bit is in another place",
+  "l": 71
+ },
+ {
+  "es": "El homing, porque se perdió la posición",
+  "en": "Homing, because the position was lost",
+  "l": 71
+ },
+ {
+  "es": "Nada: la app compensa la longitud de la broca",
+  "en": "Nothing: the app makes up for the drill bit’s length",
+  "l": 71
+ },
+ {
+  "es": "Todas las herramientas giran en el mismo eje (X y Y no cambian), pero cada una sobresale distinto.",
+  "en": "All tools spin on the same axis (X and Y don’t change), but each one sticks out a different amount.",
+  "l": 72
+ },
+ {
+  "es": "¿Por qué X0 Y0 sigue siendo válido después de cambiar de herramienta?",
+  "en": "Why is X0 Y0 still valid after changing tools?",
+  "l": 73
+ },
+ {
+  "es": "Todas las herramientas giran en el mismo eje; solo cambia cuánto sobresalen",
+  "en": "All tools spin on the same axis; only how far they stick out changes",
+  "l": 74
+ },
+ {
+  "es": "Porque la app vuelve a hacer homing sola",
+  "en": "Because the app homes again on its own",
+  "l": 75
+ },
+ {
+  "es": "Porque la sonda también mide X y Y",
+  "en": "Because the probe also measures X and Y",
+  "l": 75
+ },
+ {
+  "es": "No es válido: se fija de nuevo en cada trabajo",
+  "en": "It isn’t valid: it is set again for each job",
+  "l": 75
+ },
+ {
+  "es": "La posición en el plano no cambia; la altura de la punta sí.",
+  "en": "The position in the plane doesn’t change; the tip height does.",
+  "l": 76
+ },
+ {
+  "es": "¿Cómo sabe la máquina que la fresa tocó el cobre al calibrar Z?",
+  "en": "How does the machine know the bit touched the copper when probing Z?",
+  "l": 77
+ },
+ {
+  "es": "Al tocarse, fresa y cobre cierran el circuito entre el caimán y el cable",
+  "en": "When they touch, bit and copper close the circuit between the alligator clip and the cable",
+  "l": 78
+ },
+ {
+  "es": "El motor de Z detecta más esfuerzo",
+  "en": "The Z motor detects more load",
+  "l": 79
+ },
+ {
+  "es": "El gemelo 3D calcula el contacto",
+  "en": "The 3D twin calculates the contact",
+  "l": 79
+ },
+ {
+  "es": "Por la medida de la placa que pusiste en KiCad",
+  "en": "From the board size you set in KiCad",
+  "l": 79
+ },
+ {
+  "es": "La sonda es un circuito: caimán en la fresa, cable en el cobre.",
+  "en": "The probe is a circuit: alligator clip on the bit, cable on the copper.",
+  "l": 80
+ },
+ {
+  "es": "Calibraste Z y empiezas a fresar con el caimán todavía puesto. ¿Cuál es el riesgo?",
+  "en": "You probed Z and start milling with the alligator clip still on. What is the risk?",
+  "l": 81
+ },
+ {
+  "es": "El cable se puede enredar con la fresa que gira",
+  "en": "The cable can get tangled with the spinning bit",
+  "l": 82
+ },
+ {
+  "es": "Ninguno: el caimán solo actúa durante la calibración",
+  "en": "None: the alligator clip only matters while probing",
+  "l": 83
+ },
+ {
+  "es": "La máquina pierde el homing",
+  "en": "The machine loses its homing",
+  "l": 83
+ },
+ {
+  "es": "Las pistas salen más anchas",
+  "en": "The traces come out wider",
+  "l": 83
+ },
+ {
+  "es": "Por eso el manual pide quitar el caimán al terminar Z0.",
+  "en": "That’s why the manual says to remove the clip after Z0.",
+  "l": 84
+ },
+ {
+  "es": "¿Qué compruebas con la prueba en aire?",
+  "en": "What do you check with the air test?",
+  "l": 85
+ },
+ {
+  "es": "Que el recorrido completo quede dentro de la placa y no pase sobre pinzas ni tornillos",
+  "en": "That the whole path stays inside the board and doesn’t pass over clamps or screws",
+  "l": 86
+ },
+ {
+  "es": "Que la profundidad de corte quite todo el cobre",
+  "en": "That the cut depth removes all the copper",
+  "l": 87
+ },
+ {
+  "es": "Que la sonda funcione",
+  "en": "That the probe works",
+  "l": 87
+ },
+ {
+  "es": "Que la fresa esté bien afilada",
+  "en": "That the bit is sharp",
+  "l": 87
+ },
+ {
+  "es": "Es el mismo trabajo 5 mm arriba: se ve el recorrido sin cortar.",
+  "en": "It’s the same job 5 mm higher: you see the path without cutting.",
+  "l": 88
+ },
+ {
+  "es": "¿Qué NO puede mostrarte la prueba en aire?",
+  "en": "What can the air test NOT show you?",
+  "l": 89
+ },
+ {
+  "es": "Si la profundidad de corte alcanza para quitar el cobre",
+  "en": "Whether the cut depth is enough to remove the copper",
+  "l": 90
+ },
+ {
+  "es": "Si el recorrido se sale de la placa",
+  "en": "Whether the path goes off the board",
+  "l": 91
+ },
+ {
+  "es": "Si la fresa pasa sobre un tornillo",
+  "en": "Whether the bit passes over a screw",
+  "l": 91
+ },
+ {
+  "es": "Cuánto tarda el trabajo",
+  "en": "How long the job takes",
+  "l": 91
+ },
+ {
+  "es": "Va 5 mm arriba: nunca toca el cobre, así que no dice nada de la profundidad.",
+  "en": "It runs 5 mm higher: it never touches the copper, so it tells you nothing about depth.",
+  "l": 92
+ },
+ {
+  "es": "Pulsas PARO a la mitad de un trabajo. ¿Qué pasa con la posición?",
+  "en": "You press STOP in the middle of a job. What happens to the position?",
+  "l": 93
+ },
+ {
+  "es": "Se conserva: la máquina sigue sabiendo dónde está",
+  "en": "It is kept: the machine still knows where it is",
+  "l": 94
+ },
+ {
+  "es": "Se pierde y hay que repetir todo desde Máquina",
+  "en": "It is lost and you must redo everything from Machine",
+  "l": 95
+ },
+ {
+  "es": "Vuelve sola al origen de máquina",
+  "en": "It returns to the machine origin on its own",
+  "l": 95
+ },
+ {
+  "es": "Se borra el cero de trabajo",
+  "en": "The work zero is erased",
+  "l": 95
+ },
+ {
+  "es": "PARO detiene todo al instante sin perder la posición; úsalo sin miedo.",
+  "en": "STOP halts everything instantly without losing the position; use it without fear.",
+  "l": 96
+ },
+ {
+  "es": "En la Cubiko, al mover el eje Y, ¿qué se mueve físicamente?",
+  "en": "On the Cubiko, when you move the Y axis, what physically moves?",
+  "l": 97
+ },
+ {
+  "es": "La cama, hacia adelante y hacia atrás",
+  "en": "The bed, forward and back",
+  "l": 98
+ },
+ {
+  "es": "El husillo, hacia el fondo",
+  "en": "The spindle, toward the back",
+  "l": 99
+ },
+ {
+  "es": "La torre completa",
+  "en": "The whole tower",
+  "l": 99
+ },
+ {
+  "es": "La fresa, hacia arriba y abajo",
+  "en": "The bit, up and down",
+  "l": 99
+ },
+ {
+  "es": "X mueve el carro a los lados, Y mueve la cama y Z sube y baja la fresa.",
+  "en": "X moves the carriage side to side, Y moves the bed and Z raises and lowers the bit.",
+  "l": 100
+ },
+ {
+  "es": "¿Dónde se fija X0 Y0 en este flujo?",
+  "en": "Where is X0 Y0 set in this workflow?",
+  "l": 101
+ },
+ {
+  "es": "En la esquina inferior izquierda de la placa",
+  "en": "At the bottom-left corner of the board",
+  "l": 102
+ },
+ {
+  "es": "En el centro de la placa",
+  "en": "At the center of the board",
+  "l": 103
+ },
+ {
+  "es": "En la esquina superior derecha",
+  "en": "At the top-right corner",
+  "l": 103
+ },
+ {
+  "es": "Donde terminó el homing",
+  "en": "Where homing ended",
+  "l": 103
+ },
+ {
+  "es": "Desde ahí se miden todos los trabajos.",
+  "en": "All jobs are measured from there.",
+  "l": 104
+ },
+ {
+  "es": "Llevas la fresa a mano hasta la esquina de la placa. ¿Qué estrategia de paso es la correcta?",
+  "en": "You jog the bit by hand to the board corner. Which step strategy is right?",
+  "l": 105
+ },
+ {
+  "es": "10 mm para acercarte y 0.1 mm para afinar",
+  "en": "10 mm to get close and 0.1 mm to fine-tune",
+  "l": 106
+ },
+ {
+  "es": "0.1 mm todo el camino, para no fallar",
+  "en": "0.1 mm all the way, to be safe",
+  "l": 107
+ },
+ {
+  "es": "10 mm todo el camino, para ahorrar tiempo",
+  "en": "10 mm all the way, to save time",
+  "l": 107
+ },
+ {
+  "es": "Primero bajar Z con 10 mm y luego mover X y Y",
+  "en": "First lower Z with 10 mm, then move X and Y",
+  "l": 107
+ },
+ {
+  "es": "Pasos grandes lejos, pasos finos cerca.",
+  "en": "Big steps far away, fine steps up close.",
+  "l": 108
+ },
+ {
+  "es": "¿Por qué nunca se baja Z con paso de 10 mm cerca de la placa?",
+  "en": "Why do you never lower Z in 10 mm steps near the board?",
+  "l": 109
+ },
+ {
+  "es": "Un solo toque puede clavar la fresa en la placa y romperla",
+  "en": "A single click can drive the bit into the board and break it",
+  "l": 110
+ },
+ {
+  "es": "Porque GRBL no acepta pasos grandes en Z",
+  "en": "Because GRBL doesn’t accept large Z steps",
+  "l": 111
+ },
+ {
+  "es": "Porque se pierde el homing",
+  "en": "Because homing is lost",
+  "l": 111
+ },
+ {
+  "es": "Porque la sonda deja de funcionar",
+  "en": "Because the probe stops working",
+  "l": 111
+ },
+ {
+  "es": "Las fresas de PCB son muy finas y se rompen fácil.",
+  "en": "PCB bits are very fine and break easily.",
+  "l": 112
+ },
+ {
+  "es": "¿Qué archivos de KiCad necesita la app para una placa de una cara?",
+  "en": "Which KiCad files does the app need for a single-sided board?",
+  "l": 113
+ },
+ {
+  "es": "El Gerber de F.Cu, el de Edge.Cuts y el .drl",
+  "en": "The F.Cu Gerber, the Edge.Cuts one and the .drl",
+  "l": 114
+ },
+ {
+  "es": "B.Cu, F.Silkscreen y el .drl",
+  "en": "B.Cu, F.Silkscreen and the .drl",
+  "l": 115
+ },
+ {
+  "es": "F.Mask, F.Paste y Edge.Cuts",
+  "en": "F.Mask, F.Paste and Edge.Cuts",
+  "l": 115
+ },
+ {
+  "es": "Solo el .kicad_pcb",
+  "en": "Only the .kicad_pcb",
+  "l": 115
+ },
+ {
+  "es": "Cobre, contorno y taladros.",
+  "en": "Copper, outline and drills.",
+  "l": 116
+ },
+ {
+  "es": "Abres la carpeta de KiCad completa, con muchos archivos de más. ¿Qué hace la app?",
+  "en": "You open the whole KiCad folder, with lots of extra files. What does the app do?",
+  "l": 117
+ },
+ {
+  "es": "Usa los que sirven y deja fuera el resto",
+  "en": "It uses the useful ones and leaves out the rest",
+  "l": 118
+ },
+ {
+  "es": "Marca error y pide solo tres archivos",
+  "en": "It shows an error and asks for only three files",
+  "l": 119
+ },
+ {
+  "es": "Fresa una capa por cada archivo",
+  "en": "It mills one layer per file",
+  "l": 119
+ },
+ {
+  "es": "Combina todas las capas en una imagen",
+  "en": "It combines all layers into one image",
+  "l": 119
+ },
+ {
+  "es": "Puedes abrir la carpeta completa: lo que no sirve se ignora.",
+  "en": "You can open the whole folder: what isn’t needed is ignored.",
+  "l": 120
+ },
+ {
+  "es": "Exportaste los taladros con un origen distinto al de los Gerber. ¿Qué vas a notar?",
+  "en": "You exported the drill file with a different origin than the Gerbers. What will you notice?",
+  "l": 121
+ },
+ {
+  "es": "Los hoyos quedan desplazados respecto a los pads",
+  "en": "The holes are offset from the pads",
+  "l": 122
+ },
+ {
+  "es": "Los hoyos salen más grandes",
+  "en": "The holes come out bigger",
+  "l": 123
+ },
+ {
+  "es": "El contorno sale girado",
+  "en": "The outline comes out rotated",
+  "l": 123
+ },
+ {
+  "es": "Nada: la app los alinea con el homing",
+  "en": "Nothing: the app aligns them with homing",
+  "l": 123
+ },
+ {
+  "es": "Taladros y Gerber deben compartir origen para coincidir.",
+  "en": "Drills and Gerbers must share an origin to line up.",
+  "l": 124
+ },
+ {
+  "es": "En la imagen en blanco y negro de la placa, ¿qué significa lo blanco?",
+  "en": "In the black-and-white image of the board, what does white mean?",
+  "l": 125
+ },
+ {
+  "es": "Cobre que se queda",
+  "en": "Copper that stays",
+  "l": 126
+ },
+ {
+  "es": "Cobre que se quita",
+  "en": "Copper that is removed",
+  "l": 127
+ },
+ {
+  "es": "Los hoyos",
+  "en": "The holes",
+  "l": 127
+ },
+ {
+  "es": "El contorno de la placa",
+  "en": "The board outline",
+  "l": 127
+ },
+ {
+  "es": "La fresa trabaja alrededor de lo blanco.",
+  "en": "The bit works around the white.",
+  "l": 128
+ },
+ {
+  "es": "En los parámetros, ¿qué es F?",
+  "en": "In the parameters, what is F?",
+  "l": 129
+ },
+ {
+  "es": "El avance: qué tan rápido se desplaza la fresa al cortar, en mm/min",
+  "en": "The feed rate: how fast the bit moves while cutting, in mm/min",
+  "l": 130
+ },
+ {
+  "es": "Las revoluciones del husillo",
+  "en": "The spindle RPM",
+  "l": 131
+ },
+ {
+  "es": "La profundidad de cada pasada",
+  "en": "The depth of each pass",
+  "l": 131
+ },
+ {
+  "es": "El diámetro de la fresa",
+  "en": "The bit diameter",
+  "l": 131
+ },
+ {
+  "es": "F es el avance, en milímetros por minuto.",
+  "en": "F is the feed rate, in millimeters per minute.",
+  "l": 132
+ },
+ {
+  "es": "¿Qué es el fresado de aislamiento?",
+  "en": "What is isolation milling?",
+  "l": 133
+ },
+ {
+  "es": "Recorrer el borde de cada pista quitando el cobre de alrededor para aislarla",
+  "en": "Following the edge of each trace, removing the copper around it to isolate it",
+  "l": 134
+ },
+ {
+  "es": "Cubrir las pistas con una capa aislante",
+  "en": "Covering the traces with an insulating layer",
+  "l": 135
+ },
+ {
+  "es": "Taladrar a lo largo de las pistas",
+  "en": "Drilling along the traces",
+  "l": 135
+ },
+ {
+  "es": "Cortar la placa en dos capas",
+  "en": "Cutting the board into two layers",
+  "l": 135
+ },
+ {
+  "es": "Las pistas quedan separadas del resto del cobre por un canal.",
+  "en": "The traces end up separated from the rest of the copper by a channel.",
+  "l": 136
+ },
+ {
+  "es": "¿Cuándo se mide el mapa de alturas?",
+  "en": "When is the height map measured?",
+  "l": 137
+ },
+ {
+  "es": "En cada placa de cobre, al calibrar Z antes de las pistas, con el caimán todavía puesto",
+  "en": "On every copper-clad board, when probing Z before the traces, with the alligator clip still on",
+  "l": 138
+ },
+ {
+  "es": "Solo si la placa se ve chueca",
+  "en": "Only if the board looks warped",
+  "l": 139
+ },
+ {
+  "es": "Después de fresar, para revisar",
+  "en": "After milling, to check",
+  "l": 139
+ },
+ {
+  "es": "Antes del homing, para que la máquina sepa dónde está",
+  "en": "Before homing, so the machine knows where it is",
+  "l": 139
+ },
+ {
+  "es": "La placa nunca está del todo plana: la sonda mide una rejilla de puntos y la app ajusta Z en cada zona.",
+  "en": "The board is never perfectly flat: the probe measures a grid of points and the app adjusts Z in each area.",
+  "l": 140
+ },
+ {
+  "es": "Las pistas salieron anchas y se comieron unas a otras. ¿Qué es lo más probable?",
+  "en": "The traces came out wide and ate into each other. What is most likely?",
+  "l": 141
+ },
+ {
+  "es": "Se cambió la profundidad de pistas: la V entra más y abre un surco más ancho",
+  "en": "The trace depth was changed: the V goes deeper and opens a wider groove",
+  "l": 142
+ },
+ {
+  "es": "Faltó la prueba en aire",
+  "en": "The air test was skipped",
+  "l": 143
+ },
+ {
+  "es": "La broca de los hoyos era muy grande",
+  "en": "The drill bit for the holes was too big",
+  "l": 143
+ },
+ {
+  "es": "El avance F era muy lento",
+  "en": "The feed rate F was too slow",
+  "l": 143
+ },
+ {
+  "es": "Con la fresa en V, el ancho del corte crece con la profundidad. Los valores de la Cubiko (0.1 mm) ya funcionan.",
+  "en": "With a V-bit, the cut width grows with depth. The Cubiko defaults (0.1 mm) already work.",
+  "l": 144
+ },
+ {
+  "es": "Suena un pitido y la máquina se bloquea con «Final de carrera tocado». ¿Qué haces?",
+  "en": "It beeps and the machine locks with “Limit switch hit”. What do you do?",
+  "l": 145
+ },
+ {
+  "es": "Desbloquear, alejar el eje 1 mm del extremo y hacer homing; luego revisar X0 Y0",
+  "en": "Unlock, move the axis 1 mm away from the end and home; then check X0 Y0",
+  "l": 146
+ },
+ {
+  "es": "Apagar y prender la máquina y seguir fresando",
+  "en": "Turn the machine off and on and keep milling",
+  "l": 147
+ },
+ {
+  "es": "Hacer homing sin desbloquear",
+  "en": "Home without unlocking",
+  "l": 147
+ },
+ {
+  "es": "Seguir: el pitido solo avisa",
+  "en": "Keep going: the beep is only a warning",
+  "l": 147
+ },
+ {
+  "es": "La fresa llegó al interruptor del extremo del eje; la posición ya no es confiable hasta el homing.",
+  "en": "The bit reached the switch at the end of the axis; the position isn’t reliable until you home.",
+  "l": 148
+ },
+ {
+  "es": "La placa quedó un poco levantada en una esquina y no usas mapa de alturas. ¿Qué esperas?",
+  "en": "The board is slightly raised at one corner and you don’t use a height map. What do you expect?",
+  "l": 149
+ },
+ {
+  "es": "Donde la placa está más alta corta de más, y donde está más baja no llega a quitar el cobre",
+  "en": "Where the board is higher it cuts too deep, and where it is lower it doesn’t remove the copper",
+  "l": 150
+ },
+ {
+  "es": "Todo sale igual: Z0 ya se calibró",
+  "en": "Everything comes out the same: Z0 was already probed",
+  "l": 151
+ },
+ {
+  "es": "Solo cambia el tiempo del trabajo",
+  "en": "Only the job time changes",
+  "l": 151
+ },
+ {
+  "es": "La máquina se detiene con una alarma",
+  "en": "The machine stops with an alarm",
+  "l": 151
+ },
+ {
+  "es": "Z0 se mide en un punto; si la superficie no es plana, la profundidad real cambia.",
+  "en": "Z0 is measured at one point; if the surface isn’t flat, the real depth changes.",
+  "l": 152
+ },
+ {
+  "es": "¿Cuál es el orden de los 6 pasos de tu placa?",
+  "en": "What is the order of the 6 steps for your board?",
+  "l": 153
+ },
+ {
+  "es": "Máquina, Archivos, Trayectorias, X0 Y0, Z0, Fresar",
+  "en": "Machine, Files, Toolpaths, X0 Y0, Z0, Mill",
+  "l": 154
+ },
+ {
+  "es": "Archivos, Máquina, X0 Y0, Trayectorias, Fresar, Z0",
+  "en": "Files, Machine, X0 Y0, Toolpaths, Mill, Z0",
+  "l": 155
+ },
+ {
+  "es": "Máquina, Z0, X0 Y0, Archivos, Trayectorias, Fresar",
+  "en": "Machine, Z0, X0 Y0, Files, Toolpaths, Mill",
+  "l": 155
+ },
+ {
+  "es": "Archivos, Trayectorias, Fresar, Máquina, X0 Y0, Z0",
+  "en": "Files, Toolpaths, Mill, Machine, X0 Y0, Z0",
+  "l": 155
+ },
+ {
+  "es": "Es el mismo orden del manual, del tutorial y de los pasos en Inicio.",
+  "en": "It’s the same order as the manual, the tutorial and the steps on Home.",
+  "l": 156
+ },
+ {
+  "es": "¿Para qué va un MDF de sacrificio debajo de la placa?",
+  "en": "What is the spoilboard (MDF) under the board for?",
+  "l": 157
+ },
+ {
+  "es": "Para que hoyos y contorno atraviesen la placa sin dañar la cama",
+  "en": "So holes and outline can go through the board without damaging the bed",
+  "l": 158
+ },
+ {
+  "es": "Para que la sonda haga contacto",
+  "en": "So the probe makes contact",
+  "l": 159
+ },
+ {
+  "es": "Para absorber la vibración del husillo",
+  "en": "To absorb spindle vibration",
+  "l": 159
+ },
+ {
+  "es": "Para subir la placa y que la fresa alcance",
+  "en": "To raise the board so the bit can reach it",
+  "l": 159
+ },
+ {
+  "es": "La broca y la fresa de contorno salen por abajo de la placa.",
+  "en": "The drill bit and the outline bit come out the bottom of the board.",
+  "l": 160
+ },
+ {
+  "es": "Te perdiste a la mitad del proceso. ¿Dónde ves qué sigue?",
+  "en": "You got lost halfway through. Where do you see what’s next?",
+  "l": 161
+ },
+ {
+  "es": "En Ahora: dice el siguiente paso y trae su botón",
+  "en": "In Now: it shows the next step with its button",
+  "l": 162
+ },
+ {
+  "es": "En la Consola",
+  "en": "In the Console",
+  "l": 163
+ },
+ {
+  "es": "En las acciones rápidas (+)",
+  "en": "In the quick actions (+)",
+  "l": 163
+ },
+ {
+  "es": "En el gemelo 3D",
+  "en": "In the 3D twin",
+  "l": 163
+ },
+ {
+  "es": "Ahora siempre trae el siguiente paso.",
+  "en": "Now always shows the next step.",
+  "l": 164
+ },
+ {
+  "es": "¿Qué cambia en el modo Simulación respecto a la Cubiko real?",
+  "en": "What changes in Simulation mode compared to the real Cubiko?",
+  "l": 165
+ },
+ {
+  "es": "La interfaz funciona igual, pero la máquina es emulada y nada se mueve",
+  "en": "The interface works the same, but the machine is emulated and nothing moves",
+  "l": 166
+ },
+ {
+  "es": "Se saltan el homing y los ceros",
+  "en": "Homing and zeros are skipped",
+  "l": 167
+ },
+ {
+  "es": "Solo muestra el 3D, sin botones",
+  "en": "It only shows the 3D view, without buttons",
+  "l": 167
+ },
+ {
+  "es": "Fresa más rápido para ahorrar tiempo",
+  "en": "It mills faster to save time",
+  "l": 167
+ },
+ {
+  "es": "Sirve para practicar el flujo completo sin riesgo.",
+  "en": "It lets you practice the whole workflow with no risk.",
+  "l": 168
+ },
+ {
+  "es": "Terminaron las pistas y sigue Hoyos. ¿Cuál es la secuencia correcta?",
+  "en": "The traces are done and Holes is next. What is the right sequence?",
+  "l": 169
+ },
+ {
+  "es": "Poner la broca, calibrar Z de nuevo y luego fresar los hoyos",
+  "en": "Put in the drill bit, probe Z again and then drill the holes",
+  "l": 170
+ },
+ {
+  "es": "Hacer homing, fijar X0 Y0 de nuevo y fresar",
+  "en": "Home, set X0 Y0 again and mill",
+  "l": 171
+ },
+ {
+  "es": "Fresar directo: Z ya está calibrado",
+  "en": "Mill right away: Z is already probed",
+  "l": 171
+ },
+ {
+  "es": "Poner la broca y fresar sin calibrar",
+  "en": "Put in the drill bit and mill without probing",
+  "l": 171
+ },
+ {
+  "es": "Cada cambio de herramienta pide Z de nuevo; X0 Y0 se conserva.",
+  "en": "Every tool change needs Z again; X0 Y0 is kept.",
+  "l": 172
+ },
+ {
+  "es": "Al revisar la placa con el multímetro, ¿qué buscas?",
+  "en": "When you check the board with the multimeter, what are you looking for?",
+  "l": 173
+ },
+ {
+  "es": "Continuidad en cada red y que no haya cortos entre redes vecinas",
+  "en": "Continuity in each net and no shorts between neighboring nets",
+  "l": 174
+ },
+ {
+  "es": "Que todas las pistas tengan el mismo voltaje",
+  "en": "That all traces have the same voltage",
+  "l": 175
+ },
+ {
+  "es": "Que el cobre tenga el mismo grosor en toda la placa",
+  "en": "That the copper is the same thickness across the board",
+  "l": 175
+ },
+ {
+  "es": "Que los hoyos conduzcan entre sí",
+  "en": "That the holes conduct between each other",
+  "l": 175
+ },
+ {
+  "es": "Lo que debe estar unido, unido; lo que no, separado.",
+  "en": "What should be connected, connected; what shouldn’t, separate.",
+  "l": 176
+ },
+ {
+  "es": "Examen",
+  "en": "Exam",
+  "l": 185
+ },
+ {
+  "es": " preguntas al azar sobre lo que viste en el tutorial. Apruebas con ",
+  "en": " random questions on what you saw in the tutorial. You pass with ",
+  "l": 195
+ },
+ {
+  "es": " de ",
+  "en": " of ",
+  "l": 195
+ },
+ {
+  "es": ") y obtienes tu certificado.</p>\n      <p class=\"muted\">Piensa cada respuesta: hay opciones que suenan bien pero no lo son. Si no apruebas, puedes intentarlo otra vez; cada intento trae otras preguntas.</p>\n    </div>\n  </div>\n  <div class=\"ex-pie\">\n    ",
+  "en": ") and get your certificate.</p>\n      <p class=\"muted\">Think through each answer: some options sound right but aren’t. If you don’t pass, you can try again; each attempt brings different questions.</p>\n    </div>\n  </div>\n  <div class=\"ex-pie\">\n    ",
+  "l": 195
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-pill btn-pill--suave\" data-cert>Descargar mi certificado</button>",
+  "en": "<button type=\"button\" class=\"btn-pill btn-pill--suave\" data-cert>Download my certificate</button>",
+  "l": 200
+ },
+ {
+  "es": "\n    <span style=\"flex:1\"></span>\n    <button type=\"button\" class=\"btn-pill btn-pill--main\" data-empezar>Empezar</button>\n  </div>",
+  "en": "\n    <span style=\"flex:1\"></span>\n    <button type=\"button\" class=\"btn-pill btn-pill--main\" data-empezar>Start</button>\n  </div>",
+  "l": 200
+ },
+ {
+  "es": "Pregunta ",
+  "en": "Question ",
+  "l": 211
+ },
+ {
+  "es": "actual",
+  "en": null,
+  "l": 213
+ },
+ {
+  "es": "\n    </fieldset></div>\n    <div class=\"ex-pie\">\n      <button type=\"button\" class=\"btn-texto\" data-salir>Salir del examen</button>\n      <span style=\"flex:1\"></span>\n      <button type=\"button\" class=\"btn-pill btn-pill--main\" data-sig disabled>",
+  "en": "\n    </fieldset></div>\n    <div class=\"ex-pie\">\n      <button type=\"button\" class=\"btn-texto\" data-salir>Exit exam</button>\n      <span style=\"flex:1\"></span>\n      <button type=\"button\" class=\"btn-pill btn-pill--main\" data-sig disabled>",
+  "l": 217
+ },
+ {
+  "es": "Siguiente",
+  "en": "Next",
+  "l": 222
+ },
+ {
+  "es": "Ver resultado",
+  "en": "See result",
+  "l": 222
+ },
+ {
+  "es": "¡Aprobaste!",
+  "en": "You passed!",
+  "l": 241
+ },
+ {
+  "es": "Casi",
+  "en": "Almost",
+  "l": 241
+ },
+ {
+  "es": "Respondiste bien ",
+  "en": "Correct answers: ",
+  "l": 251
+ },
+ {
+  "es": ". Ya puedes descargar tu certificado.",
+  "en": ". You can now download your certificate.",
+  "l": 251
+ },
+ {
+  "es": "; necesitas ",
+  "en": "; you need ",
+  "l": 251,
+  "forzar": true
+ },
+ {
+  "es": ". Repasa lo que falló e inténtalo otra vez.",
+  "en": ". Review what you missed and try again.",
+  "l": 251
+ },
+ {
+  "es": "Para repasar",
+  "en": "To review",
+  "l": 254
+ },
+ {
+  "es": "Lo que falló",
+  "en": "What you missed",
+  "l": 254
+ },
+ {
+  "es": "</b><span>Tu respuesta: ",
+  "en": "</b><span>Your answer: ",
+  "l": 255
+ },
+ {
+  "es": "Repetir",
+  "en": "Retake",
+  "l": 257
+ },
+ {
+  "es": "Intentar otra vez",
+  "en": "Try again",
+  "l": 257
+ },
+ {
+  "es": "<button type=\"button\" class=\"btn-pill btn-pill--main\" data-cert>Mi certificado</button>",
+  "en": "<button type=\"button\" class=\"btn-pill btn-pill--main\" data-cert>My certificate</button>",
+  "l": 259
+ },
+ {
+  "es": "CNC-",
+  "en": null,
+  "l": 267
+ },
+ {
+  "es": "Tu certificado",
+  "en": "Your certificate",
+  "l": 273
+ },
+ {
+  "es": "<label class=\"ex-nombre\"><span>Tu nombre, como quieres que aparezca</span>\n      <input type=\"text\" maxlength=\"60\" autocomplete=\"name\" value=\"",
+  "en": "<label class=\"ex-nombre\"><span>Your name, as you want it to appear</span>\n      <input type=\"text\" maxlength=\"60\" autocomplete=\"name\" value=\"",
+  "l": 275
+ },
+ {
+  "es": "\" placeholder=\"Nombre y apellidos\" data-nombre></label>\n    <div class=\"ex-cert\"><canvas data-lienzo></canvas></div>\n    <div class=\"ex-pie\">\n      <span class=\"muted\" data-aviso></span>\n      <span style=\"flex:1\"></span>\n      <button type=\"button\" class=\"btn-pill btn-pill--main\" data-pdf disabled>Descargar PDF</button>\n    </div>",
+  "en": "\" placeholder=\"Full name\" data-nombre></label>\n    <div class=\"ex-cert\"><canvas data-lienzo></canvas></div>\n    <div class=\"ex-pie\">\n      <span class=\"muted\" data-aviso></span>\n      <span style=\"flex:1\"></span>\n      <button type=\"button\" class=\"btn-pill btn-pill--main\" data-pdf disabled>Download PDF</button>\n    </div>",
+  "l": 276
+ },
+ {
+  "es": "Tu nombre",
+  "en": "Your name",
+  "l": 287
+ },
+ {
+  "es": "Certificado CNC - ",
+  "en": "CNC Certificate - ",
+  "l": 299
+ },
+ {
+  "es": "800 120px Manrope",
+  "en": null,
+  "l": 315
+ },
+ {
+  "es": "600 40px Manrope",
+  "en": null,
+  "l": 315
+ },
+ {
+  "es": "500 30px 'IBM Plex Mono'",
+  "en": null,
+  "l": 315
+ },
+ {
+  "es": "px Manrope, system-ui, sans-serif",
+  "en": null,
+  "l": 317
+ },
+ {
+  "es": "px 'IBM Plex Mono', ui-monospace, monospace",
+  "en": null,
+  "l": 318
+ },
+ {
+  "es": "Fab Lab",
+  "en": "Fab Lab",
+  "l": 338
+ },
+ {
+  "es": "Herramientas · CNC",
+  "en": "Tools · CNC",
+  "l": 339
+ },
+ {
+  "es": "CERTIFICADO DE FINALIZACIÓN",
+  "en": "CERTIFICATE OF COMPLETION",
+  "l": 344
+ },
+ {
+  "es": "Se otorga a",
+  "en": "Awarded to",
+  "l": 345
+ },
+ {
+  "es": "por completar el ",
+  "en": "for completing the ",
+  "l": 354
+ },
+ {
+  "es": " · ",
+  "en": " · ",
+  "l": 354
+ },
+ {
+  "es": "Fabricación de PCB por fresado de aislamiento: máquina, archivos,",
+  "en": "PCB fabrication by isolation milling: machine, files,",
+  "l": 356
+ },
+ {
+  "es": "trayectorias, cero de trabajo X0 Y0, Z0 con sonda y fresado.",
+  "en": "toolpaths, X0 Y0 work zero, Z0 with the probe, and milling.",
+  "l": 357
+ },
+ {
+  "es": "es-MX",
+  "en": "en-US",
+  "l": 361,
+  "forzar": true
+ },
+ {
+  "es": "Fecha",
+  "en": "Date",
+  "l": 362
+ },
+ {
+  "es": "Folio",
+  "en": "ID",
+  "l": 362
+ },
+ {
+  "es": "%PDF-1.4\\n%\\xE2\\xE3\\xCF\\xD3\\n",
+  "en": null,
+  "l": 382
+ },
+ {
+  "es": "\\n%%EOF",
+  "en": null,
+  "l": 390
+ }
+]

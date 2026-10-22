@@ -1,0 +1,62 @@
+[
+ {
+  "es": "fablab.cnc.sim",
+  "en": null,
+  "l": 19
+ },
+ {
+  "es": "Idle",
+  "en": null,
+  "l": 45
+ },
+ {
+  "es": "Alarm",
+  "en": null,
+  "l": 60
+ },
+ {
+  "es": "Grbl 1.1f ['$' for help]",
+  "en": null,
+  "l": 68
+ },
+ {
+  "es": "ALARM:3",
+  "en": null,
+  "l": 69
+ },
+ {
+  "es": "Hold",
+  "en": null,
+  "l": 81
+ },
+ {
+  "es": "Run",
+  "en": null,
+  "l": 82
+ },
+ {
+  "es": "Hold:0",
+  "en": null,
+  "l": 104
+ },
+ {
+  "es": "|WCO:",
+  "en": null,
+  "l": 108
+ },
+ {
+  "es": "Home",
+  "en": null,
+  "l": 149
+ },
+ {
+  "es": "Jog",
+  "en": null,
+  "l": 174
+ },
+ {
+  "es": "ALARM:",
+  "en": null,
+  "l": 288
+ }
+]
