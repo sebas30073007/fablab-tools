@@ -40,6 +40,20 @@ const SIMBOLOS = {
   vector: '<path d="M5 19 19 5"/><rect x="2.5" y="16.5" width="5" height="5" rx="1"/><rect x="16.5" y="2.5" width="5" height="5" rx="1"/><path d="M5 16.5C5 9 9 5 16.5 5"/>',
   material: '<path d="m3 8.5 9-4 9 4-9 4z"/><path d="M3 8.5V15l9 4.5 9-4.5V8.5M12 12.5v7"/>',
   foco: '<path d="M12 3v6M8.5 6.5 12 10l3.5-3.5"/><path d="M4 14h16M7 17.5h10M10 21h4"/>',
+  // visor 3D
+  cubo: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/>',
+  tijeras: '<circle cx="6.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="17.5" r="2.5"/><path d="M8.6 8 20 18M8.6 16 20 6"/>',
+  escoba: '<path d="M14.5 3.5 10 12"/><path d="M6.5 11.5 13.5 14l-1.5 6.5c-3-.5-6.5-2.5-8-5.5z"/><path d="M8 15.5 6.5 19"/>',
+  regla: '<path d="m3.5 15.5 12-12 5 5-12 12z"/><path d="m7.5 11.5 2 2M10.5 8.5l2 2M13.5 5.5l2 2"/>',
+  deshacer: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+  rehacer: '<path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/>',
+  girar: '<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4.5h-4.5"/>',
+  caja: '<path d="M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4"/><rect x="8" y="8" width="8" height="8" rx="1"/>',
+  lazo: '<path d="M12 4c4.4 0 8 2.2 8 5s-3.6 5-8 5-8-2.2-8-5 3.6-5 8-5z"/><path d="M6.5 13c-1 1.5-1 3.5 1 4.5l1.5.5-1 3"/>',
+  plano: '<path d="m3 15 6-6h12l-6 6z"/><path d="M12 3v18"/>',
+  ojo: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
+  camara: '<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+  escaner: '<rect x="3" y="7" width="18" height="10" rx="3"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>',
 };
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" hidden aria-hidden="true">${Object.entries(SIMBOLOS)

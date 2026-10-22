@@ -1,0 +1,2 @@
+Fork de assimpjs con exportación FBX: github.com/repalash/assimpjs @ cf1dce885402a2f96c3e029fd5384b5008b43543 (16 jun 2025), dist/ tal cual.
+Se carga solo al exportar FBX (web/visor3d/js/formatos/fbx.js).

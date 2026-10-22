@@ -21,6 +21,7 @@ import { aGris, tramar, aLienzo } from "./grabado.js";
 import { MATERIALES, porId, ajustes } from "./materiales.js";
 import { armar, encuadre } from "./trabajo.js";
 import { VISTAS, ahora } from "./vistas.js";
+import { recibir } from "../../shared/js/envios.js";
 
 const ls = crearLs("fablab.laser.");
 const s1 = new S1(PERFIL);
@@ -489,3 +490,5 @@ irA("inicio");
 actualizar();
 log("Elige Simulación para practicar sin la máquina, o conecta la S1 por USB.", "sys");
 window.__laser = { S, s1, visor, irA, app, ahora: () => ahora(app) };
+// Un SVG que mandó otra app (los cortes del Visor 3D)
+recibir("laser").then((f) => { if (f) abrirArchivo(f); });

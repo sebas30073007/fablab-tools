@@ -8,6 +8,7 @@
 // Las vistas viven en vistas.js; aquí está todo lo que hace algo.
 // Depuración: window.__cnc
 
+import { recibir } from "../../shared/js/envios.js";
 import "../../shared/js/iconos.js";
 import { crearNavegacion } from "../../shared/js/navegacion.js";
 import { Grbl } from "./grbl.js";
@@ -1253,3 +1254,5 @@ irA("inicio");
 actualizar();
 log("Elige Simulación para practicar sin la máquina, o conecta la Cubiko por USB.", "sys");
 window.__cnc = { S, grbl, visor, irA, app, recorrido, ahora: () => ahora(app) };
+// Un DXF que mandó otra app (los cortes del Visor 3D)
+recibir("cnc").then((f) => { if (f) abrirArchivos([f]); });

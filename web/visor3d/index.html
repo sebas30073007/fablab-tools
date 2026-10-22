@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es" data-estilo="lab">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visor 3D · Fab Lab</title>
+<meta name="description" content="Abre, revisa, limpia y convierte modelos 3D en el navegador: 3MF, PLY, OBJ, STL, GLB y FBX, con color y textura. Cortes en SVG y DXF para láser y CNC.">
+<!-- Jerarquía SEBS: capa 0 (tokens) → capa 1 (chrome) → capa 2 (project) → capa 3 (shared/css + visor3d) -->
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/chrome.css">
+<link rel="stylesheet" href="../css/project.css">
+<link rel="stylesheet" href="../shared/css/app.css">
+<link rel="stylesheet" href="visor3d.css">
+<link rel="stylesheet" href="../shared/css/lab.css">
+<script type="importmap">
+{ "imports": {
+  "three": "../shared/vendor/three/three.module.min.js",
+  "three/addons/": "../shared/vendor/three/addons/"
+} }
+</script>
+</head>
+<body>
+<div class="app">
+  <header class="barra" aria-label="Barra superior">
+    <a class="barra__marca" href="../" aria-label="Fab Lab: volver al catálogo">
+      <img src="../img/simbolo.png" alt="" width="24" height="24" onerror="this.remove()">
+      <span class="barra__nombre">Fab Lab</span>
+    </a>
+    <span class="barra__sep" aria-hidden="true"></span>
+    <h1 class="barra__app">Visor 3D</h1>
+    <span class="barra__acc">
+      <button type="button" class="btn-icono" id="btn-deshacer" aria-label="Deshacer" title="Deshacer (Ctrl+Z)" disabled><svg class="ico" aria-hidden="true"><use href="#i-deshacer"/></svg></button>
+      <button type="button" class="btn-icono" id="btn-rehacer" aria-label="Rehacer" title="Rehacer (Ctrl+Y)" disabled><svg class="ico" aria-hidden="true"><use href="#i-rehacer"/></svg></button>
+      <button type="button" class="btn-tutorial" id="btn-abrir"><svg class="ico" aria-hidden="true"><use href="#i-abrir"/></svg><span class="btn-tutorial__txt">Abrir</span></button>
+    </span>
+  </header>
+
+  <main class="visor" id="visor" aria-label="Modelo 3D">
+    <div class="visor__coords" id="medidas" hidden aria-label="Medidas del modelo">
+      <span class="pildora-dato" data-eje="X"><b>X</b><span data-v="x">—</span></span>
+      <span class="pildora-dato" data-eje="Y"><b>Y</b><span data-v="y">—</span></span>
+      <span class="pildora-dato" data-eje="Z"><b>Z</b><span data-v="z">—</span></span>
+    </div>
+    <div class="flota-der" id="herr-visor" hidden>
+      <button type="button" class="btn-flota" data-vista="3d" aria-label="Encuadrar" title="Encuadrar"><svg class="ico" aria-hidden="true"><use href="#i-agrandar"/></svg></button>
+      <button type="button" class="btn-flota" id="btn-medir" aria-pressed="false" aria-label="Medir entre dos puntos" title="Medir"><svg class="ico" aria-hidden="true"><use href="#i-regla"/></svg></button>
+      <button type="button" class="btn-flota" id="btn-captura" aria-label="Guardar imagen" title="Guardar imagen"><svg class="ico" aria-hidden="true"><use href="#i-camara"/></svg></button>
+    </div>
+    <div class="aviso-visor" id="aviso-visor" hidden></div>
+    <div class="seg seg--flota" role="radiogroup" aria-label="Cómo se ve" id="modos" hidden>
+      <button role="radio" data-modo="color" aria-checked="true">Color</button>
+      <button role="radio" data-modo="solido" aria-checked="false">Sólido</button>
+      <button role="radio" data-modo="malla" aria-checked="false">Malla</button>
+      <button role="radio" data-modo="rayos" aria-checked="false">Rayos X</button>
+    </div>
+    <canvas class="lazo" id="lazo" hidden></canvas>
+    <div class="progreso-visor" id="progreso" hidden><span data-v="t">Abriendo…</span><span class="progreso"><i data-v="b"></i></span></div>
+    <button type="button" class="btn-visor" id="btn-visor" aria-pressed="false" aria-label="Agrandar vista 3D"><svg class="ico" aria-hidden="true"><use href="#i-agrandar"/></svg></button>
+    <div class="soltar" id="soltar" hidden><div>Suelta el modelo (y su textura)</div></div>
+  </main>
+
+  <aside class="panel" aria-label="Herramientas">
+    <div class="panel__vista" id="vista"></div>
+    <nav class="navinf" aria-label="Secciones">
+      <div class="navinf__pildora">
+        <button data-tab="inicio" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-casa-on"/></svg><span>Modelo</span></button>
+        <button data-tab="editar"><svg class="ico" aria-hidden="true"><use href="#i-tijeras"/></svg><span>Editar</span></button>
+        <button data-tab="exportar"><svg class="ico" aria-hidden="true"><use href="#i-bajar"/></svg><span>Exportar</span></button>
+      </div>
+      <button class="navinf__mas" id="btn-mas" aria-label="Acciones rápidas"><svg class="ico" aria-hidden="true"><use href="#i-mas"/></svg></button>
+    </nav>
+    <div class="hojas" id="hojas"></div>
+    <div class="sr-only" id="anuncio" aria-live="polite"></div>
+  </aside>
+</div>
+
+<input type="file" id="archivos" multiple accept=".3mf,.ply,.obj,.mtl,.stl,.glb,.gltf,.bin,.png,.jpg,.jpeg,.zip" hidden>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

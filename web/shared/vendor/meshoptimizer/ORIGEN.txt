@@ -1,0 +1,1 @@
+meshoptimizer 1.3.0 (npm), meshopt_simplifier.js tal cual. MIT.
