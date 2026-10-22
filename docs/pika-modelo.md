@@ -1,6 +1,6 @@
 # Modelo 3D del Creality Pika y sus accesorios
 
-Archivo: `web/escaner/js/pika-modelo.js` · vista: `web/escaner/index.html` (con `python servir.py`, http://localhost:8767/escaner/).
+Archivo: `web/escaner/js/pika-modelo.js` · escena: `web/escaner/js/escena.js` · página: `web/escaner/index.html` (con `python servir.py`, http://localhost:8767/escaner/?equipo=pika). La página es la guía de Creality Scan (`js/guia.js`); cada paso mueve el gemelo. Para revisar el modelo solo: `?solo&captura&vista=escaner`.
 
 No hay CAD público del Pika. El 21 oct 2026 no apareció nada en Printables, MakerWorld, Thingiverse ni GrabCAD. Por eso se armó con primitivas de three.js, igual que la Cubiko y la S1. No lleva el logotipo ni la palabra de la marca.
 

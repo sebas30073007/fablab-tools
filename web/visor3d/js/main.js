@@ -31,7 +31,9 @@ const S = {
   aviso: null,             // { t, tipo } texto sobre el 3D
   uso: ls.get("uso", "imprimir"),
   cortes: ls.get("cortes", { eje: 2, paso: 3, ancho: 300, alto: 200 }),
+  hecho: {},               // primeros pasos ya hechos con este modelo: enderezar, limpiar, exportar
 };
+const PASO_DE = { transformar: "enderezar", borrar: "limpiar", islas: "limpiar", cortar: "limpiar", caja: "limpiar", rellenar: "cerrar", reparar: "cerrar" };
 
 // ======================================================================
 // Worker
@@ -119,6 +121,7 @@ async function abrirArchivos(lista) {
   });
   if (!r) return;
   cerrarHojas();
+  S.hecho = {};
   await recibir(r, { encuadrar: true });
   const notas = [];
   if (r.volteado) notas.push("Las caras venían hacia adentro: ya están hacia afuera.");
@@ -155,6 +158,7 @@ $(".panel").addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTran
 async function editar(nombre, opciones = {}, { encuadrar = false, texto = "Trabajando" } = {}) {
   const r = await tarea(texto, () => w("editar", { nombre, opciones }, opciones.mascara ? [opciones.mascara.buffer] : []));
   if (!r) return null;
+  if (PASO_DE[nombre]) S.hecho[PASO_DE[nombre]] = true;
   await recibir(r, { encuadrar });
   return r.info || {};
 }
@@ -185,6 +189,7 @@ async function exportar(formato, opciones = {}) {
     return await w("exportar", { formato, opciones });
   });
   if (!r) return false;
+  S.hecho.exportar = true; refrescar();
   descargar(r.nombre, new Blob([r.datos]));
   anunciar(`Descargado ${r.nombre}`);
   return true;

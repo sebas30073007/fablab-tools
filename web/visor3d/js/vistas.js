@@ -70,23 +70,36 @@ function inicio(pag, app) {
       <span class="w-sub">${mm(t[0])} × ${mm(t[1])} × ${mm(t[2])} mm · ${colorDe(m)}</span>
       <span class="w-acc">${btn("irExportar", "Exportar", { main: true, icono: "bajar" })}${btn("irEditar", "Editar", { icono: "tijeras" })}</span>
     </section>
+    ${primerosPasos(S, d)}
     <button type="button" class="w" data-ir="revision">
       <span class="w-cab"><span>Revisión</span>${chev}</span>
       <span class="sems">${fila(s.imprimir)}${fila(s.limpia)}${fila(s.ligera)}</span>
     </button>
-    <section class="w">
-      <span class="w-cab"><span>Acomodar</span></span>
-      <span class="w-sub">Si el modelo salió acostado o de cabeza, elige qué cara va abajo.</span>
-      <span class="w-acc">${btn("cara", "Elegir la cara de abajo", { icono: "clic" })}<button type="button" class="btn-pill" data-herr="girar">${ico("girar")}Girar</button></span>
-    </section>
     <button type="button" class="w" data-ir="formatos">
       <span class="w-cab"><span>¿Qué exporto en Creality Scan?</span>${chev}</span>
       <span class="w-sub">Las 7 opciones de exportar y cuál conviene</span>
     </button>`;
-  cablear(pag, app, {
-    irExportar: () => app.irA("exportar"), irEditar: () => app.irA("editar"),
-    cara: () => app.acc.herramienta("cara"),
-  });
+  cablear(pag, app, { irExportar: () => app.irA("exportar"), irEditar: () => app.irA("editar") });
+}
+
+// Lo de siempre con un escaneo, en orden. Cada renglón abre su herramienta y se palomea al hacerlo.
+function primerosPasos(S, d) {
+  const pasos = [
+    { id: "enderezar", t: "Enderezar", sub: "Toca la base o la tornamesa", herr: "cara" },
+    { id: "limpiar", t: "Quitar lo que sobra", sub: "Toca la pieza que se queda", herr: "islas" },
+    { id: "cerrar", t: "Cerrar los huecos", sub: d.cerrado ? "Ya está cerrada" : `${d.huecos} ${d.huecos === 1 ? "hueco" : "huecos"}: corte plano con tapa o rellenar`, herr: d.huecos ? "rellenar" : null, ok: d.cerrado },
+    { id: "exportar", t: "Exportar", sub: "STL, 3MF, GLB, FBX o cortes", ir: "exportar" },
+  ];
+  const actual = pasos.findIndex((p) => !(p.ok || S.hecho[p.id]));
+  return `<section class="w" aria-label="Primeros pasos">
+    <span class="w-cab"><span>Primeros pasos con un escaneo</span></span>
+    <div class="filas">${pasos.map((p, i) => {
+      const ok = p.ok || S.hecho[p.id];
+      return `<button type="button" class="fila" ${p.herr ? `data-herr="${p.herr}"` : p.ir ? `data-ir="${p.ir}"` : "disabled"}>
+        <span class="marca-paso" data-s="${ok ? "hecho" : i === actual ? "ahora" : ""}">${ok ? ico("ok") : ""}</span>
+        <span class="fila__nom">${p.t}<small>${esc(p.sub)}</small></span><span></span>${p.herr || p.ir ? chev : ""}</button>`;
+    }).join("")}</div>
+  </section>`;
 }
 
 // ======================================================================

@@ -1,0 +1,26 @@
+/* Escáner 3D — capa 3 (página). Reusa el cascarón de las apps y los estilos del Visor 3D. */
+
+/* Selector Pika | Otter en la barra */
+.seg--equipo { margin-left: 8px; }
+.seg--equipo a { display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: var(--r-ctl); font-size: 13px; font-weight: 600; color: var(--text-secondary); text-decoration: none; }
+.seg--equipo a[aria-current="page"] { background: var(--elegido); color: var(--text); box-shadow: var(--filo); }
+a.navinf__mas { color: inherit; }
+
+/* El paso actual: texto grande, la lista de detalles abajo */
+.w-guia .w-texto { font-size: 21px; line-height: 1.2; font-weight: 800; margin-top: 10px; }
+.w-sub--grande { font-size: 14.5px; line-height: 1.45; color: var(--text); }
+.w-guia .lista-txt { margin-top: 8px; color: var(--text-secondary); }
+.w-guia .w-acc { justify-content: space-between; }
+.w-guia .w-acc .btn-pill--main { margin-left: auto; }
+a.btn-pill { text-decoration: none; }
+.fila[aria-current="step"] .fila__nom { font-weight: 800; }
+.fila--receta { grid-template-columns: minmax(0, 1fr); }
+.fila--receta small b { font-weight: 700; color: var(--text); }
+
+body.captura .barra, body.captura .panel, body.captura .seg--flota, body.captura .flota-der { display: none; }
+body.captura .app { grid-template-columns: 1fr; grid-template-rows: 1fr; }
+
+@media (max-width: 719px) {
+  .seg--equipo { margin-left: auto; }
+  .seg--equipo a { padding: 0 10px; }
+}
