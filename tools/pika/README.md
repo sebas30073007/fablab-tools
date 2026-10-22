@@ -4,7 +4,17 @@ Control propio del escáner Creality Pika (USB `2BC5:0C0B`, cámara Orbbec) desd
 
 ## Láser
 
-- Con la **cámara gris transmitiendo**, la propiedad **158 = 1** prende el láser y **158 = 0** lo apaga. Sin video no prende.
+Todo requiere la **cámara gris transmitiendo**; sin video no prende nada.
+
+| Propiedad | Qué hace | Lo que usa Creality al escanear |
+|---|---|---|
+| **3** | **líneas láser verticales** (1 = prendidas); la cámara gris las ve | 1 al iniciar el escaneo, 0 al parar |
+| **158** | luz azul de relleno (hace brillar los marcadores reflejantes) | 1 |
+| **161** | brillo de esa luz azul (1–100) | baja de 20 a 3 mientras ajusta |
+| **2026** | exposición IR de la cámara gris (10–3000) | sube de 1500 a 3000 |
+| **2027** | ganancia IR (0–16000) | 1000 |
+
+
 - Las órdenes van por la Extension Unit de UVC: GUID `{a55751a1-f3c5-4a5e-8d5a-6854b8fa2716}`, unidad 4, interfaz 0 (nodo KS 3). Se mandan con `IKsControl` de DirectShow y no hace falta ser administrador.
 - Protocolo de vendedor de Orbbec: la orden es `47 4d` («GM») + tamaño en palabras + opcode + seq + datos, por SET_CUR en el selector 2 (64 B). La respuesta es `52 42` («RB») + tamaño + opcode + seq + estado, por GET_CUR en el selector 2 (o en el 3/1 si es larga). Opcode 1 = leer propiedad, 2 = escribir (id u32 + valor).
 - El HID solo manda un latido; no controla nada.

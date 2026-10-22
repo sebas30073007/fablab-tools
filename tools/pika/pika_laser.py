@@ -153,7 +153,13 @@ class Pika:
         return self.orden("474d040002000000" + struct.pack("<Ii", prop, valor).hex())[1]
 
     def laser(self, prendido):
-        """Prende o apaga el láser (prop 158). Solo prende con el video corriendo."""
+        """Prende o apaga las líneas láser (prop 3). Solo prenden con el video corriendo."""
+        return self.escribir(3, 1 if prendido else 0)
+
+    def relleno(self, prendido, brillo=None):
+        """Luz azul de relleno para los marcadores (prop 158) y su brillo 1-100 (prop 161)."""
+        if brillo is not None:
+            self.escribir(161, brillo)
         return self.escribir(158, 1 if prendido else 0)
 
     def fase(self, ordenes, nombre):

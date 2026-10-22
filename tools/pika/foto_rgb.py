@@ -20,21 +20,26 @@ def foto(nombre):
     return ruta
 
 
-banco = Banco()
-banco.parar()
-sufijo = ""
-if "--modo" in sys.argv:
-    escrituras = [o for o in banco.sec["antes_video"]
-                  if struct.unpack_from("<H", bytes.fromhex(o["orden"]), 4)[0] in ESCRITURAS]
-    banco.mandar(escrituras[3:5])  # op 0x1a y 0x1c sobre 0x413 = «Laser Lines Scan»
-    sufijo = "_modo"
-cam = Camara()
-try:
-    foto(f"rgb_apagado{sufijo}.jpg")
-    banco.pika.laser(True)
-    time.sleep(1)
-    cv2.imwrite(os.path.join(AQUI, f"gris_prendido{sufijo}.png"), cam.cuadro)
-    print("guardada", foto(f"rgb_prendido{sufijo}.jpg"))
-finally:
-    cam.cerrar()
+def main():
+    banco = Banco()
     banco.parar()
+    sufijo = ""
+    if "--modo" in sys.argv:
+        escrituras = [o for o in banco.sec["antes_video"]
+                      if struct.unpack_from("<H", bytes.fromhex(o["orden"]), 4)[0] in ESCRITURAS]
+        banco.mandar(escrituras[3:5])  # op 0x1a y 0x1c sobre 0x413 = «Laser Lines Scan»
+        sufijo = "_modo"
+    cam = Camara()
+    try:
+        foto(f"rgb_apagado{sufijo}.jpg")
+        banco.pika.laser(True)
+        time.sleep(1)
+        cv2.imwrite(os.path.join(AQUI, f"gris_prendido{sufijo}.png"), cam.cuadro)
+        print("guardada", foto(f"rgb_prendido{sufijo}.jpg"))
+    finally:
+        cam.cerrar()
+        banco.parar()
+
+
+if __name__ == "__main__":
+    main()
