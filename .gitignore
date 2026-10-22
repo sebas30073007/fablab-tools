@@ -8,6 +8,7 @@ Thumbs.db
 tools/pika/*.pcap
 tools/pika/*.tsv
 tools/pika/*.png
+tools/pika/*.jpg
 tools/pika/recorte/
 
 # escaneos de prueba (pesados) para el Visor 3D

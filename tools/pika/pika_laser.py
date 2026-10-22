@@ -141,6 +141,21 @@ class Pika:
         self.seq += 1
         return ok_seq, estado, r
 
+    def leer(self, prop):
+        """Devuelve (estado, (actual, máx, mín, paso, defecto)) de una propiedad."""
+        ok, estado, r = self.orden("474d020001000000" + struct.pack("<I", prop).hex())
+        if not ok or estado or len(r) < 30:
+            return estado, None
+        return estado, struct.unpack_from("<5i", r, 10)
+
+    def escribir(self, prop, valor):
+        """Escribe una propiedad entera; devuelve el estado (0 = aceptada)."""
+        return self.orden("474d040002000000" + struct.pack("<Ii", prop, valor).hex())[1]
+
+    def laser(self, prendido):
+        """Prende o apaga el láser (prop 158). Solo prende con el video corriendo."""
+        return self.escribir(158, 1 if prendido else 0)
+
     def fase(self, ordenes, nombre):
         fallas = 0
         for o in ordenes:
