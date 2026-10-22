@@ -19,6 +19,12 @@ Todo requiere la **cámara gris transmitiendo**; sin video no prende nada.
 - Protocolo de vendedor de Orbbec: la orden es `47 4d` («GM») + tamaño en palabras + opcode + seq + datos, por SET_CUR en el selector 2 (64 B). La respuesta es `52 42` («RB») + tamaño + opcode + seq + estado, por GET_CUR en el selector 2 (o en el 3/1 si es larga). Opcode 1 = leer propiedad, 2 = escribir (id u32 + valor).
 - El HID solo manda un latido; no controla nada.
 
+**El Pika no da líneas y color a la vez:** mientras la cámara RGB transmite, las líneas se apagan, y regresan al cerrarla.
+
+## Visor
+
+`visor\abrir-visor.cmd` levanta el servidor y abre http://127.0.0.1:8805 (con Creality Scan cerrado). Muestra la cámara gris y la RGB, y tiene botones para las líneas, la luz azul y su brillo, la exposición y la ganancia, más un realce y la foto (se guarda en `fotos\`). Mientras hay líneas, la RGB queda en pausa.
+
 ## Archivos
 
 | Archivo | Para qué |

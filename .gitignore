@@ -10,6 +10,7 @@ tools/pika/*.tsv
 tools/pika/*.png
 tools/pika/*.jpg
 tools/pika/recorte/
+tools/pika/fotos/
 
 # escaneos de prueba (pesados) para el Visor 3D
 web/_prueba/

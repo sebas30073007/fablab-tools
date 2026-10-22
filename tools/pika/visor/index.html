@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pika · Visor</title>
+<link rel="stylesheet" href="/css/tokens.css">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { display: grid; grid-template-rows: auto 1fr; }
+  .barra { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--divider); }
+  .barra h1 { font-size: 18px; line-height: 24px; margin: 0; font-weight: 700; }
+  .conexion { margin-left: auto; display: flex; align-items: center; gap: var(--space-sm); color: var(--text-secondary); font-size: 14px; }
+  .conexion i { width: 8px; height: 8px; border-radius: 50%; background: var(--alloy); }
+  .conexion.ok i { background: var(--cyber-teal); }
+  .conexion.mal i { background: var(--sebs-signal); }
+
+  main { display: grid; grid-template-columns: 1fr 320px; min-height: 0; }
+  .video { display: flex; gap: var(--space-sm); padding: var(--space-lg); min-height: 0; background: #000; }
+  .video figure { flex: 1; min-width: 0; margin: 0; position: relative; }
+  .video figure[hidden] { display: none; }
+  .video img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .pausa { position: absolute; left: 50%; top: var(--space-lg); transform: translateX(-50%);
+    padding: var(--space-xs) var(--space-md); border-radius: var(--radius-round); font-size: 14px;
+    background: rgba(17, 19, 23, .8); color: var(--text); }
+  .pausa[hidden] { display: none; }
+
+  .panel { padding: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-xl);
+    border-left: 1px solid var(--divider); overflow-y: auto; background: var(--surface-secondary); }
+  .grupo { display: flex; flex-direction: column; gap: var(--space-md); }
+  .grupo h2 { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--text-secondary); margin: 0; }
+
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .primario { padding: var(--space-md); border-radius: var(--radius-md); font-weight: 700; font-size: 18px;
+    background: transparent; border: 2px solid var(--sebs-signal); transition: background var(--dur-micro) var(--ease); }
+  .primario[aria-pressed="true"] { background: var(--sebs-signal); color: var(--on-signal); }
+  .secundario { padding: var(--space-sm) var(--space-md); border-radius: var(--radius-md); font-weight: 600;
+    background: var(--surface); border: 1px solid var(--divider); }
+
+  .fila { display: flex; align-items: center; justify-content: space-between; gap: var(--space-md); }
+  .interruptor { width: 44px; height: 24px; border-radius: var(--radius-round); border: 0; padding: 2px;
+    background: var(--divider); position: relative; transition: background var(--dur-micro) var(--ease); }
+  .interruptor::after { content: ""; display: block; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--text); transition: transform var(--dur-micro) var(--ease); }
+  .interruptor[aria-pressed="true"] { background: var(--electric-blue); }
+  .interruptor[aria-pressed="true"]::after { transform: translateX(20px); }
+
+  .deslizador { display: grid; grid-template-columns: 1fr auto; gap: var(--space-xs) var(--space-md); align-items: center; }
+  .deslizador label { font-size: 14px; }
+  .deslizador output { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+  .deslizador input { grid-column: 1 / -1; width: 100%; accent-color: var(--electric-blue); }
+  input:disabled, button:disabled { opacity: .4; cursor: default; }
+
+  .unida { display: flex; }
+  .unida button { flex: 1; padding: var(--space-sm); background: var(--surface); border: 1px solid var(--divider);
+    border-radius: 0; margin-left: -1px; font-weight: 600; font-size: 14px; }
+  .unida button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); margin-left: 0; }
+  .unida button:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+  .unida button[aria-pressed="true"] { background: var(--text); color: var(--surface); }
+
+  .aviso { font-size: 14px; color: var(--text-secondary); min-height: 20px; }
+
+  @media (max-width: 760px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 55vh auto; }
+    .panel { border-left: 0; border-top: 1px solid var(--divider); }
+  }
+</style>
+</head>
+<body class="surface-dark">
+<header class="barra">
+  <h1>Pika</h1>
+  <span class="conexion" id="conexion"><i></i><span>Conectando…</span></span>
+</header>
+<main>
+  <section class="video" aria-label="Video">
+    <figure id="cGris"><img id="vGris" alt="Cámara gris"></figure>
+    <figure id="cRgb" hidden>
+      <img id="vRgb" alt="Cámara RGB">
+      <span class="pausa" id="pausa" hidden>RGB en pausa mientras hay líneas</span>
+    </figure>
+  </section>
+  <aside class="panel">
+    <button class="primario" id="lineas" aria-pressed="false" disabled>Líneas</button>
+
+    <div class="grupo">
+      <h2>Luz azul</h2>
+      <div class="fila"><span>Encendida</span><button class="interruptor" id="relleno" aria-pressed="false" aria-label="Luz azul" disabled></button></div>
+      <div class="deslizador"><label for="brillo">Brillo</label><output id="brilloV"></output><input type="range" id="brillo" disabled></div>
+    </div>
+
+    <div class="grupo">
+      <h2>Cámara gris</h2>
+      <div class="deslizador"><label for="exposicion">Exposición</label><output id="exposicionV"></output><input type="range" id="exposicion" disabled></div>
+      <div class="deslizador"><label for="ganancia">Ganancia</label><output id="gananciaV"></output><input type="range" id="ganancia" step="100" disabled></div>
+      <div class="fila"><span>Realce</span><button class="interruptor" id="realce" aria-pressed="true" aria-label="Realce"></button></div>
+    </div>
+
+    <div class="grupo">
+      <h2>Vista</h2>
+      <div class="unida" id="vista">
+        <button data-v="gris" aria-pressed="true">Gris</button>
+        <button data-v="rgb" aria-pressed="false">RGB</button>
+        <button data-v="ambas" aria-pressed="false">Ambas</button>
+      </div>
+    </div>
+
+    <button class="secundario" id="foto">Foto</button>
+    <div class="aviso" id="aviso" role="status"></div>
+  </aside>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const aviso = t => { $("aviso").textContent = t; };
+
+async function api(ruta, cuerpo) {
+  const r = await fetch(ruta, cuerpo ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(cuerpo) } : {});
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error || ("estado " + d.estado));
+  return d;
+}
+const poner = (nombre, valor) => api("/api/prop", { nombre, valor }).catch(e => aviso(`${nombre}: ${e.message}`));
+
+function interruptor(id, nombre) {
+  $(id).onclick = async () => {
+    const nuevo = $(id).getAttribute("aria-pressed") !== "true";
+    $(id).setAttribute("aria-pressed", nuevo);
+    if (await poner(nombre, nuevo ? 1 : 0) === undefined) $(id).setAttribute("aria-pressed", !nuevo);
+  };
+}
+interruptor("lineas", "lineas");
+interruptor("relleno", "relleno");
+
+// Con líneas el servidor corta la RGB (el Pika no da ambas); al apagarlas se reconecta.
+const hayLineas = () => $("lineas").getAttribute("aria-pressed") === "true";
+function actualizarRgb() {
+  $("pausa").hidden = !hayLineas();
+  if (!$("cRgb").hidden && !hayLineas()) $("vRgb").src = "/rgb.mjpg?" + Date.now();
+}
+$("lineas").addEventListener("click", () => setTimeout(actualizarRgb, 300));
+
+function deslizador(nombre) {
+  const el = $(nombre);
+  let espera;
+  el.oninput = () => {
+    $(nombre + "V").textContent = el.value;
+    clearTimeout(espera);
+    espera = setTimeout(() => poner(nombre, +el.value), 120);
+  };
+}
+["brillo", "exposicion", "ganancia"].forEach(deslizador);
+
+$("realce").onclick = () => {
+  const nuevo = $("realce").getAttribute("aria-pressed") !== "true";
+  $("realce").setAttribute("aria-pressed", nuevo);
+  api("/api/realce", { activo: nuevo });
+};
+
+function vista(v) {
+  for (const b of $("vista").children) b.setAttribute("aria-pressed", b.dataset.v === v);
+  $("cGris").hidden = v === "rgb";
+  $("cRgb").hidden = v === "gris";
+  if (v !== "gris" && !$("vRgb").src) $("vRgb").src = "/rgb.mjpg";
+  $("pausa").hidden = !hayLineas();
+}
+$("vista").onclick = e => e.target.dataset.v && vista(e.target.dataset.v);
+
+$("foto").onclick = async () => {
+  try { aviso("Guardada: " + (await api("/api/foto", {})).fotos.join(", ")); }
+  catch (e) { aviso("Foto: " + e.message); }
+};
+
+async function cargar() {
+  const c = $("conexion");
+  try {
+    const { props, realce } = await api("/api/estado");
+    c.className = "conexion ok"; c.lastElementChild.textContent = "Conectado";
+    $("lineas").setAttribute("aria-pressed", props.lineas?.valor === 1);
+    $("relleno").setAttribute("aria-pressed", props.relleno?.valor === 1);
+    $("realce").setAttribute("aria-pressed", realce);
+    for (const n of ["brillo", "exposicion", "ganancia"]) {
+      const p = props[n];
+      if (!p) continue;
+      Object.assign($(n), { min: p.min, max: p.max, value: p.valor });
+      $(n + "V").textContent = p.valor;
+    }
+    document.querySelectorAll("[disabled]").forEach(el => el.disabled = false);
+    $("vGris").src = "/gris.mjpg";
+  } catch (e) {
+    c.className = "conexion mal"; c.lastElementChild.textContent = "Sin Pika";
+    aviso(e.message + " · ¿Creality Scan abierto o el Pika desconectado?");
+  }
+}
+cargar();
+</script>
+</body>
+</html>
