@@ -36,7 +36,11 @@ export function crearNavegacion({ vistas, tabs, padre = {}, app }) {
   function refrescar() {
     if (!nav.actual) return;
     const st = $("#vista").scrollTop;
+    // El campo que se estaba editando sigue enfocado tras repintar (p. ej. al regenerar con Tab al siguiente)
+    const f = document.activeElement, attr = f && ["data-p", "data-m"].find((k) => f.hasAttribute?.(k));
+    const sel = attr ? `[${attr}="${f.getAttribute(attr)}"]` : null;
     irA(nav.actual, { dir: "ninguna", foco: false });
+    if (sel) $("#vista").querySelector(sel)?.focus({ preventScroll: true });
     $("#vista").scrollTop = st;
   }
   $$(".navinf__pildora [data-tab]").forEach((b) => (b.onclick = () => irA(b.dataset.tab)));

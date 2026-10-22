@@ -8,7 +8,7 @@ import { ALARMAS, ESTADOS } from "./alarmas.js";
 import { formatoTiempo } from "./gcode.js";
 import { esc, ico, mm, ls, miniJog, descargar, dialogo } from "./ui.js";
 import { aPNG, vista } from "./raster.js";
-import { anchoV, igualHerr } from "./cam.js";
+import { anchoV, anchoAislado, igualHerr } from "./cam.js";
 import { MATERIALES } from "./materiales.js";
 import { HERRAMIENTAS, CAMPOS, NOTAS, BROCAS, atraviesa, revisarRango, dibujosPistas, dibujosHoyos, dibujosContorno, dibujosComun, dibujosGrabado, dibujosVaciado } from "./herramientas.js";
 
@@ -406,13 +406,15 @@ function placa(pag, app) {
 function previaHTML(app) {
   const r = app.acc.vistaPrevia();
   if (!r) return "";
-  const { S } = app, cobre = app.acc.mat().conduce;
+  const { S } = app, cobre = app.acc.mat().conduce, P = S.params.pistas;
+  const pistas = S.trabajos.some((t) => t.id === "pistas" && t.estado !== "omitido");
   const aviso = (t) => `<div class="aviso">${ico("alerta")}<span>${esc(t)}</span></div>`;
   const muestra = (color, t) => `<span><span class="cuad" style="background:${color}"></span>${t}</span>`;
   return `<section class="w" aria-labelledby="p-prev" data-tour="previa">
     <span class="w-cab"><span id="p-prev">Vista previa</span><button type="button" class="btn-texto" data-ampliar style="min-height:32px">Ampliar</button></span>
     <canvas class="previa" data-previa role="img" aria-label="Vista desde arriba de cómo quedará: ${cobre ? "cobre que se queda, " : ""}lo fresado, lo que atraviesa y los hoyos"></canvas>
     <span class="leyenda">${muestra("var(--m-cobre)", cobre ? "Cobre" : S.material.tipo === "otro" ? "Material" : esc(app.acc.mat().t))}${muestra("var(--m-fr4)", "Fresado")}${muestra("#1A1815", "Atraviesa")}${r.cortaCobre > 0.02 ? muestra("#DC2626", "Corta el diseño") : ""}</span>
+    ${pistas ? `<span class="w-sub">Pistas: ${P.pasadas} ${P.pasadas === 1 ? "pasada" : "pasadas"} · aíslan ${mm(anchoAislado(P), 2)} mm${S.zonas.length ? ` · ${S.zonas.length} ${S.zonas.length === 1 ? "zona" : "zonas"} sin cobre` : ""}</span>` : ""}
     <span class="w-sub">${esc(r.fuente)}</span>
     ${r.cambiado ? aviso("Cambiaste valores: vuelve a generar para ver el resultado con ellos.") : ""}
     ${r.cortaCobre > 0.02 ? aviso(`La fresa entra en el cobre del diseño (${r.cortaCobre.toFixed(2)} mm², en rojo).`) : ""}
@@ -435,39 +437,142 @@ async function generarYVer(app) {
   await app.acc.generar();
   if (app.S.trabajos !== antes && app.S.trabajos.some((t) => t.origen === "cam")) ampliarPrevia(app, { irInicio: app.vistaActual !== "inicio" });
 }
+// Herramientas de la ventana: Mover (arrastrar), Regla (dos clics, en mm o pulgadas) y, en una PCB,
+// Sin cobre (arrastrar rectángulos donde se quita todo el cobre que no es del diseño; tocar uno lo quita).
 function ampliarPrevia(app, { irInicio = false } = {}) {
-  const r = app.acc.vistaPrevia();
+  let r = app.acc.vistaPrevia();
   if (!r) return;
+  const { S, acc } = app;
+  const conZonas = !r.vector && acc.mat().conduce && !!S.pcb?.imgs?.pistas;
   dialogo({ titulo: "Vista previa", clase: "dlg--previa", contenido(c, d) {
     d.meta(`${mm(r.caja.x1 - r.caja.x0, 1)} × ${mm(r.caja.y1 - r.caja.y0, 1)} mm`);
-    c.innerHTML = `<div class="previa-zoom" data-z tabindex="0" aria-label="Vista previa; rueda o botones para acercar, arrastra para mover"></div>
+    const modoBtn = (k, t) => `<button type="button" role="radio" data-modo="${k}" aria-checked="${k === "mover"}">${t}</button>`;
+    c.innerHTML = `<div class="previa-ctl previa-ctl--arriba">
+        <div class="seg" role="radiogroup" aria-label="Herramienta">${modoBtn("mover", "Mover")}${modoBtn("regla", `${ico("regla")}Regla`)}${conZonas ? modoBtn("zonas", "Sin cobre") : ""}</div>
+        <span class="previa-dato mono" data-dato aria-live="polite"></span>
+        <div class="seg seg--chico" role="radiogroup" aria-label="Unidad" data-unidades hidden>
+          <button type="button" role="radio" data-u="mm">mm</button><button type="button" role="radio" data-u="in">in</button></div>
+        <button type="button" class="btn-texto" data-borrar-zonas hidden>Quitar todas</button></div>
+      <div class="previa-zoom" data-z tabindex="0" aria-label="Vista previa; rueda o botones para acercar, arrastra para mover">
+        <div class="previa-lienzo" data-lienzo><svg class="previa-capa" data-capa preserveAspectRatio="none"></svg></div></div>
       <div class="previa-ctl"><button type="button" class="btn-icono" data-menos aria-label="Alejar">−</button><span class="mono" data-pct></span>
         <button type="button" class="btn-icono" data-mas aria-label="Acercar">+</button><button type="button" class="btn-texto" data-ajustar>Ajustar</button>
-        <span class="w-sub">${esc(r.fuente)}</span>
+        <span class="w-sub" data-fuente>${esc(r.fuente)}</span>
         ${irInicio ? `<span style="flex:1"></span><button type="button" class="btn-pill btn-pill--main" data-inicio>Ir a Inicio</button>` : ""}</div>`;
     if (irInicio) c.querySelector("[data-inicio]").onclick = () => { d.cerrar(); app.irA("inicio"); };
-    const z = c.querySelector("[data-z]"), pct = c.querySelector("[data-pct]");
-    const img = document.createElement("canvas"); img.width = r.cv.width; img.height = r.cv.height; img.getContext("2d").drawImage(r.cv, 0, 0);
-    img.className = "previa-grande"; img.style.width = "100%"; z.appendChild(img);
-    let e = 1;
+    const z = c.querySelector("[data-z]"), pct = c.querySelector("[data-pct]"), lienzo = c.querySelector("[data-lienzo]"), capa = c.querySelector("[data-capa]");
+    const dato = c.querySelector("[data-dato]"), unidades = c.querySelector("[data-unidades]"), borrarZonas = c.querySelector("[data-borrar-zonas]");
+    const img = document.createElement("canvas");
+    img.className = "previa-grande"; lienzo.prepend(img);
+    const ponerImagen = () => {
+      img.width = r.cv.width; img.height = r.cv.height; img.getContext("2d").drawImage(r.cv, 0, 0);
+      capa.setAttribute("viewBox", `0 0 ${img.width} ${img.height}`);
+    };
+    ponerImagen();
+    let e = 1, modo = "mover", unidad = ls.get("unidadRegla", "mm"), regla = [], vivo = null, arrastre = null, calculando = false;
+    // píxel de la imagen ↔ mm de trabajo ↔ mm del diseño (las zonas se guardan en el diseño)
+    const aMM = (px, py) => [r.caja.x0 + px / r.s, r.caja.y1 - py / r.s];
+    const aPx = (x, y) => [(x - r.caja.x0) * r.s, (r.caja.y1 - y) * r.s];
+    const enImagen = (ev) => { const b = lienzo.getBoundingClientRect(); return [(ev.clientX - b.left) / e, (ev.clientY - b.top) / e]; };
+    const largo = (v) => (unidad === "in" ? `${(v / 25.4).toFixed(3)} in` : `${mm(v, 2)} mm`);
+    const pintarCapa = () => {
+      const k = 1 / e, partes = [];
+      for (const [i, zn] of S.zonas.entries()) {
+        const [ax, ay] = aPx(zn.x0 - r.origen.x, zn.y1 - r.origen.y), [bx, by] = aPx(zn.x1 - r.origen.x, zn.y0 - r.origen.y);
+        partes.push(`<rect class="previa-zona" data-zona="${i}" x="${ax}" y="${ay}" width="${bx - ax}" height="${by - ay}" vector-effect="non-scaling-stroke"/>`);
+      }
+      if (arrastre?.rect) { const [ax, ay, bx, by] = arrastre.rect; partes.push(`<rect class="previa-zona previa-zona--nueva" x="${Math.min(ax, bx)}" y="${Math.min(ay, by)}" width="${Math.abs(bx - ax)}" height="${Math.abs(by - ay)}" vector-effect="non-scaling-stroke"/>`); }
+      const pts = vivo && regla.length === 1 ? [regla[0], vivo] : regla;
+      if (pts.length) {
+        const [[ax, ay], [bx, by] = pts[0]] = pts;
+        partes.push(`<line class="previa-regla" x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" vector-effect="non-scaling-stroke"/>`,
+          ...pts.map(([x, y]) => `<circle class="previa-regla__p" cx="${x}" cy="${y}" r="${4 * k}" vector-effect="non-scaling-stroke"/>`));
+        if (pts.length === 2) partes.push(`<text class="previa-regla__t" x="${(ax + bx) / 2}" y="${(ay + by) / 2 - 8 * k}" font-size="${13 * k}">${largo(Math.hypot(bx - ax, by - ay) / r.s)}</text>`);
+      }
+      capa.innerHTML = partes.join("");
+      // Lo que dice la barra según la herramienta
+      if (modo === "regla") {
+        if (pts.length === 2) {
+          const [[ax, ay], [bx, by]] = pts, dx = Math.abs(bx - ax) / r.s, dy = Math.abs(by - ay) / r.s;
+          dato.textContent = `${largo(Math.hypot(dx, dy))} · ΔX ${largo(dx)} · ΔY ${largo(dy)}`;
+        } else dato.textContent = regla.length ? "Clic en el segundo punto" : "Clic en el primer punto";
+      } else if (modo === "zonas") dato.textContent = calculando ? "Calculando…" : S.zonas.length ? `${S.zonas.length} ${S.zonas.length === 1 ? "zona" : "zonas"} · toca una para quitarla${S.avisosGen.some((t) => t.startsWith("Las zonas")) ? " · solo hay cobre del diseño" : ""}` : "Arrastra un rectángulo donde no quieres cobre";
+      else dato.textContent = "";
+      borrarZonas.hidden = modo !== "zonas" || !S.zonas.length;
+    };
+    const ponerModo = (m) => {
+      modo = m; regla = []; vivo = null;
+      c.querySelectorAll("[data-modo]").forEach((b) => b.setAttribute("aria-checked", b.dataset.modo === m));
+      z.dataset.modo = m; unidades.hidden = m !== "regla";
+      pintarCapa();
+    };
+    const ponerUnidad = (u) => { unidad = u; ls.set("unidadRegla", u); unidades.querySelectorAll("[data-u]").forEach((b) => b.setAttribute("aria-checked", b.dataset.u === u)); pintarCapa(); };
+    c.querySelectorAll("[data-modo]").forEach((b) => (b.onclick = () => ponerModo(b.dataset.modo)));
+    unidades.querySelectorAll("[data-u]").forEach((b) => (b.onclick = () => ponerUnidad(b.dataset.u)));
+    ponerUnidad(unidad);
+    // Las zonas cambian el G-code: se vuelve a generar y la imagen se actualiza aquí mismo
+    const cambiarZonas = async (lista) => {
+      calculando = true; pintarCapa();
+      await acc.ponerZonas(lista);
+      calculando = false;
+      const nueva = acc.vistaPrevia();
+      if (nueva) { r = nueva; ponerImagen(); poner(e); c.querySelector("[data-fuente]").textContent = r.fuente; }
+      pintarCapa();
+    };
+    borrarZonas.onclick = () => cambiarZonas([]);
+
     const ajuste = () => Math.min(z.clientWidth / img.width, z.clientHeight / img.height);
     const poner = (nuevo, cx = z.clientWidth / 2, cy = z.clientHeight / 2) => {
       nuevo = Math.min(2, Math.max(ajuste(), nuevo));
       const px = (z.scrollLeft + cx) / e, py = (z.scrollTop + cy) / e;
-      e = nuevo; img.style.width = `${img.width * e}px`; img.style.height = `${img.height * e}px`;
+      e = nuevo; lienzo.style.width = `${img.width * e}px`; lienzo.style.height = `${img.height * e}px`;
       z.scrollLeft = px * e - cx; z.scrollTop = py * e - cy;
       pct.textContent = `${(e / ajuste()).toFixed(1)}×`;
+      pintarCapa();
     };
     requestAnimationFrame(() => { e = ajuste(); poner(e); });
     c.querySelector("[data-mas]").onclick = () => poner(e * 1.6);
     c.querySelector("[data-menos]").onclick = () => poner(e / 1.6);
     c.querySelector("[data-ajustar]").onclick = () => poner(ajuste());
     z.addEventListener("wheel", (ev) => { ev.preventDefault(); const b = z.getBoundingClientRect(); poner(e * (ev.deltaY < 0 ? 1.25 : 0.8), ev.clientX - b.left, ev.clientY - b.top); }, { passive: false });
-    let arr = null;
-    z.addEventListener("pointerdown", (ev) => { if (ev.pointerType !== "mouse") return; arr = { x: ev.clientX, y: ev.clientY, l: z.scrollLeft, t: z.scrollTop }; z.setPointerCapture(ev.pointerId); z.classList.add("arrastrando"); });
-    z.addEventListener("pointermove", (ev) => { if (!arr) return; z.scrollLeft = arr.l - (ev.clientX - arr.x); z.scrollTop = arr.t - (ev.clientY - arr.y); });
-    const soltar = () => { arr = null; z.classList.remove("arrastrando"); };
-    z.addEventListener("pointerup", soltar); z.addEventListener("pointercancel", soltar);
+    // Arrastrar mueve (con mouse; en táctil la vista se desplaza sola) salvo en Sin cobre, donde dibuja.
+    // Un clic sin arrastrar pone un punto de la regla o quita la zona tocada.
+    z.addEventListener("pointerdown", (ev) => {
+      if (ev.button > 0 || calculando) return;
+      const p = enImagen(ev);
+      if (modo === "zonas") arrastre = { x: ev.clientX, y: ev.clientY, p, rect: null, zona: ev.target.closest?.("[data-zona]")?.dataset.zona };
+      else if (ev.pointerType === "mouse") { arrastre = { x: ev.clientX, y: ev.clientY, l: z.scrollLeft, t: z.scrollTop, p }; z.classList.add("arrastrando"); }
+      else arrastre = { x: ev.clientX, y: ev.clientY, p, toque: true };
+      z.setPointerCapture(ev.pointerId);
+    });
+    z.addEventListener("pointermove", (ev) => {
+      if (modo === "regla" && regla.length === 1) { vivo = enImagen(ev); pintarCapa(); }
+      if (!arrastre) return;
+      const lejos = Math.hypot(ev.clientX - arrastre.x, ev.clientY - arrastre.y) > 4;
+      if (modo === "zonas") { if (lejos || arrastre.rect) { arrastre.rect = [...arrastre.p, ...enImagen(ev)]; pintarCapa(); } return; }
+      if (arrastre.l != null) { z.scrollLeft = arrastre.l - (ev.clientX - arrastre.x); z.scrollTop = arrastre.t - (ev.clientY - arrastre.y); }
+      if (lejos) arrastre.movio = true;
+    });
+    z.addEventListener("pointerup", (ev) => {
+      const a = arrastre; arrastre = null; z.classList.remove("arrastrando");
+      if (!a) return;
+      if (modo === "zonas") {
+        if (a.rect) {
+          const [ax, ay, bx, by] = a.rect;
+          const [x0, y1] = aMM(Math.min(ax, bx), Math.min(ay, by)), [x1, y0] = aMM(Math.max(ax, bx), Math.max(ay, by));
+          if (x1 - x0 > 0.3 && y1 - y0 > 0.3) return cambiarZonas([...S.zonas, { x0: x0 + r.origen.x, y0: y0 + r.origen.y, x1: x1 + r.origen.x, y1: y1 + r.origen.y }]);
+          return pintarCapa();
+        }
+        if (a.zona != null) cambiarZonas(S.zonas.filter((_, i) => i !== +a.zona));
+        return;
+      }
+      if (modo === "regla" && !a.movio) {
+        regla = regla.length === 1 ? [regla[0], enImagen(ev)] : [enImagen(ev)];
+        vivo = null; pintarCapa();
+      }
+    });
+    z.addEventListener("pointercancel", () => { arrastre = null; z.classList.remove("arrastrando"); pintarCapa(); });
+    ponerModo("mover");
   } });
 }
 

@@ -114,7 +114,7 @@ export const RANGO = {
   pistas: {
     prof: (v, Q) => v > 0.2 ? `${n(v)} mm es demasiado: el surco mide ${n(anchoV({ ...Q, prof: v }))} mm y se come las pistas. Usa 0.05 a 0.2 mm.`
       : fuera(v, 0.03, 0.2, `Con ${n(v)} mm la punta apenas raya y deja cobre. Usa 0.05 a 0.2 mm.`),
-    pasadas: (v) => fuera(v, 1, 6, "Usa de 1 a 6 pasadas."),
+    pasadas: (v) => fuera(v, 1, 10, "Usa de 1 a 10 pasadas."),
     punta: (v) => fuera(v, 0.05, 0.5, "La punta de una fresa en V mide de 0.05 a 0.5 mm."),
     angulo: (v) => fuera(v, 10, 90, "El ángulo de una fresa en V va de 10° a 90°."),
     f: (v) => fuera(v, 30, 600, "Avance seguro: 30 a 600 mm/min."),
@@ -252,7 +252,7 @@ function cortePistas(P, grabado = false) {
 // De arriba: la pista y las pasadas, cada una más afuera; lo encimado se ve más oscuro
 function pasadasPistas(P) {
   const W = 320, H = 116, y0 = 26, y1 = 86, xP = 64;
-  const nP = Math.min(8, Math.max(1, P.pasadas | 0)), paso = P.diam * (1 - P.traslape), ais = anchoAislado({ ...P, pasadas: nP });
+  const nP = Math.min(10, Math.max(1, P.pasadas | 0)), paso = P.diam * (1 - P.traslape), ais = anchoAislado({ ...P, pasadas: nP });
   const k = Math.min(150, (W - xP - 40) / Math.max(ais, 0.1));     // fijo mientras quepa: si la fresa crece, se ve crecer
   const cortes = Array.from({ length: nP }, (_, i) => `<rect x="${xP + i * paso * k}" y="${y0}" width="${P.diam * k}" height="${y1 - y0}" class="m-surco"/>`).join("");
   const enc = nP > 1 && P.traslape > 0 ? cotaH(xP + paso * k, xP + P.diam * k, y0 - 10, `Traslape ${Math.round(P.traslape * 100)} %`, "traslape") : "";

@@ -45,6 +45,7 @@ const S = {
   avisosGen: [],         // lo que avisó la última generación de trayectorias
   giroPieza: 0,          // grados (0, 90, 180, 270) que se gira el diseño (Gerber o dibujo DXF/SVG)
   sinMapa: false,        // se eligió fresar las pistas sin mapa de alturas
+  zonas: [],             // zonas sin cobre: rectángulos {x0, y0, x1, y1} en mm del diseño (Gerber)
   verMalla: false,       // el mapa de alturas en el 3D (mientras se mide siempre se ve)
   paramsGen: null,       // los valores con que se generaron las trayectorias (la vista previa avisa si cambiaron)
   params: conPistasV(structuredClone(ls.get("params", null) || cam.DEF)),
@@ -395,6 +396,7 @@ async function girarPieza() {
   if (!S.pcb || disenoBloqueado()) return;
   const habia = S.trabajos.some((t) => t.origen === "cam");
   S.giroPieza = (S.giroPieza + 90) % 360;
+  S.zonas = [];          // estaban en las coordenadas del diseño sin girar
   procesarArchivos();
   if (holgura()?.cabe === false && holgura()?.cabeCentrado) { centrarDiseno(); return; }
   if (habia) await generar(); else refrescar();
@@ -491,7 +493,12 @@ async function generar() {
     if (pcb.imgs.pistas) {
       const img = P.pistas.orilla !== false ? (pcb.imgs.pistasOrilla ??= pistasConOrilla(pcb.imgs.pistas, pcb.imgs.interior)) : pcb.imgs.pistas;
       const paths = cam.trayectoriasPistas(img, m, P.pistas, P.comun, origen);
-      nuevos.push({ id: "pistas", origen: "cam", nombre: "Pistas", herramienta: `V ${P.pistas.angulo}° punta ${P.pistas.punta} · corte ${P.pistas.diam} mm`, lineas: cam.gcodePistas(paths, P.pistas, P.comun) });
+      // Zonas sin cobre: la misma fresa y profundidad, después del aislamiento
+      const zonas = S.zonas.filter((z) => z.x1 - z.x0 > P.pistas.diam && z.y1 - z.y0 > P.pistas.diam);
+      const limpieza = cam.trayectoriasLimpieza(img, zonas, m, P.pistas, P.comun, origen);
+      if (zonas.length && !limpieza.length) S.avisosGen.push("Las zonas sin cobre solo tienen cobre del diseño (pistas o relleno): no hay nada que quitar.");
+      paths.push(...limpieza);
+      nuevos.push({ id: "pistas", origen: "cam", nombre: "Pistas", herramienta: `V ${P.pistas.angulo}° punta ${P.pistas.punta} · corte ${P.pistas.diam} mm`, lineas: cam.gcodePistas(paths, P.pistas, P.comun, zonas.length) });
     }
     const hoyos = cam.seleccionHoyos(pcb.hoyos || [], P.hoyos, m, origen);
     if (hoyos.length) nuevos.push({ id: "hoyos", origen: "cam", nombre: "Hoyos", herramienta: `Broca ${P.hoyos.broca} mm`, lineas: cam.gcodeHoyos(hoyos, P.hoyos, P.comun) });
@@ -520,7 +527,16 @@ function conPistasV(P) {
   q.diam = cam.anchoV(q);
   return P;
 }
-function ponerParam(g, k, v) { S.params[g][k] = v; conPistasV(S.params); ls.set("params", S.params); }
+function ponerParam(g, k, v) { S.params[g][k] = v; conPistasV(S.params); ls.set("params", S.params); regenerarLuego(); }
+// Con trayectorias ya generadas, un valor nuevo vuelve a generar solo: la vista previa muestra lo que se
+// va a cortar sin tener que acordarse del botón. No si ya se empezó a fresar o hay valores fuera de rango.
+let tRegen = 0;
+function regenerarLuego() {
+  clearTimeout(tRegen);
+  if (!S.trabajos.some((t) => t.origen === "cam") || disenoBloqueado()) return;
+  tRegen = setTimeout(() => { if (!S.generando && (S.permitirFuera || !paramsFuera().length)) generar(); }, 350);
+}
+function ponerZonas(z) { S.zonas = z; if (S.trabajos.some((t) => t.origen === "cam") && !disenoBloqueado()) return generar(); refrescar(); }
 // Los de siempre, ajustados al material elegido (con placa de cobre son exactamente cam.DEF)
 function paramsPorDefecto() { S.params = derivar(structuredClone(cam.DEF), S.material.grosor, S.material.tipo, true); ls.set("params", S.params); refrescar(); }
 
@@ -555,7 +571,7 @@ function vistaPrevia() {
     altura: sup.fn, hoyos, diamDe,
     cobreDiseno: pcb?.imgs?.pistas ? { cv: pcb.imgs.pistas, m: pcb.marco, origen } : null,
   });
-  if (r) { r.fuente = sup.fuente; r.cambiado = !!S.paramsGen && S.trabajos.some((t) => t.origen === "cam") && S.paramsGen !== JSON.stringify(S.params); }
+  if (r) { r.fuente = sup.fuente; r.origen = origen; r.vector = !!pcb?.vector; r.cambiado = !!S.paramsGen && S.trabajos.some((t) => t.origen === "cam") && S.paramsGen !== JSON.stringify(S.params); }
   cachePrevia = { clave, r };
   return r;
 }
@@ -582,7 +598,7 @@ function descargarTrabajo(id) {
   descargar(t.origen === "nc" ? `${t.nombre}.nc` : `${S.pcb?.nombre || "placa"}_${t.id}.nc`, t.lineas.join("\n") + "\n");
 }
 function nuevaPlaca() {
-  S.archivos = []; S.pcb = null; S.trabajos = []; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alinear = null; S.mapa = null; S.avisosGen = []; S.giroPieza = 0; S.sinMapa = false; S.paramsGen = null;
+  S.archivos = []; S.pcb = null; S.trabajos = []; S.xyListo = false; S.zListo = false; S.herramientaZ = null; S.alinear = null; S.mapa = null; S.avisosGen = []; S.giroPieza = 0; S.sinMapa = false; S.paramsGen = null; S.zonas = [];
   visor.ponerMalla(null); visor.limpiarSurcos(); previsualizar(); refrescar();
 }
 
@@ -1231,7 +1247,7 @@ const app = {
   acc: {
     conectar, cambiarModo, homing, desbloquear, paro, ponerEstilo,
     jog, ponerPasoJog, fijarXY, irACero, subirZ, recorrerArea, recorrerBorde,
-    elegirArchivos, quitarArchivo, cargarEjemplo, generar, ponerParam, paramsPorDefecto, descargarTrabajo, nuevaPlaca,
+    elegirArchivos, quitarArchivo, cargarEjemplo, generar, ponerParam, ponerZonas, paramsPorDefecto, descargarTrabajo, nuevaPlaca,
     paramsFuera, paramsCambiados, ponerPermitirFuera: (v) => { S.permitirFuera = v; refrescar(); },
     ponerMaterial, ponerTipoMaterial, mat, centrarDiseno, girarMaterial, girarPieza, materialNuevo, holgura, tamDiseno, disenoBloqueado, asistenteBorde,
     hoyosDiseno, gruposActivos, terminado,

@@ -147,6 +147,22 @@ button.w-sec__fila:hover { background: var(--tarjeta); box-shadow: 0 2px 10px rg
 .previa-grande { display: block; flex: none; max-width: none; margin: auto; }   /* centrada; con zoom, el margen se vuelve 0 y se desplaza */
 .previa-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
 .previa-ctl .mono { min-width: 3.5em; text-align: center; }
+.previa-ctl--arriba { margin: 0 0 10px; }
+.previa-ctl .seg button svg { width: 16px; height: 16px; margin-right: 4px; vertical-align: -3px; }
+.previa-dato { flex: 1; min-width: 12em; font-size: 13px; color: var(--texto-2, #555); }
+.previa-lienzo { position: relative; flex: none; margin: auto; }
+.previa-lienzo .previa-grande { width: 100%; height: 100%; }
+.previa-capa { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.previa-zoom[data-modo="regla"] { cursor: crosshair; }
+.previa-zoom[data-modo="zonas"] { cursor: crosshair; touch-action: none; }
+.previa-zoom[data-modo="zonas"] .previa-capa, .previa-zoom[data-modo="zonas"] .previa-zona { pointer-events: auto; }
+.previa-zona { fill: rgba(37, 99, 235, .14); stroke: #2563EB; stroke-width: 2; stroke-dasharray: 6 4; cursor: pointer; }
+.previa-zona:hover { fill: rgba(37, 99, 235, .28); }
+.previa-zona--nueva { pointer-events: none; }
+.previa-regla { stroke: #111; stroke-width: 2; }
+.previa-regla__p { fill: #fff; stroke: #111; stroke-width: 2; }
+.previa-regla__t { fill: #111; text-anchor: middle; font-family: var(--mono, ui-monospace, monospace); paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; }
+.seg--chico button { min-height: 30px; padding: 0 10px; }
 .chip-d { display: inline-flex; align-items: baseline; gap: 3px; padding: 4px 9px; border-radius: var(--r-ctl); font-family: var(--font-mono); font-size: 12.5px; background: var(--tarjeta-2); color: var(--text-secondary); box-shadow: inset 0 0 0 1px var(--mist); }
 .chip-d small { font-size: 11px; }
 .chip-d[data-on="1"] { background: color-mix(in srgb, var(--d-hoyos) 16%, var(--tarjeta)); color: var(--text); box-shadow: none; }

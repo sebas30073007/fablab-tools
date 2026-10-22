@@ -289,7 +289,37 @@ export function ordenarPorNivel(paths) {
 // El paso no pasa del radio: así no queda una cresta sin cortar en el eje de una zona angosta.
 // Devuelve [{ lazo, anillos: [[trayecto…] por k] }], una región por cada zona a vaciar.
 export function trayectoriasVaciado(cvVaciado, m, P, diam, C, origen = origenDe(m)) {
-  const bin = binaria(cvVaciado);
+  return vaciarRegion(binaria(cvVaciado), m, P, diam, C, origen);
+}
+
+// Zonas sin cobre: dentro de cada rectángulo (mm del diseño) se quita todo el cobre que no es del diseño.
+// Es un vaciado de «rectángulo menos cobre» con la fresa de pistas; la pared es el cobre y el borde del
+// rectángulo. Se trabaja solo en el recorte de las zonas: con cientos de anillos, la imagen entera tardaría.
+export function trayectoriasLimpieza(cvPistas, zonas, m, P, C, origen = origenDe(m)) {
+  if (!zonas?.length) return [];
+  const cobre = binaria(cvPistas);
+  const px = (z) => ({ i0: Math.floor((z.x0 - m.x0) * m.s), i1: Math.ceil((z.x1 - m.x0) * m.s), j0: Math.floor((m.yTop - z.y1) * m.s), j1: Math.ceil((m.yTop - z.y0) * m.s) });
+  const R = zonas.map(px);
+  const i0 = Math.max(0, Math.min(...R.map((r) => r.i0)) - 2), i1 = Math.min(m.W, Math.max(...R.map((r) => r.i1)) + 2);
+  const j0 = Math.max(0, Math.min(...R.map((r) => r.j0)) - 2), j1 = Math.min(m.H, Math.max(...R.map((r) => r.j1)) + 2);
+  const W = i1 - i0, H = j1 - j0;
+  if (W < 3 || H < 3) return [];
+  const region = new Uint8Array(W * H);
+  for (const r of R) {
+    for (let j = Math.max(r.j0, j0); j < Math.min(r.j1, j1); j++) {
+      for (let i = Math.max(r.i0, i0); i < Math.min(r.i1, i1); i++) if (!cobre[j * m.W + i]) region[(j - j0) * W + (i - i0)] = 1;
+    }
+  }
+  const sub = { W, H, s: m.s, x0: m.x0 + i0 / m.s, yTop: m.yTop - j0 / m.s };
+  const regiones = vaciarRegion(region, sub, P, P.diam, C, origen);
+  // Del anillo de adentro hacia el cobre, como el vaciado: los trayectos se agregan a los de pistas
+  const res = [];
+  for (const g of regiones) for (let k = g.anillos.length - 1; k >= 0; k--) res.push(...ordenar(g.anillos[k]));
+  return res;
+}
+
+// bin: 1 = lo que hay que vaciar, en la rejilla de m
+function vaciarRegion(bin, m, P, diam, C, origen) {
   for (let i = 0; i < bin.length; i++) bin[i] = bin[i] ? 0 : 1;     // la distancia se mide a la pared
   const F = distancia(bin, m.W, m.H);
   const r = (diam / 2) * m.s, paso = Math.max(0.05, Math.min(diam * (1 - P.traslape), diam / 2)) * m.s;
@@ -342,8 +372,8 @@ function cabecera(titulo, notas, C) {
 }
 const pie = (C) => [`G0 Z${f4(C.zSeguro)}`, "M5", "G0 X0 Y0"];
 
-export function gcodePistas(paths, P, C) {
-  const out = cabecera("PISTAS - AISLAMIENTO", [`FRESA ${P.diam} MM - PROFUNDIDAD ${P.prof} MM - ${P.pasadas} PASADAS`], C);
+export function gcodePistas(paths, P, C, zonas = 0) {
+  const out = cabecera("PISTAS - AISLAMIENTO", [`FRESA ${P.diam} MM - PROFUNDIDAD ${P.prof} MM - ${P.pasadas} PASADAS${zonas ? ` - ${zonas} ZONAS SIN COBRE` : ""}`], C);
   for (const t of paths) {
     const [x, y] = t.pts[0];
     out.push(`G0 Z${f4(C.zSeguro)}`, `G0 X${f4(x)} Y${f4(y)}`, "G0 Z0.5", `G1 Z${f4(-P.prof)} F${P.fz}`);
