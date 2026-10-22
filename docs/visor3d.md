@@ -2,6 +2,23 @@
 
 `web/visor3d/`, en fablab.sebs.mx/visor3d. Abre, revisa, limpia y convierte modelos 3D en el navegador, sin instalar nada y sin servidor. Sirve sobre todo para lo que sale de los escáneres (Creality Pika y CR-Scan Otter); también abre cualquier STL, OBJ o GLB.
 
+## Cómo está armado (22 oct 2026, después de la revisión de Sebastián)
+Es una **herramienta**, no un tutorial: usa los componentes de las otras apps, pero no su arquitectura.
+- **El 3D:**
+  - Barra de herramientas a la izquierda, como la paleta de un CAD: Girar, Escala, Abajo | Plano, Caja, Lazo, Piezas | Huecos, Reparar, Suavizar, Simplificar, Color.
+  - Las medidas arriba a la izquierda son un botón (ícono de regla): prenden las cotas y los ejes X/Y/Z en la esquina de donde se mide.
+  - Arriba a la derecha: encuadrar, medir y guardar imagen. Abajo, los modos Color, Sólido, Malla y Rayos X.
+- **El panel:**
+  - Modelo: propiedades como las iProperties (archivo, medidas, volumen, área, estado de la malla con su arreglo al lado).
+  - Exportar: «¿Para qué lo quieres?» con botones terciarios y los formatos en cuadrícula, con ★ Recomendado y los íconos de color (cubeta de arcoíris) y textura (piedra), en gris si el formato no los guarda.
+- **Cada herramienta abre una hoja:**
+  - Arriba va una animación en bucle del búho haciendo lo que hace la herramienta (`js/demos.js`, en vivo, un solo renderer).
+- **Detalles:**
+  - Girar trae anillos para girar a mano (salta de 15 en 15°) y, por eje, −90°, +90° y Espejo.
+  - Escala tiene vista previa en vivo, con la cámara fija.
+  - Lazo: el clic izquierdo dibuja, el derecho gira y la rueda acerca (en el celular, dos dedos).
+- **Nada de una marca en particular:** la guía de qué exportar en Creality Scan vive en `/escaner`.
+
 ## Qué hace
 - **Abrir:**
   - 3MF (con color por vértice o textura), PLY (ASCII o binario, con color o con textura por cara), STL, OBJ con MTL y PNG, GLB/glTF, y .zip.
@@ -26,8 +43,9 @@
 |---|---|
 | `index.html`, `visor3d.css` | Cascarón (el mismo de la CNC y el láser) y los estilos propios |
 | `js/main.js` | Estado, worker, archivos, deshacer, exportar, acciones rápidas |
-| `js/vistas.js` | Páginas del panel: Modelo, Revisión, Editar, Exportar, Formatos de Creality, Cortes |
-| `js/herramientas.js` | Una hoja por herramienta, con vista previa en el 3D |
+| `js/vistas.js` | Páginas del panel: Modelo (propiedades), Exportar, Cortes |
+| `js/herramientas.js` | Una hoja por herramienta: animación, controles y vista previa en el 3D |
+| `js/demos.js` | Las animaciones de las hojas (búho ligero, `ejemplos/buho-mini.3mf`) |
 | `js/visor.js` | El 3D: la malla, modos, rejilla, medir, sección, recorte, lazo, elegir cara |
 | `js/datos.js` | Qué guarda cada formato y qué exportar en Creality Scan (lo usan también las páginas de los escáneres) |
 | `js/trabajador.js` | Worker: tiene el modelo y el historial; lee, edita y escribe |

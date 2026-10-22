@@ -9,10 +9,15 @@
 //   recorte({min,max}|null) · plano({n,d}|null)   vista previa con planos de corte
 //   rebanadas(lista|null, eje)   contornos de los cortes para láser o CNC
 //   medir(on, alMedir) · elegirCara(alElegir) · vp() · captura()
+//   cotas(on)                    ejes en la esquina de donde se mide y las medidas a lo largo de cada eje
+//   previaEscala(f|null)         la pieza crece o se achica desde su base, con la cámara fija
+//   giro(on, alSoltar)           anillos X, Y, Z para girar la pieza a mano (alSoltar recibe la matriz)
+//   modoLazo(on)                 el clic izquierdo dibuja; el derecho gira la vista; dos dedos en el celular
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { TransformControls } from "three/addons/controls/TransformControls.js";
 
 const AZUL = 0x2563eb, NARANJA = 0xea580c, ROJO = 0xe11d48, COBRE = 0xff6b35;
 
@@ -55,7 +60,10 @@ export class Visor3D {
   }
 
   // ---------------- La malla ----------------
-  async ponerMalla(m, { encuadrar = false } = {}) {
+  async ponerMalla(m, { encuadrar = false, fijo = false } = {}) {
+    // Con el gizmo de giro activo la malla vive dentro del pivote: se suelta antes de cambiarla
+    // (la herramienta Girar lo vuelve a poner)
+    if (this._pivote) this.giro(false);
     this.m = m;
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.BufferAttribute(m.pos, 3));
@@ -84,8 +92,9 @@ export class Visor3D {
     // casi todo); con ediciones chicas la cámara se queda donde estaba
     const b = g.boundingBox, c = b.getCenter(new THREE.Vector3()), d = b.getSize(new THREE.Vector3()).length();
     const d0 = this._tam3?.length() || 0;
-    if (encuadrar || !this._centro || c.distanceTo(this._centro) > 0.25 * d0 || Math.abs(d - d0) > 0.3 * d0) this._colocar();
+    if (!fijo && (encuadrar || !this._centro || c.distanceTo(this._centro) > 0.25 * d0 || Math.abs(d - d0) > 0.3 * d0)) this._colocar();
     this._recortes();
+    this._dibujarCotas();
     this.sucio = true;
   }
   tieneColor() { return !!(this.m?.col || (this.m?.uv && this.textura)); }
@@ -129,11 +138,13 @@ export class Visor3D {
     this.cam.near = lado / 200; this.cam.far = lado * 40; this.cam.updateProjectionMatrix();
     this.vista("3d");
   }
+  // Encuadrar: vuelve a centrar la pieza en la rejilla y la cámara a su tamaño actual
+  encuadrar() { if (this.malla) this._colocar(); }
   // Vistas: 3d, frente, lado, arriba, abajo (en la convención de la malla: frente mira hacia −Y)
   vista(v = "3d") {
     if (!this._tam3) return;
     const t = this._tam3, lado = Math.max(t.x, t.y, t.z), alto = t.z / 2;
-    const d = lado * 2.4 * (this.cam.aspect < 1 ? 1.4 / this.cam.aspect : 1);
+    const d = lado * 3 * (this.cam.aspect < 1 ? 1.4 / this.cam.aspect : 1);
     const dir = { "3d": [0.9, 0.65, 1.1], frente: [0, 0.05, 1], lado: [1, 0.05, 0], arriba: [0, 1, 0.001], atras: [0, 0.05, -1] }[v] || [0.9, 0.65, 1.1];
     const o = new THREE.Vector3(0, alto, 0);
     this.cam.position.copy(o).add(new THREE.Vector3(...dir).normalize().multiplyScalar(d));
@@ -233,6 +244,112 @@ export class Visor3D {
       this.ayudas.add(this._planoH);
     }
     this.sucio = true;
+  }
+
+  // ---------------- Cotas: de dónde a dónde mide ----------------
+  // Las medidas son de la caja que envuelve la pieza. Los ejes salen de su esquina de abajo, a la
+  // izquierda y al frente (el mínimo en X, Y, Z), y cada cota corre a lo largo de su eje.
+  cotas(on) { this._conCotas = on; this._dibujarCotas(); }
+  _dibujarCotas() {
+    if (this._cotas) {
+      this.ayudas.remove(this._cotas);
+      this._cotas.traverse((o) => { o.geometry?.dispose(); o.material?.map?.dispose(); o.material?.dispose?.(); });
+      this._cotas = null;
+    }
+    if (!this.malla) return;
+    const b = this.malla.geometry.boundingBox, t = b.getSize(new THREE.Vector3()), lado = Math.max(t.x, t.y, t.z) || 10;
+    const g = new THREE.Group(), o = b.min.clone(), sep = lado * 0.07;
+    const COL = [0xd63a2f, 0x15803d, 0x2563eb], EJE = ["X", "Y", "Z"];
+    // Ejes en la esquina: flechas cortas con su letra
+    for (let i = 0; i < 3; i++) {
+      const d = new THREE.Vector3(); d.setComponent(i, 1);
+      const fl = new THREE.ArrowHelper(d, o, lado * 0.16, COL[i], lado * 0.035, lado * 0.022);
+      fl.traverse((x) => { if (x.material) { x.material.depthTest = false; x.material.transparent = true; } x.renderOrder = 8; });
+      g.add(fl);
+      g.add(this._etiqueta(EJE[i], o.clone().addScaledVector(d, lado * 0.21), COL[i], lado * 0.05, true));
+    }
+    if (this._conCotas) {
+      const linea = (a, z, col) => {
+        const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, z]), new THREE.LineBasicMaterial({ color: col, depthTest: false, transparent: true }));
+        l.renderOrder = 8; g.add(l);
+      };
+      // Cada cota va por fuera de la caja: X por el frente, Y por la izquierda, Z por la esquina
+      const fuera = [new THREE.Vector3(0, -sep, 0), new THREE.Vector3(-sep, 0, 0), new THREE.Vector3(-sep * 0.7, -sep * 0.7, 0)];
+      for (let i = 0; i < 3; i++) {
+        const a = o.clone().add(fuera[i]), z = a.clone(); z.setComponent(i, b.max.getComponent(i));
+        linea(a, z, COL[i]);
+        for (const p of [a, z]) linea(p.clone().sub(fuera[i]), p.clone().addScaledVector(fuera[i], 0.35), COL[i]);
+        const val = t.getComponent(i);
+        g.add(this._etiqueta(`${val >= 100 ? val.toFixed(0) : val.toFixed(1)} mm`, a.clone().lerp(z, 0.5).addScaledVector(fuera[i], 0.8), COL[i], lado * 0.045));
+      }
+      const caja = new THREE.Box3Helper(b, 0x9aa3ad); caja.material.transparent = true; caja.material.opacity = 0.45; g.add(caja);
+    }
+    this._cotas = g; this.ayudas.add(g); this.sucio = true;
+  }
+  _etiqueta(texto, pos, color, alto, letra = false) {
+    const k = 4, f = 26 * k, fuente = `700 ${f}px Manrope, Segoe UI, sans-serif`;
+    const c = document.createElement("canvas"), x = c.getContext("2d"); x.font = fuente;
+    const h = f + 18 * k, w = Math.ceil(x.measureText(texto).width) + (letra ? 8 * k : 30 * k);
+    c.width = w; c.height = h;
+    const g = c.getContext("2d"); g.font = fuente; g.textBaseline = "middle"; g.textAlign = "center";
+    if (!letra) { g.fillStyle = "rgba(255,255,255,.94)"; g.beginPath(); g.roundRect(0, 0, w, h, h / 2); g.fill(); }
+    g.fillStyle = "#" + color.toString(16).padStart(6, "0"); g.fillText(texto, w / 2, h / 2 + k);
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
+    sp.scale.set((alto * w) / h, alto, 1); sp.position.copy(pos); sp.renderOrder = 9;
+    return sp;
+  }
+
+  // ---------------- Escala en vivo ----------------
+  // f = [fx, fy, fz]; la base (centro de abajo de la caja) no se mueve. null regresa a como estaba.
+  previaEscala(f) {
+    if (!this.malla) return;
+    const b = this.malla.geometry.boundingBox, cx = (b.min.x + b.max.x) / 2, cy = (b.min.y + b.max.y) / 2, cz = b.min.z;
+    const k = f || [1, 1, 1];
+    this.malla.scale.set(k[0], k[1], k[2]);
+    this.malla.position.set(cx * (1 - k[0]), cy * (1 - k[1]), cz * (1 - k[2]));
+    if (this._seccion) { this._seccion.scale.copy(this.malla.scale); this._seccion.position.copy(this.malla.position); }
+    if (this._cotas) this._cotas.visible = !f;
+    this.sucio = true;
+  }
+
+  // ---------------- Girar a mano ----------------
+  // Los anillos rodean la pieza; al soltar se manda la matriz del giro (alrededor del centro de la caja)
+  giro(on, alSoltar) {
+    if (this._tc) { this._tc.detach(); this.escena.remove(this._tc.getHelper()); this._tc.dispose(); this._tc = null; }
+    if (this._pivote) {
+      this.modelo.attach(this.malla); this.malla.position.set(0, 0, 0); this.malla.quaternion.identity();
+      this.modelo.remove(this._pivote); this._pivote = null;
+    }
+    this.ctl.enabled = true;
+    if (!on || !this.malla) { this.sucio = true; return; }
+    const c = this.malla.geometry.boundingBox.getCenter(new THREE.Vector3());
+    const piv = (this._pivote = new THREE.Group()); piv.position.copy(c); this.modelo.add(piv);
+    piv.attach(this.malla);
+    const tc = (this._tc = new TransformControls(this.cam, this.r.domElement));
+    tc.setMode("rotate"); tc.setSpace("world"); tc.setRotationSnap(THREE.MathUtils.degToRad(15)); tc.setSize(1.9);
+    tc.attach(piv); this.escena.add(tc.getHelper());
+    tc.addEventListener("change", () => (this.sucio = true));
+    tc.addEventListener("dragging-changed", (e) => {
+      this.ctl.enabled = !e.value;
+      if (e.value) return;
+      // Matriz del giro en coordenadas de la malla: T(c) · R · T(−c)
+      const q = piv.quaternion.clone();
+      if (Math.abs(q.w) > 0.99999) return;
+      const m = new THREE.Matrix4().makeTranslation(c.x, c.y, c.z)
+        .multiply(new THREE.Matrix4().makeRotationFromQuaternion(q))
+        .multiply(new THREE.Matrix4().makeTranslation(-c.x, -c.y, -c.z));
+      alSoltar(Array.from(m.elements));
+    });
+    this.sucio = true;
+  }
+
+  // ---------------- Lazo ----------------
+  // Mientras se dibuja: clic izquierdo dibuja, derecho gira, rueda acerca; en el celular, dos dedos giran
+  modoLazo(on) {
+    const c = this.ctl;
+    c.mouseButtons = on ? { LEFT: null, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.ROTATE } : { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.PAN };
+    c.touches = on ? { ONE: null, TWO: THREE.TOUCH.DOLLY_ROTATE } : { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
   }
 
   // ---------------- Tocar el modelo ----------------

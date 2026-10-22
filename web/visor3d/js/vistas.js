@@ -1,14 +1,16 @@
-// vistas.js - lo que se ve en el panel del Visor 3D. Cada vista recibe (pag, app).
+// vistas.js - el panel del Visor 3D: Modelo (sus propiedades), Exportar y Cortes. Cada vista recibe
+// (pag, app). Las herramientas no viven aquí: están en la barra del 3D y abren su hoja.
 //
-// Reglas (docs/laboratorio-ui.md): un widget por renglón · título del widget sin ícono · chevron solo
-// si abre algo · cifras en color de texto · un botón dice lo que pasa · el color es dato.
+// Reglas (docs/laboratorio-ui.md): un widget por renglón · cifras en color de texto · el color es dato ·
+// un botón dice lo que pasa. El visor es universal: nada de una marca o un escáner en particular.
 
 import { esc, ico } from "../../shared/js/ui.js";
-import { FORMATOS, USOS, CREALITY } from "./datos.js";
+import { FORMATOS, USOS } from "./datos.js";
 
 const chev = ico("chev");
 const miles = (n) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)} M` : n >= 1e4 ? `${Math.round(n / 1000)} mil` : n.toLocaleString("es-MX"));
 const mm = (x) => (x >= 100 ? x.toFixed(0) : x.toFixed(1));
+const peso = (b) => (b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1e3))} KB`);
 const btn = (acc, txt, { main = false, icono = null, dis = false } = {}) =>
   `<button type="button" class="btn-pill ${main ? "btn-pill--main" : ""}" data-acc="${acc}" ${dis ? "disabled" : ""}>${icono ? ico(icono) : ""}${esc(txt)}</button>`;
 const cab2 = (padre, titulo) => `<header class="cab2"><button type="button" class="btn-atras" data-atras aria-label="Regresar a ${esc(padre)}">${ico("atras")}</button>
@@ -19,170 +21,62 @@ function cablear(pag, app, mapa = {}) {
   pag.querySelectorAll("[data-herr]").forEach((b) => (b.onclick = () => app.acc.herramienta(b.dataset.herr)));
   pag.querySelector("[data-atras]")?.addEventListener("click", () => app.regresar());
 }
-const colorDe = (m) => (m.uv && m.textura ? "Textura" : m.col ? "Color por vértice" : m.faltaTextura ? "Textura sin imagen" : "Sin color");
-
-// Las tres preguntas de la revisión, en lenguaje de uso
-function semaforo(d) {
-  const imprimir = d.cerrado ? { ok: 1, t: "Lista para laminar" } : { ok: 0, t: `Falta cerrarla: ${d.huecos} ${d.huecos === 1 ? "hueco" : "huecos"}${d.aristasRaras ? `, ${d.aristasRaras} aristas raras` : ""}` };
-  const limpia = d.islas ? { ok: 0, t: `${d.islas} ${d.islas === 1 ? "pieza suelta" : "piezas sueltas"}` } : { ok: 1, t: "Sin piezas sueltas" };
-  const ligera = d.triangulos > 300000 ? { ok: 0, t: `${miles(d.triangulos)} triángulos: pesada para web` } : { ok: 1, t: "Ligera para web" };
-  return { imprimir, limpia, ligera };
-}
+// Íconos a color de color y textura (definidos en index.html); en gris pálido si no hay
+const insignia = (tipo, si, txt) => `<span class="insignia" data-si="${si ? 1 : 0}"><svg aria-hidden="true"><use href="#c-${tipo}"/></svg>${txt ? `<span>${esc(txt)}</span>` : ""}</span>`;
 
 // ======================================================================
-// MODELO (inicio)
+// MODELO: sus propiedades
 // ======================================================================
 function inicio(pag, app) {
   const { S } = app, m = S.m, d = S.diag;
   if (!m) {
     pag.innerHTML = `
       <header class="cab0"><h2 tabindex="-1">Visor 3D</h2></header>
-      <section class="w w-ahora" aria-label="Empezar">
-        <span class="w-cab"><span>Empezar</span></span>
+      <section class="w">
         <span class="w-texto">Abre un modelo 3D</span>
-        <span class="w-sub">3MF, PLY, OBJ, STL o GLB. Si trae textura, abre también su PNG. Puedes arrastrarlos al 3D.</span>
-        <span class="w-acc">${btn("elegirArchivo", "Abrir archivo", { main: true, icono: "abrir" })}${btn("ejemplo", "Ejemplo: búho")}</span>
+        <span class="w-sub">3MF, PLY, OBJ, STL, GLB o .zip. Si trae textura, abre también su imagen. Puedes arrastrarlos al 3D.</span>
+        <span class="w-acc">${btn("elegirArchivo", "Abrir archivo", { main: true, icono: "abrir" })}${btn("ejemplo", "Ver un ejemplo")}</span>
       </section>
       ${S.ultimo ? `<section class="w">
-        <span class="w-cab"><span>La vez pasada</span></span>
+        <span class="w-cab"><span>Último modelo</span></span>
         <span class="w-texto">${esc(S.ultimo.nombre)}</span>
         <span class="w-sub">${miles(S.ultimo.triangulos)} triángulos · ${new Date(S.ultimo.fecha).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}</span>
-        <span class="w-acc">${btn("seguir", "Seguir con este", { main: true })}${btn("olvidar", "Olvidar")}</span>
-      </section>` : ""}
-      <button type="button" class="w" data-ir="formatos">
-        <span class="w-cab"><span>¿Qué exporto en Creality Scan?</span>${chev}</span>
-        <span class="w-sub">Las 7 opciones de exportar y cuál conviene para cada cosa</span>
-      </button>
-      <a class="w w--enlace" href="../escaner/">
-        <span class="w-cab"><span>Escanear con el Pika o el Otter</span>${chev}</span>
-        <span class="w-sub">Guía paso a paso de Creality Scan</span>
-      </a>`;
+        <span class="w-acc">${btn("seguir", "Abrirlo", { main: true })}${btn("olvidar", "Olvidar")}</span>
+      </section>` : ""}`;
     cablear(pag, app);
     return;
   }
-  const s = semaforo(d), t = S.caja.tam;
-  const fila = (x) => `<span class="sem" data-ok="${x.ok}">${ico(x.ok ? "ok" : "alerta", "ico--s")}${esc(x.t)}</span>`;
+  const t = S.caja.tam;
+  const tex = !!(m.uv && m.textura), col = !!m.col;
+  const fila = (nom, val, extra = "") => `<div class="prop"><span>${nom}</span><b class="num">${val}</b>${extra}</div>`;
+  const estado = (ok, txt, herr, accion) => `<div class="prop prop--estado" data-ok="${ok ? 1 : 0}">${ico(ok ? "ok" : "alerta", "ico--s")}<span>${esc(txt)}</span>${!ok && herr ? `<button type="button" class="btn-texto" data-herr="${herr}">${esc(accion)}</button>` : ""}</div>`;
   pag.innerHTML = `
     <header class="cab0"><h2 tabindex="-1">Modelo</h2></header>
-    <section class="w" aria-label="Modelo">
-      <span class="w-cab"><span>${esc(m.archivo || m.nombre)}</span></span>
-      <span class="w-cifra">${miles(d.triangulos)}<small>triángulos</small></span>
-      <span class="w-sub">${mm(t[0])} × ${mm(t[1])} × ${mm(t[2])} mm · ${colorDe(m)}</span>
-      <span class="w-acc">${btn("irExportar", "Exportar", { main: true, icono: "bajar" })}${btn("irEditar", "Editar", { icono: "tijeras" })}</span>
+    <section class="w" aria-label="Archivo">
+      <span class="w-cab"><span class="mono">${esc(m.archivo || m.nombre)}</span>${m.peso ? `<span class="muted num">${peso(m.peso)}</span>` : ""}</span>
+      <span class="w-cifra">${miles(d.triangulos)}<small>triángulos · ${miles(d.vertices)} vértices</small></span>
+      <span class="insignias">${insignia("color", col, col ? "Color por vértice" : "Sin color")}${insignia("textura", tex, tex ? "Textura" : m.faltaTextura ? "Falta la imagen" : "Sin textura")}</span>
     </section>
-    ${primerosPasos(S, d)}
-    <button type="button" class="w" data-ir="revision">
-      <span class="w-cab"><span>Revisión</span>${chev}</span>
-      <span class="sems">${fila(s.imprimir)}${fila(s.limpia)}${fila(s.ligera)}</span>
-    </button>
-    <button type="button" class="w" data-ir="formatos">
-      <span class="w-cab"><span>¿Qué exporto en Creality Scan?</span>${chev}</span>
-      <span class="w-sub">Las 7 opciones de exportar y cuál conviene</span>
-    </button>`;
-  cablear(pag, app, { irExportar: () => app.irA("exportar"), irEditar: () => app.irA("editar") });
-}
-
-// Lo de siempre con un escaneo, en orden. Cada renglón abre su herramienta y se palomea al hacerlo.
-function primerosPasos(S, d) {
-  const pasos = [
-    { id: "enderezar", t: "Enderezar", sub: "Toca la base o la tornamesa", herr: "cara" },
-    { id: "limpiar", t: "Quitar lo que sobra", sub: "Toca la pieza que se queda", herr: "islas" },
-    { id: "cerrar", t: "Cerrar los huecos", sub: d.cerrado ? "Ya está cerrada" : `${d.huecos} ${d.huecos === 1 ? "hueco" : "huecos"}: corte plano con tapa o rellenar`, herr: d.huecos ? "rellenar" : null, ok: d.cerrado },
-    { id: "exportar", t: "Exportar", sub: "STL, 3MF, GLB, FBX o cortes", ir: "exportar" },
-  ];
-  const actual = pasos.findIndex((p) => !(p.ok || S.hecho[p.id]));
-  return `<section class="w" aria-label="Primeros pasos">
-    <span class="w-cab"><span>Primeros pasos con un escaneo</span></span>
-    <div class="filas">${pasos.map((p, i) => {
-      const ok = p.ok || S.hecho[p.id];
-      return `<button type="button" class="fila" ${p.herr ? `data-herr="${p.herr}"` : p.ir ? `data-ir="${p.ir}"` : "disabled"}>
-        <span class="marca-paso" data-s="${ok ? "hecho" : i === actual ? "ahora" : ""}">${ok ? ico("ok") : ""}</span>
-        <span class="fila__nom">${p.t}<small>${esc(p.sub)}</small></span><span></span>${p.herr || p.ir ? chev : ""}</button>`;
-    }).join("")}</div>
-  </section>`;
-}
-
-// ======================================================================
-// REVISIÓN
-// ======================================================================
-function revision(pag, app) {
-  const d = app.S.diag;
-  if (!d) { app.irA("inicio"); return; }
-  const s = semaforo(d);
-  const cel = (t, v, ok = null) => `<div class="celda" ${ok == null ? "" : `data-ok="${ok ? 1 : 0}"`}><span>${t}</span><b>${v}</b></div>`;
-  const arreglo = (cond, herr, t, sub) => cond ? `<button type="button" class="fila" data-herr="${herr}">${ico("escoba")}<span class="fila__nom">${t}<small>${sub}</small></span><span></span>${chev}</button>` : "";
-  pag.innerHTML = `${cab2("Modelo", "Revisión")}
-    <section class="w">
-      <span class="w-cab"><span>Para qué sirve así</span></span>
-      <div class="celdas celdas--col">
-        ${cel("Imprimir", s.imprimir.ok ? "Lista" : "Falta cerrarla", s.imprimir.ok)}
-        ${cel("Sin basura", s.limpia.ok ? "Sí" : `${d.islas} sueltas`, s.limpia.ok)}
-        ${cel("Web y AR", s.ligera.ok ? "Ligera" : "Pesada", s.ligera.ok)}
+    <section class="w" aria-label="Medidas">
+      <span class="w-cab"><span>Medidas</span><button type="button" class="btn-texto" data-herr="medidas">Escalar</button></span>
+      <div class="props">
+        ${fila(`<b class="eje" data-eje="X">X</b> Ancho`, `${mm(t[0])} mm`)}
+        ${fila(`<b class="eje" data-eje="Y">Y</b> Fondo`, `${mm(t[1])} mm`)}
+        ${fila(`<b class="eje" data-eje="Z">Z</b> Alto`, `${mm(t[2])} mm`)}
+        ${fila("Volumen", d.cerrado ? `${(d.volumen / 1000).toFixed(1)} cm³` : "—", d.cerrado ? "" : `<small class="muted">solo con la malla cerrada</small>`)}
+        ${fila("Área", `${(d.area / 100).toFixed(1)} cm²`)}
       </div>
     </section>
-    <section class="w">
-      <span class="w-cab"><span>La malla</span></span>
-      <div class="celdas">
-        ${cel("Triángulos", miles(d.triangulos))}${cel("Vértices", miles(d.vertices))}
-        ${cel("Huecos", d.huecos, !d.huecos)}${cel("Piezas", d.piezas)}
-        ${cel("Aristas raras", d.aristasRaras, !d.aristasRaras)}${cel("Triángulos rotos", d.degenerados, !d.degenerados)}
-        ${cel("Área", `${(d.area / 100).toFixed(1)} cm²`)}${cel("Volumen", d.cerrado ? `${(d.volumen / 1000).toFixed(1)} cm³` : "—")}
+    <section class="w" aria-label="Malla">
+      <span class="w-cab"><span>Malla</span></span>
+      <div class="props">
+        ${estado(d.cerrado, d.cerrado ? "Cerrada (hermética)" : "Abierta", d.huecos ? "rellenar" : "reparar", d.huecos ? "Cerrar" : "Reparar")}
+        ${estado(d.piezas === 1, d.piezas === 1 ? "1 pieza" : `${d.piezas} piezas`, "islas", "Quitar")}
+        ${estado(!d.huecos, d.huecos ? `${d.huecos} ${d.huecos === 1 ? "hueco" : "huecos"}` : "Sin huecos", "rellenar", "Rellenar")}
+        ${d.aristasRaras || d.degenerados ? estado(false, `${d.aristasRaras + d.degenerados} errores de malla`, "reparar", "Reparar") : ""}
+        ${estado(d.triangulos <= 300000, d.triangulos <= 300000 ? "Ligera" : `Pesada: ${miles(d.triangulos)} triángulos`, "simplificar", "Simplificar")}
       </div>
-      ${!d.cerrado ? `<span class="w-sub">El volumen solo se puede medir con la malla cerrada.</span>` : ""}
-    </section>
-    ${d.huecos || d.islas || d.aristasRaras || d.degenerados || d.triangulos > 300000 ? `<section class="w">
-      <span class="w-cab"><span>Arreglar</span></span>
-      <div class="filas">
-        ${arreglo(d.islas, "islas", "Quitar piezas sueltas", `${d.islas} pedazos chicos del escaneo`)}
-        ${arreglo(d.huecos, "rellenar", "Rellenar huecos", d.huecosChicos ? `${d.huecosChicos} chicos de ${d.huecos}` : `${d.huecos}; el mayor tiene ${d.bordeMayor} aristas`)}
-        ${arreglo(d.aristasRaras || d.degenerados, "reparar", "Reparar la malla", "Une vértices repetidos y quita triángulos rotos")}
-        ${arreglo(d.triangulos > 300000, "simplificar", "Simplificar", "Menos triángulos, casi la misma forma")}
-      </div>
-    </section>` : ""}
-    <section class="w">
-      <span class="w-cab"><span>Qué es cada cosa</span></span>
-      <ul class="lista-txt">
-        <li><b>Hueco:</b> una parte que el escáner no vio, como la base que estaba sobre la tornamesa. Para imprimir tiene que estar cerrado.</li>
-        <li><b>Pieza suelta:</b> pedazos del fondo o de la mesa que se colaron al escaneo.</li>
-        <li><b>Arista rara:</b> la comparten más de dos triángulos. Confunde a los laminadores.</li>
-      </ul>
     </section>`;
-  cablear(pag, app);
-}
-
-// ======================================================================
-// EDITAR
-// ======================================================================
-function editar(pag, app) {
-  const { S } = app, d = S.diag;
-  if (!S.m) { pag.innerHTML = `<header class="cab0"><h2 tabindex="-1">Editar</h2></header><section class="w"><span class="w-texto muted">Abre un modelo primero</span><span class="w-acc">${btn("elegirArchivo", "Abrir archivo", { main: true, icono: "abrir" })}${btn("ejemplo", "Ejemplo: búho")}</span></section>`; cablear(pag, app); return; }
-  const f = (herr, icono, t, val = "") => `<button type="button" class="fila" data-herr="${herr}">${ico(icono)}<span class="fila__nom">${t}</span><span class="fila__val">${val}</span>${chev}</button>`;
-  pag.innerHTML = `<header class="cab0"><h2 tabindex="-1">Editar</h2></header>
-    <h3 class="titulo-sec">Acomodar</h3>
-    <section class="w"><div class="filas">
-      ${f("medidas", "regla", "Medidas y escala", `${mm(S.caja.tam[2])} mm alto`)}
-      ${f("girar", "girar", "Girar y apoyar")}
-      ${f("cara", "clic", "Elegir la cara de abajo")}
-    </div></section>
-    <h3 class="titulo-sec">Recortar</h3>
-    <section class="w"><div class="filas">
-      ${f("plano", "plano", "Cortar con un plano")}
-      ${f("caja", "caja", "Caja de recorte")}
-      ${f("lazo", "lazo", "Borrar con lazo")}
-    </div></section>
-    <h3 class="titulo-sec">Limpiar</h3>
-    <section class="w"><div class="filas">
-      ${f("islas", "escoba", "Quitar piezas sueltas", d.islas ? `${d.islas}` : "0")}
-      ${f("rellenar", "escoba", "Rellenar huecos", `${d.huecos}`)}
-      ${f("reparar", "escoba", "Reparar la malla")}
-      ${f("suavizar", "escoba", "Suavizar")}
-    </div></section>
-    <h3 class="titulo-sec">Aligerar</h3>
-    <section class="w"><div class="filas">
-      ${f("simplificar", "cubo", "Simplificar", miles(d.triangulos))}
-      ${S.m.col || S.m.textura ? f("color", "imagen", "Color", S.m.textura ? "Textura" : "Por vértice") : ""}
-    </div></section>
-    <div class="fila-wrap">${btn("deshacer", "Deshacer", { icono: "deshacer", dis: !S.puedeDeshacer })}${btn("volverOriginal", "Volver al original", { icono: "girar" })}</div>`;
   cablear(pag, app);
 }
 
@@ -192,53 +86,27 @@ function editar(pag, app) {
 function exportar(pag, app) {
   const { S } = app, m = S.m;
   const uso = USOS.find((u) => u.id === S.uso) || USOS[0];
-  const marca = (v, t) => `<span class="guarda" data-v="${v}">${ico(v ? "ok" : "x", "ico--s")}${t}</span>`;
   pag.innerHTML = `<header class="cab0"><h2 tabindex="-1">Exportar</h2></header>
     <section class="w">
       <span class="w-cab"><span>¿Para qué lo quieres?</span></span>
-      <div class="seg seg--envuelve" role="radiogroup" aria-label="Uso">${USOS.map((u) => `<button type="button" role="radio" data-uso="${u.id}" aria-checked="${u.id === uso.id}">${u.t}</button>`).join("")}</div>
+      <div class="usos" role="radiogroup" aria-label="Uso">${USOS.map((u) => `<button type="button" role="radio" data-uso="${u.id}" aria-checked="${u.id === uso.id}">${u.t}</button>`).join("")}</div>
       <span class="w-sub">${esc(uso.nota)}</span>
     </section>
-    <section class="w"><div class="filas">
-      ${FORMATOS.map((f) => {
-        const rec = uso.rec.includes(f.id);
-        return `<button type="button" class="fila fila--formato ${rec ? "es-rec" : ""}" data-fmt="${f.id}" ${!m && !f.pronto ? "disabled" : ""} ${f.pronto ? 'aria-disabled="true"' : ""}>
-          <span class="fmt">${esc(f.t.split(" ")[0])}</span>
-          <span class="fila__nom">${esc(f.t)}${rec ? `<em class="rec">Recomendado</em>` : ""}${f.pronto ? `<em class="pronto">Próximamente</em>` : ""}<small>${esc(f.para)}</small>
-            ${f.pronto || f.ir ? "" : `<span class="guardas">${marca(f.guarda.color, "color")}${marca(f.guarda.textura, "textura")}</span>`}</span>
-          <span></span>${f.pronto ? "" : chev}</button>`;
-      }).join("")}
-    </div></section>
-    ${!m ? `<span class="w-sub">Abre un modelo para exportarlo.</span>` : ""}`;
+    <div class="formatos">${FORMATOS.map((f) => {
+      const rec = uso.rec.includes(f.id);
+      return `<button type="button" class="formato ${rec ? "es-rec" : ""}" data-fmt="${f.id}" ${(!m && !f.pronto) || f.pronto ? "disabled" : ""}>
+        ${rec ? `<span class="formato__rec">★ Recomendado</span>` : f.pronto ? `<span class="formato__rec formato__rec--pronto">Pronto</span>` : ""}
+        <span class="formato__t">${esc(f.id === "cortes" ? "Cortes" : f.t)}</span>
+        <span class="formato__para">${esc(f.id === "cortes" ? "SVG · DXF para láser y CNC" : f.para)}</span>
+        ${f.ir || f.pronto ? "" : `<span class="formato__ins">${insignia("color", f.guarda.color)}${insignia("textura", f.guarda.textura)}</span>`}
+      </button>`;
+    }).join("")}</div>
+    ${!m ? `<span class="w-sub">Abre un modelo para exportarlo.</span>` : `<span class="leyenda">${insignia("color", true, "guarda el color")}${insignia("textura", true, "guarda la textura")}</span>`}`;
   pag.querySelectorAll("[data-uso]").forEach((b) => (b.onclick = () => { S.uso = b.dataset.uso; app.ls.set("uso", S.uso); app.refrescar(); }));
   pag.querySelectorAll("[data-fmt]").forEach((b) => (b.onclick = () => {
     const f = FORMATOS.find((x) => x.id === b.dataset.fmt);
-    if (f.pronto) { app.avisoVisor("STEP llega pronto: por ahora Inventor y Fusion importan STL u OBJ como malla.", "info"); return; }
     if (f.ir) app.irA(f.ir); else app.acc.herramienta("exportar:" + f.id);
   }));
-}
-
-// ======================================================================
-// FORMATOS DE CREALITY SCAN
-// ======================================================================
-function formatos(pag, app) {
-  pag.innerHTML = `${cab2(app.S.m ? "Modelo" : "Visor 3D", "Exportar en Creality Scan")}
-    <section class="w">
-      <span class="w-cab"><span>Al terminar de escanear</span></span>
-      <span class="w-sub">En Creality Scan: <b>Exportar</b> → elige el formato en la lista. Esto es lo que trae cada opción.</span>
-      <div class="filas">${CREALITY.map((c) => `<div class="fila fila--txt">
-        <span class="fmt fmt--chico">${esc(c.op.split(" ")[0])}</span>
-        <span class="fila__nom">${esc(c.op)}${c.rec ? `<em class="rec">Empieza aquí</em>` : ""}<small>${esc(c.que)} ${esc(c.para)}</small></span></div>`).join("")}</div>
-    </section>
-    <section class="w">
-      <span class="w-cab"><span>Qué conserva cada formato</span></span>
-      <table class="tabla">
-        <thead><tr><th>Formato</th><th>Color</th><th>Textura</th></tr></thead>
-        <tbody>${FORMATOS.filter((f) => !f.ir).map((f) => `<tr><td>${esc(f.t)}${f.pronto ? " <small>(pronto)</small>" : ""}</td><td>${["—", "a medias", "✔"][f.guarda.color]}</td><td>${["—", "a medias", "✔"][f.guarda.textura]}</td></tr>`).join("")}</tbody>
-      </table>
-      <span class="w-sub">Aquí puedes abrir cualquiera y convertirlo a los demás. Si pasas de textura a un formato sin imagen, el color se hornea en los vértices.</span>
-    </section>`;
-  cablear(pag, app);
 }
 
 // ======================================================================
@@ -294,5 +162,5 @@ function cortes(pag, app) {
 }
 
 // Las rebanadas del 3D solo se ven en su página
-const base = { inicio, revision, editar, exportar, formatos, cortes };
+const base = { inicio, exportar, cortes };
 export const VISTAS = Object.fromEntries(Object.entries(base).map(([k, f]) => [k, (pag, app) => { if (k !== "cortes") app.visor.rebanadas(null); return f(pag, app); }]));

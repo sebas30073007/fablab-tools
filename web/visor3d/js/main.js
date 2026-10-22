@@ -1,9 +1,9 @@
-// main.js - el Visor 3D: estado, worker, archivos, navegación del panel y acciones.
+// main.js - el Visor 3D: estado, worker, archivos, herramientas y acciones.
 //
-// Misma arquitectura que la CNC y el láser (docs/laboratorio-ui.md):
-//   nivel 0  Modelo · Editar · Exportar (barra inferior) + «+» acciones rápidas
-//   nivel 2  Revisión, Formatos de Creality Scan, Cortes
-//   hojas    cada herramienta de edición, con vista previa en el 3D
+// Es una herramienta, no un tutorial: los mismos componentes que la CNC y el láser, otra arquitectura.
+//   3D        el modelo, con la barra de herramientas (izquierda), medidas, vistas y modos
+//   panel     Modelo (sus propiedades) · Exportar (formatos y cortes) + «+» acciones rápidas
+//   hojas     cada herramienta abre la suya en el panel, con su animación y la previa en el 3D
 // Lo pesado vive en el worker (trabajador.js); aquí solo se dibuja y se decide.
 // Depuración: window.__visor3d
 
@@ -31,9 +31,8 @@ const S = {
   aviso: null,             // { t, tipo } texto sobre el 3D
   uso: ls.get("uso", "imprimir"),
   cortes: ls.get("cortes", { eje: 2, paso: 3, ancho: 300, alto: 200 }),
-  hecho: {},               // primeros pasos ya hechos con este modelo: enderezar, limpiar, exportar
+  cotas: ls.get("cotas", true),   // las medidas dibujadas en el 3D
 };
-const PASO_DE = { transformar: "enderezar", borrar: "limpiar", islas: "limpiar", cortar: "limpiar", caja: "limpiar", rellenar: "cerrar", reparar: "cerrar" };
 
 // ======================================================================
 // Worker
@@ -72,11 +71,11 @@ function progreso(f, texto) {
 }
 
 // Lo que regresa el worker después de cada cambio
-async function recibir(r, { encuadrar = false } = {}) {
+async function recibir(r, { encuadrar = false, fijo = false } = {}) {
   if (!r?.malla) return;
   S.m = r.malla; S.diag = r.diag; S.caja = caja(r.malla);
   S.puedeDeshacer = r.puedeDeshacer; S.puedeRehacer = r.puedeRehacer;
-  await visor.ponerMalla(S.m, { encuadrar });
+  await visor.ponerMalla(S.m, { encuadrar, fijo });
   // Sin color ni textura, el modo «Color» no tiene sentido
   const hayColor = visor.tieneColor();
   $('[data-modo="color"]').hidden = !hayColor;
@@ -84,7 +83,8 @@ async function recibir(r, { encuadrar = false } = {}) {
   else visor.modo(S.modo);
   pintarMedidas();
   $("#btn-deshacer").disabled = !S.puedeDeshacer; $("#btn-rehacer").disabled = !S.puedeRehacer;
-  $("#modos").hidden = $("#medidas").hidden = $("#herr-visor").hidden = false;
+  $("#modos").hidden = $("#medidas").hidden = $("#herr-visor").hidden = $("#herrbar").hidden = false;
+  $('#herrbar [data-herr="color"]').hidden = !(S.m.col || S.m.textura);
   refrescar();
 }
 function pintarMedidas() {
@@ -121,7 +121,6 @@ async function abrirArchivos(lista) {
   });
   if (!r) return;
   cerrarHojas();
-  S.hecho = {};
   await recibir(r, { encuadrar: true });
   const notas = [];
   if (r.volteado) notas.push("Las caras venían hacia adentro: ya están hacia afuera.");
@@ -142,6 +141,12 @@ async function seguir() {
 async function olvidar() {
   await w("olvidar"); S.ultimo = null; refrescar();
 }
+// Deja el visor vacío (y olvida el modelo guardado)
+async function cerrarModelo() {
+  cerrarHojas(); await w("olvidar");
+  S.m = S.diag = S.caja = S.ultimo = null;
+  location.reload();
+}
 
 // Arrastrar y soltar sobre el 3D (varios archivos a la vez: modelo + textura + MTL)
 const vEl = $("#visor");
@@ -155,11 +160,10 @@ $(".panel").addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTran
 // ======================================================================
 // Edición
 // ======================================================================
-async function editar(nombre, opciones = {}, { encuadrar = false, texto = "Trabajando" } = {}) {
+async function editar(nombre, opciones = {}, { encuadrar = false, fijo = false, texto = "Trabajando" } = {}) {
   const r = await tarea(texto, () => w("editar", { nombre, opciones }, opciones.mascara ? [opciones.mascara.buffer] : []));
   if (!r) return null;
-  if (PASO_DE[nombre]) S.hecho[PASO_DE[nombre]] = true;
-  await recibir(r, { encuadrar });
+  await recibir(r, { encuadrar, fijo });
   return r.info || {};
 }
 async function deshacer() { if (!S.puedeDeshacer || hojaAbierta()) return; const r = await tarea("Deshaciendo", () => w("deshacer")); if (r) { await recibir(r); anunciar("Deshecho"); } }
@@ -189,7 +193,6 @@ async function exportar(formato, opciones = {}) {
     return await w("exportar", { formato, opciones });
   });
   if (!r) return false;
-  S.hecho.exportar = true; refrescar();
   descargar(r.nombre, new Blob([r.datos]));
   anunciar(`Descargado ${r.nombre}`);
   return true;
@@ -209,7 +212,11 @@ function avisoVisor(t, tipo = "info") {
   el.innerHTML = `<span>${esc(t)}</span><button type="button" class="btn-icono" aria-label="Cerrar aviso"><svg class="ico ico--s" aria-hidden="true"><use href="#i-x"/></svg></button>`;
   el.querySelector("button").onclick = () => avisoVisor(null);
 }
-$$("#herr-visor [data-vista]").forEach((b) => (b.onclick = () => visor.vista(b.dataset.vista)));
+$$("#herr-visor [data-vista]").forEach((b) => (b.onclick = () => visor.encuadrar()));
+// Las medidas de arriba prenden o apagan las cotas del 3D (de dónde a dónde mide)
+function ponerCotas(on) { S.cotas = on; ls.set("cotas", on); $("#medidas").setAttribute("aria-pressed", on); visor.cotas(on); }
+$("#medidas").onclick = () => ponerCotas(!S.cotas);
+ponerCotas(S.cotas);
 $("#btn-medir").onclick = (e) => {
   const on = e.currentTarget.getAttribute("aria-pressed") !== "true";
   e.currentTarget.setAttribute("aria-pressed", on);
@@ -226,20 +233,30 @@ $("#btn-visor").onclick = (e) => {
 // ======================================================================
 // Navegación y acciones rápidas
 // ======================================================================
-const { nav, irA, regresar, refrescar } = crearNavegacion({ vistas: VISTAS, tabs: ["inicio", "editar", "exportar"], padre: { cortes: "exportar" }, app: () => app });
+const { nav, irA, regresar, refrescar } = crearNavegacion({ vistas: VISTAS, tabs: ["inicio", "exportar"], padre: { cortes: "exportar" }, app: () => app });
 function cerrarHojas() { while (hojaAbierta()) cerrarHojaSuperior(); }
-function herramienta(id) { if (!S.m) return; HERRAMIENTAS[id]?.(app); }
+// Una herramienta a la vez: su botón queda marcado mientras su hoja está abierta
+async function herramienta(id) {
+  if (!S.m || !HERRAMIENTAS[id]) return;
+  const b = $(`#herrbar [data-herr="${id}"]`);
+  const yaAbierta = b?.getAttribute("aria-pressed") === "true";
+  cerrarHojas();
+  if (yaAbierta) return;
+  $$("#herrbar [data-herr]").forEach((x) => x.setAttribute("aria-pressed", x === b));
+  await HERRAMIENTAS[id](app);
+  b?.setAttribute("aria-pressed", "false");
+}
+$$("#herrbar [data-herr]").forEach((b) => (b.onclick = () => herramienta(b.dataset.herr)));
 
 $("#btn-mas").onclick = () => hoja({
   titulo: "Acciones rápidas",
   contenido(c, h) {
     const a = (id, ico, t, dis = false) => `<button type="button" class="accion" data-a="${id}" ${dis ? "disabled" : ""}><span class="accion__ico"><svg class="ico" aria-hidden="true"><use href="#i-${ico}"/></svg></span>${t}</button>`;
     c.innerHTML = `<div class="acciones">
-      ${a("abrir", "abrir", "Abrir archivo")}${a("ejemplo", "cubo", "Ejemplo: búho")}
-      ${a("captura", "camara", "Guardar imagen", !S.m)}${a("original", "girar", "Volver al original", !S.m)}
-      ${a("formatos", "info", "Formatos de Creality")}${a("escaner", "escaner", "Escáneres")}
+      ${a("abrir", "abrir", "Abrir archivo")}${a("captura", "camara", "Guardar imagen", !S.m)}
+      ${a("original", "girar", "Volver al original", !S.m)}${a("olvidar", "x", "Cerrar el modelo", !S.m)}
     </div>`;
-    const f = { abrir: elegirArchivo, ejemplo, captura: () => $("#btn-captura").click(), original: volverOriginal, formatos: () => irA("formatos"), escaner: () => (location.href = "../escaner/") };
+    const f = { abrir: elegirArchivo, captura: () => $("#btn-captura").click(), original: volverOriginal, olvidar: cerrarModelo };
     c.querySelectorAll("[data-a]").forEach((b) => (b.onclick = () => { h.cerrar(); f[b.dataset.a](); }));
   },
 });

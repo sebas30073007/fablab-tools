@@ -20,6 +20,26 @@
 </script>
 </head>
 <body>
+<!-- Íconos a color: color (cubeta con pintura de arcoíris) y textura (piedra). En gris si el formato no lo guarda -->
+<svg aria-hidden="true" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <linearGradient id="arcoiris" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ef4444"/><stop offset=".25" stop-color="#f59e0b"/><stop offset=".5" stop-color="#22c55e"/><stop offset=".75" stop-color="#3b82f6"/><stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+    <radialGradient id="piedra-luz" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#d6d3cd"/><stop offset=".55" stop-color="#9c978e"/><stop offset="1" stop-color="#5f5b55"/></radialGradient>
+  </defs>
+  <symbol id="c-color" viewBox="0 0 32 32">
+    <path d="M6 13 16 4l10 9-10 11z" fill="#e5e7eb" stroke="#4b5563" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M6 13h20l-10 11z" fill="url(#arcoiris)"/>
+    <path d="M6 13h20" stroke="#4b5563" stroke-width="1.6"/>
+    <path d="M27.5 18s2.5 3 2.5 4.6a2.5 2.5 0 0 1-5 0c0-1.6 2.5-4.6 2.5-4.6z" fill="#3b82f6"/>
+  </symbol>
+  <symbol id="c-textura" viewBox="0 0 32 32">
+    <path d="M5 20c-1-5 2-10 7-12 4-1.6 9-1 12 2 3 3 3.5 8 1 11.5-2.4 3.4-7 4.6-12 4.3S6 23.5 5 20z" fill="url(#piedra-luz)" stroke="#57534e" stroke-width="1.2"/>
+    <path d="M11 13c2-1 4-1 5 0M19 18c1.2.6 2 1.6 2.2 2.8M9 20l1.5 1" stroke="#78716c" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+    <circle cx="14" cy="17" r=".9" fill="#57534e"/><circle cx="22" cy="13" r=".7" fill="#57534e"/><circle cx="11" cy="23" r=".6" fill="#57534e"/>
+  </symbol>
+</svg>
 <div class="app">
   <header class="barra" aria-label="Barra superior">
     <a class="barra__marca" href="../" aria-label="Fab Lab: volver al catálogo">
@@ -36,11 +56,29 @@
   </header>
 
   <main class="visor" id="visor" aria-label="Modelo 3D">
-    <div class="visor__coords" id="medidas" hidden aria-label="Medidas del modelo">
+    <!-- Barra de herramientas: como la paleta de un CAD, agrupada; cada botón abre su hoja en el panel -->
+    <nav class="herrbar" id="herrbar" aria-label="Herramientas" hidden>
+      <button type="button" data-herr="girar" title="Girar"><svg class="ico" aria-hidden="true"><use href="#i-girar"/></svg><span>Girar</span></button>
+      <button type="button" data-herr="medidas" title="Escala"><svg class="ico" aria-hidden="true"><use href="#i-escala"/></svg><span>Escala</span></button>
+      <button type="button" data-herr="cara" title="Cara abajo"><svg class="ico" aria-hidden="true"><use href="#i-abajo"/></svg><span>Abajo</span></button>
+      <i class="herrbar__sep" aria-hidden="true"></i>
+      <button type="button" data-herr="plano" title="Cortar con un plano"><svg class="ico" aria-hidden="true"><use href="#i-plano"/></svg><span>Plano</span></button>
+      <button type="button" data-herr="caja" title="Caja de recorte"><svg class="ico" aria-hidden="true"><use href="#i-caja"/></svg><span>Caja</span></button>
+      <button type="button" data-herr="lazo" title="Borrar con lazo"><svg class="ico" aria-hidden="true"><use href="#i-lazo"/></svg><span>Lazo</span></button>
+      <button type="button" data-herr="islas" title="Piezas sueltas"><svg class="ico" aria-hidden="true"><use href="#i-piezas"/></svg><span>Piezas</span></button>
+      <i class="herrbar__sep" aria-hidden="true"></i>
+      <button type="button" data-herr="rellenar" title="Rellenar huecos"><svg class="ico" aria-hidden="true"><use href="#i-hueco"/></svg><span>Huecos</span></button>
+      <button type="button" data-herr="reparar" title="Reparar"><svg class="ico" aria-hidden="true"><use href="#i-llave"/></svg><span>Reparar</span></button>
+      <button type="button" data-herr="suavizar" title="Suavizar"><svg class="ico" aria-hidden="true"><use href="#i-onda"/></svg><span>Suavizar</span></button>
+      <button type="button" data-herr="simplificar" title="Simplificar"><svg class="ico" aria-hidden="true"><use href="#i-triangulos"/></svg><span>Simplif.</span></button>
+      <button type="button" data-herr="color" title="Color"><svg class="ico" aria-hidden="true"><use href="#i-cubeta"/></svg><span>Color</span></button>
+    </nav>
+    <button type="button" class="medidas-btn" id="medidas" aria-pressed="true" hidden title="Mostrar las medidas en el 3D">
+      <svg class="ico" aria-hidden="true"><use href="#i-regla"/></svg>
       <span class="pildora-dato" data-eje="X"><b>X</b><span data-v="x">—</span></span>
       <span class="pildora-dato" data-eje="Y"><b>Y</b><span data-v="y">—</span></span>
       <span class="pildora-dato" data-eje="Z"><b>Z</b><span data-v="z">—</span></span>
-    </div>
+    </button>
     <div class="flota-der" id="herr-visor" hidden>
       <button type="button" class="btn-flota" data-vista="3d" aria-label="Encuadrar" title="Encuadrar"><svg class="ico" aria-hidden="true"><use href="#i-agrandar"/></svg></button>
       <button type="button" class="btn-flota" id="btn-medir" aria-pressed="false" aria-label="Medir entre dos puntos" title="Medir"><svg class="ico" aria-hidden="true"><use href="#i-regla"/></svg></button>
@@ -59,12 +97,11 @@
     <div class="soltar" id="soltar" hidden><div>Suelta el modelo (y su textura)</div></div>
   </main>
 
-  <aside class="panel" aria-label="Herramientas">
+  <aside class="panel" aria-label="Modelo">
     <div class="panel__vista" id="vista"></div>
     <nav class="navinf" aria-label="Secciones">
       <div class="navinf__pildora">
         <button data-tab="inicio" aria-current="page"><svg class="ico" aria-hidden="true"><use href="#i-casa-on"/></svg><span>Modelo</span></button>
-        <button data-tab="editar"><svg class="ico" aria-hidden="true"><use href="#i-tijeras"/></svg><span>Editar</span></button>
         <button data-tab="exportar"><svg class="ico" aria-hidden="true"><use href="#i-bajar"/></svg><span>Exportar</span></button>
       </div>
       <button class="navinf__mas" id="btn-mas" aria-label="Acciones rápidas"><svg class="ico" aria-hidden="true"><use href="#i-mas"/></svg></button>

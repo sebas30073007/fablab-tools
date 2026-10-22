@@ -31,8 +31,15 @@ const ESCRIBIR = { stl: escribirSTL, obj: escribirOBJ, ply: escribirPLY, "3mf": 
 // Ediciones que cambian el modelo (con deshacer)
 const EDITAR = {
   transformar: (m, o) => {
+    const antes = o.apoyar === "mantener" ? caja(m) : null;
     let r = E.transformar(m, o.matriz);
     if (o.piso) r = alPiso(r, o.matriz, o.piso);
+    // "mantener": después de girar, la pieza se queda con el mismo centro y la misma base
+    if (antes) {
+      const c = caja(r), p = r.pos, dx = antes.centro[0] - c.centro[0], dy = antes.centro[1] - c.centro[1], dz = antes.min[2] - c.min[2];
+      for (let i = 0; i < p.length; i += 3) { p[i] += dx; p[i + 1] += dy; p[i + 2] += dz; }
+      return r;
+    }
     return o.apoyar ? apoyar(r) : r;
   },
   reparar: (m) => { const r = E.reparar(m), o = E.orientar(r); return { ...o, info: { ...r.info, ...o.info } }; },

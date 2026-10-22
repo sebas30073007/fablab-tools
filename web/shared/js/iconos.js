@@ -54,6 +54,14 @@ const SIMBOLOS = {
   ojo: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/>',
   camara: '<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
   escaner: '<rect x="3" y="7" width="18" height="10" rx="3"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/>',
+  escala: '<rect x="3" y="11" width="10" height="10" rx="1.5"/><path d="M11 3h10v10M21 3l-8 8M15 3h6v6"/>',
+  abajo: '<path d="m12 3 7 4v7l-7 4-7-4V7z"/><path d="M3 21h18" stroke-width="2.4"/><path d="M12 18v3"/>',
+  piezas: '<circle cx="9" cy="10" r="5"/><circle cx="18" cy="6" r="2"/><circle cx="18.5" cy="16.5" r="2.5"/><path d="M5 20h.01"/>',
+  hueco: '<path d="M4 7.5C4 5 7.6 3 12 3s8 2 8 4.5v9C20 19 16.4 21 12 21s-8-2-8-4.5z"/><ellipse cx="12" cy="11" rx="3.5" ry="2.2" stroke-dasharray="2 1.6"/>',
+  llave: '<path d="M14.5 6.5a4 4 0 0 0 5 5L12 19a2.1 2.1 0 0 1-3-3l7.5-7.5"/><path d="M14.5 6.5 17 4l3 3-2.5 2.5"/>',
+  onda: '<path d="M3 15c2.5-6 4.5-6 6 0s3.5 6 6 0 3.5-6 6 0"/><path d="M3 20h18" stroke-dasharray="1 2.5"/>',
+  triangulos: '<path d="M12 3 21 20H3z"/><path d="M7.5 11.5h9M12 3 7.5 20M12 3l4.5 17"/>',
+  cubeta: '<path d="m5 10 7-7 7 7-7 7z"/><path d="M5 10h14"/><path d="M19.5 14.5s1.5 2 1.5 3a1.5 1.5 0 0 1-3 0c0-1 1.5-3 1.5-3z"/>',
 };
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" hidden aria-hidden="true">${Object.entries(SIMBOLOS)
