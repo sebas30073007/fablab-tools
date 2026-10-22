@@ -1,5 +1,6 @@
-# Publica la carpeta web/ en GitHub Pages en cada push a main.
-# Sitio estático sin build: se sube web/ tal cual.
+# Publica el sitio en GitHub Pages en cada push a main.
+# Es web/ con la CNC en inglés: la misma del paquete (tools/paquete/empaquetar.mjs sitio → dist/sitio).
+# El código de web/cnc sigue en español; el inglés sale de los diccionarios de tools/paquete/en.
 # Requiere Settings → Pages → Source: "GitHub Actions".
 name: Publicar en GitHub Pages
 
@@ -25,9 +26,14 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Se detiene si falta traducir algo: así nunca se publica la CNC a medias
+      - run: node tools/paquete/empaquetar.mjs sitio
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./web
+          path: ./dist/sitio
       - id: deployment
         uses: actions/deploy-pages@v4
