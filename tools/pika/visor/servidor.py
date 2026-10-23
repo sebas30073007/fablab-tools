@@ -13,12 +13,65 @@ WEB = os.path.join(os.path.dirname(os.path.dirname(PIKA)), "web")
 sys.path.insert(0, PIKA)
 import cv2
 import numpy as np
+from estereo import Rectificador, Separador
+from lineas3d import Abanico, dibujar, guardar_ply, profundidad_planos
 from recortar import Banco, Camara
 
 PUERTO = 8805
 # propiedad -> nombre en la API
 PROPS = {3: "lineas", 158: "relleno", 161: "brillo", 2026: "exposicion", 2027: "ganancia"}
 FOTOS = os.path.join(PIKA, "fotos")
+
+
+class Estereo:
+    """Separa el video gris en izquierda/derecha y calcula la profundidad con los
+    planos láser en un hilo aparte (no toca la COM)."""
+
+    def __init__(self):
+        self.rect = Rectificador()
+        self.abanico = Abanico() if os.path.exists(os.path.join(PIKA, "planos", "planos.json")) else None
+        self.candado = threading.Lock()
+        self.activo = False
+        self.izq = self.par = None
+        self.xyz, self.jpeg = np.zeros((0, 3)), None
+        self.reiniciar()
+        threading.Thread(target=self._calcular, daemon=True).start()
+
+    def reiniciar(self):
+        """Tras cambiar luz o líneas cambia el aspecto de las vistas: se vuelven a separar."""
+        with self.candado:
+            self.sep, self.confirmado, self.par = Separador(self.rect), False, None
+
+    def al_cuadro(self, c):
+        with self.candado:
+            par = self.sep.agregar(c)
+            if par:
+                self.par, self.izq = par, par[0]
+
+    def _profundidad(self, izq, der):
+        ri, rd = self.rect.rectificar(izq, der)
+        xyz, pts, _ = profundidad_planos(ri, rd, self.rect, self.abanico)
+        return ri, xyz, pts
+
+    def _calcular(self):
+        anterior = None
+        while True:
+            par = self.par
+            if not (self.activo and self.abanico and lineas["prendidas"]) or par is None or par is anterior:
+                time.sleep(0.05)
+                continue
+            anterior = par
+            ri, xyz, pts = self._profundidad(*par)
+            if not self.confirmado:
+                # ¿qué vista es la izquierda? la que da más puntos con los planos
+                _, xyz2, pts2 = self._profundidad(par[1], par[0])
+                if len(pts2) > 1.5 * max(len(pts), 20):
+                    with self.candado:
+                        self.sep.izq_es = "b" if self.sep.izq_es == "a" else "a"
+                    continue
+                self.confirmado = len(pts) > 50
+            self.xyz = xyz
+            self.jpeg = cv2.imencode(".jpg", dibujar(ri, pts, [], xyz), [cv2.IMWRITE_JPEG_QUALITY, 80])[1].tobytes()
 
 
 class Control(threading.Thread):
@@ -33,7 +86,7 @@ class Control(threading.Thread):
         try:
             self.banco = Banco()
             self.banco.parar()
-            self.cam = Camara()
+            self.cam = Camara(al_cuadro=estereo.al_cuadro)
         except BaseException as e:  # SystemExit incluido: lo reporta la página
             self.error = str(e)
         self.listo.set()
@@ -98,14 +151,16 @@ class RGB:
                 self.proc = None
 
 
-control, rgb = Control(), RGB()
 realce = {"activo": True}
 # El Pika apaga las líneas mientras la cámara RGB transmite: con líneas, la RGB se pausa.
 lineas = {"prendidas": False}
+estereo = Estereo()
+control, rgb = Control(), RGB()
 
 
 def jpeg_gris():
-    c = control.cam.cuadro
+    # solo la cámara izquierda (el video crudo alterna las dos)
+    c = estereo.izq if estereo.izq is not None else control.cam.cuadro
     if realce["activo"]:
         # estira el rango para que se vean las líneas aunque la imagen sea oscura
         bajo, alto = np.percentile(c, (1, 99.95))
@@ -173,8 +228,22 @@ class Manejador(BaseHTTPRequestHandler):
             except Exception as e:
                 return self.responder(503, {"error": str(e)})
         if ruta == "/gris.mjpg" and control.cam:
-            return self.mjpeg(lambda ant: None if control.cam.cuadro is ant
-                              else (control.cam.cuadro, jpeg_gris()))
+            fuente = lambda: estereo.izq if estereo.izq is not None else control.cam.cuadro
+            return self.mjpeg(lambda ant: None if fuente() is ant else (fuente(), jpeg_gris()))
+        if ruta == "/prof.mjpg":
+            return self.mjpeg(lambda ant: None if estereo.jpeg is None or estereo.jpeg is ant
+                              else (estereo.jpeg, estereo.jpeg))
+        if ruta == "/api/nube":
+            xyz = estereo.xyz
+            if len(xyz) > 6000:
+                xyz = xyz[np.random.default_rng(0).choice(len(xyz), 6000, replace=False)]
+            return self.responder(200, {"puntos": np.round(xyz, 1).ravel().tolist(),
+                                        "planos": estereo.abanico is not None})
+        if ruta.startswith("/vendor/"):
+            archivo = os.path.normpath(os.path.join(WEB, "shared", ruta.lstrip("/")))
+            if archivo.startswith(os.path.join(WEB, "shared")) and os.path.isfile(archivo):
+                with open(archivo, "rb") as f:
+                    return self.responder(200, f.read(), "text/javascript; charset=utf-8")
         if ruta == "/rgb.mjpg":
             if not lineas["prendidas"]:
                 rgb.arrancar()
@@ -194,7 +263,16 @@ class Manejador(BaseHTTPRequestHandler):
                 e = control.hacer(lambda p: p.escribir(prop, valor))
                 if prop == 3 and e == 0:
                     lineas["prendidas"] = bool(valor)
+                estereo.reiniciar()  # cambió la luz: separar las vistas de nuevo
                 return self.responder(200 if e == 0 else 409, {"estado": e})
+            if self.path == "/api/profundidad":
+                estereo.activo = bool(datos.get("activo"))
+                return self.responder(200, {"activo": estereo.activo, "planos": estereo.abanico is not None})
+            if self.path == "/api/guardar_nube":
+                os.makedirs(FOTOS, exist_ok=True)
+                nombre = time.strftime("%Y%m%d-%H%M%S") + "_nube.ply"
+                guardar_ply(os.path.join(FOTOS, nombre), estereo.xyz)
+                return self.responder(200, {"nube": nombre, "puntos": len(estereo.xyz)})
             if self.path == "/api/realce":
                 realce["activo"] = bool(datos.get("activo"))
                 return self.responder(200, {"realce": realce["activo"]})

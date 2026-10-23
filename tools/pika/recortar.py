@@ -31,8 +31,9 @@ def describir(o):
 class Camara:
     """Video en un hilo; guarda el último cuadro."""
 
-    def __init__(self):
+    def __init__(self, al_cuadro=None):
         self.video, self.cuadro, self.vivo = Video(), None, True
+        self.al_cuadro = al_cuadro  # se llama con cada cuadro (en el hilo de lectura)
         threading.Thread(target=self._leer, daemon=True).start()
         t = time.time()
         while self.cuadro is None and time.time() - t < 8:
@@ -46,6 +47,8 @@ class Camara:
             if not ok:
                 break
             self.cuadro = c
+            if self.al_cuadro:
+                self.al_cuadro(c)
 
     def referencia(self, segundos=0.6):
         """Máximo por píxel de los cuadros sin láser, engordado para tolerar movimiento."""

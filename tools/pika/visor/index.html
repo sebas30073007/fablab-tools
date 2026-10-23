@@ -27,6 +27,9 @@
     padding: var(--space-xs) var(--space-md); border-radius: var(--radius-round); font-size: 14px;
     background: rgba(17, 19, 23, .8); color: var(--text); }
   .pausa[hidden] { display: none; }
+  #lienzo { width: 100%; height: 100%; display: block; }
+  .botones { display: flex; gap: var(--space-sm); }
+  .botones .secundario { flex: 1; }
 
   .panel { padding: var(--space-lg); display: flex; flex-direction: column; gap: var(--space-xl);
     border-left: 1px solid var(--divider); overflow-y: auto; background: var(--surface-secondary); }
@@ -82,6 +85,11 @@
       <img id="vRgb" alt="Cámara RGB">
       <span class="pausa" id="pausa" hidden>RGB en pausa mientras hay líneas</span>
     </figure>
+    <figure id="cProf" hidden><img id="vProf" alt="Profundidad"></figure>
+    <figure id="c3d" hidden>
+      <canvas id="lienzo"></canvas>
+      <span class="pausa" id="aviso3d" hidden></span>
+    </figure>
   </section>
   <aside class="panel">
     <button class="primario" id="lineas" aria-pressed="false" disabled>Líneas</button>
@@ -104,11 +112,14 @@
       <div class="unida" id="vista">
         <button data-v="gris" aria-pressed="true">Gris</button>
         <button data-v="rgb" aria-pressed="false">RGB</button>
-        <button data-v="ambas" aria-pressed="false">Ambas</button>
+        <button data-v="3d" aria-pressed="false">3D</button>
       </div>
     </div>
 
-    <button class="secundario" id="foto">Foto</button>
+    <div class="botones">
+      <button class="secundario" id="foto">Foto</button>
+      <button class="secundario" id="nube" hidden>Guardar nube</button>
+    </div>
     <div class="aviso" id="aviso" role="status"></div>
   </aside>
 </main>
@@ -161,11 +172,21 @@ $("realce").onclick = () => {
 
 function vista(v) {
   for (const b of $("vista").children) b.setAttribute("aria-pressed", b.dataset.v === v);
-  $("cGris").hidden = v === "rgb";
-  $("cRgb").hidden = v === "gris";
-  if (v !== "gris" && !$("vRgb").src) $("vRgb").src = "/rgb.mjpg";
+  $("cGris").hidden = v !== "gris";
+  $("cRgb").hidden = v !== "rgb";
+  $("cProf").hidden = $("c3d").hidden = $("nube").hidden = v !== "3d";
+  if (v === "rgb" && !$("vRgb").src) $("vRgb").src = "/rgb.mjpg";
+  if (v === "3d" && !$("vProf").src) $("vProf").src = "/prof.mjpg";
   $("pausa").hidden = !hayLineas();
+  api("/api/profundidad", { activo: v === "3d" }).then(d => {
+    if (v === "3d" && !d.planos) aviso("Falta calibrar los planos láser (calibrar_planos.py)");
+  });
+  window.dispatchEvent(new CustomEvent("vista", { detail: v }));
 }
+$("nube").onclick = async () => {
+  try { const d = await api("/api/guardar_nube", {}); aviso(`Guardada: ${d.nube} (${d.puntos} puntos)`); }
+  catch (e) { aviso("Nube: " + e.message); }
+};
 $("vista").onclick = e => e.target.dataset.v && vista(e.target.dataset.v);
 
 $("foto").onclick = async () => {
@@ -195,6 +216,72 @@ async function cargar() {
   }
 }
 cargar();
+</script>
+<script type="importmap">
+{ "imports": { "three": "/vendor/three/three.module.min.js", "three/addons/": "/vendor/three/addons/" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const lienzo = document.getElementById("lienzo");
+const render = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true });
+render.setPixelRatio(devicePixelRatio);
+const escena = new THREE.Scene();
+const camara = new THREE.PerspectiveCamera(50, 1, 1, 5000);
+camara.position.set(0, 0, 0);
+const control = new OrbitControls(camara, lienzo);
+control.target.set(0, 0, -250);
+camara.position.set(150, 80, 100);
+control.update();
+const geo = new THREE.BufferGeometry();
+const nube = new THREE.Points(geo, new THREE.PointsMaterial({ size: 1.6, vertexColors: true, sizeAttenuation: true }));
+escena.add(nube);
+const color = new THREE.Color();
+let activa = false, centrada = false;
+
+function tamano() {
+  const r = lienzo.parentElement.getBoundingClientRect();
+  render.setSize(r.width, r.height, false);
+  camara.aspect = r.width / Math.max(r.height, 1);
+  camara.updateProjectionMatrix();
+}
+addEventListener("resize", tamano);
+addEventListener("vista", e => { activa = e.detail === "3d"; if (activa) requestAnimationFrame(tamano); });
+
+async function pedir() {
+  if (activa) {
+    try {
+      const { puntos } = await (await fetch("/api/nube")).json();
+      const n = puntos.length / 3;
+      const pos = new Float32Array(puntos.length), col = new Float32Array(puntos.length);
+      let zmin = Infinity, zmax = -Infinity;
+      for (let i = 0; i < n; i++) { const z = puntos[3 * i + 2]; zmin = Math.min(zmin, z); zmax = Math.max(zmax, z); }
+      for (let i = 0; i < n; i++) {
+        // cámara: x a la derecha, y hacia abajo, z al frente  ->  three: y arriba, -z al frente
+        pos[3 * i] = puntos[3 * i]; pos[3 * i + 1] = -puntos[3 * i + 1]; pos[3 * i + 2] = -puntos[3 * i + 2];
+        color.setHSL(0.66 * (puntos[3 * i + 2] - zmin) / Math.max(zmax - zmin, 1), 0.9, 0.55);
+        col[3 * i] = color.r; col[3 * i + 1] = color.g; col[3 * i + 2] = color.b;
+      }
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      geo.computeBoundingSphere();
+      const aviso3d = document.getElementById("aviso3d");
+      aviso3d.hidden = n > 0;
+      aviso3d.textContent = document.getElementById("lineas").getAttribute("aria-pressed") === "true"
+        ? "Sin puntos: acerca el Pika (20–45 cm)" : "Prende las líneas";
+      if (n > 0 && !centrada) {
+        control.target.copy(geo.boundingSphere.center);
+        camara.position.copy(geo.boundingSphere.center).add(new THREE.Vector3(120, 60, 160));
+        control.update();
+        centrada = true;
+      }
+    } catch (e) { /* el servidor puede estar ocupado; se reintenta */ }
+  }
+  setTimeout(pedir, 500);
+}
+pedir();
+(function bucle() { requestAnimationFrame(bucle); if (activa) render.render(escena, camara); })();
 </script>
 </body>
 </html>
