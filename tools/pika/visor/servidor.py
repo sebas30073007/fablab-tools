@@ -13,6 +13,7 @@ WEB = os.path.join(os.path.dirname(os.path.dirname(PIKA)), "web")
 sys.path.insert(0, PIKA)
 import cv2
 import numpy as np
+from escaneo import Escaneo
 from estereo import Rectificador, Separador
 from lineas3d import Abanico, dibujar, guardar_ply, profundidad_planos
 from recortar import Banco, Camara
@@ -34,6 +35,7 @@ class Estereo:
         self.activo = False
         self.izq = self.par = None
         self.xyz, self.jpeg = np.zeros((0, 3)), None
+        self.escaneo, self.escaneando = Escaneo(self.rect), False
         self.reiniciar()
         threading.Thread(target=self._calcular, daemon=True).start()
 
@@ -51,7 +53,7 @@ class Estereo:
     def _profundidad(self, izq, der):
         ri, rd = self.rect.rectificar(izq, der)
         xyz, pts, _ = profundidad_planos(ri, rd, self.rect, self.abanico)
-        return ri, xyz, pts
+        return ri, rd, xyz, pts
 
     def _calcular(self):
         anterior = None
@@ -61,15 +63,17 @@ class Estereo:
                 time.sleep(0.05)
                 continue
             anterior = par
-            ri, xyz, pts = self._profundidad(*par)
+            ri, rd, xyz, pts = self._profundidad(*par)
             if not self.confirmado:
                 # ¿qué vista es la izquierda? la que da más puntos con los planos
-                _, xyz2, pts2 = self._profundidad(par[1], par[0])
+                _, _, xyz2, pts2 = self._profundidad(par[1], par[0])
                 if len(pts2) > 1.5 * max(len(pts), 20):
                     with self.candado:
                         self.sep.izq_es = "b" if self.sep.izq_es == "a" else "a"
                     continue
                 self.confirmado = len(pts) > 50
+            if self.escaneando and self.confirmado:
+                self.escaneo.procesar(ri, rd, xyz)
             self.xyz = xyz
             self.jpeg = cv2.imencode(".jpg", dibujar(ri, pts, [], xyz), [cv2.IMWRITE_JPEG_QUALITY, 80])[1].tobytes()
 
@@ -234,11 +238,16 @@ class Manejador(BaseHTTPRequestHandler):
             return self.mjpeg(lambda ant: None if estereo.jpeg is None or estereo.jpeg is ant
                               else (estereo.jpeg, estereo.jpeg))
         if ruta == "/api/nube":
-            xyz = estereo.xyz
-            if len(xyz) > 6000:
-                xyz = xyz[np.random.default_rng(0).choice(len(xyz), 6000, replace=False)]
-            return self.responder(200, {"puntos": np.round(xyz, 1).ravel().tolist(),
-                                        "planos": estereo.abanico is not None})
+            esc = estereo.escaneo
+            acumulada = esc.cuadros > 0
+            xyz, tope = (esc.nube(), 40000) if acumulada else (estereo.xyz, 6000)
+            if len(xyz) > tope:
+                xyz = xyz[np.random.default_rng(0).choice(len(xyz), tope, replace=False)]
+            return self.responder(200, {
+                "puntos": np.round(xyz, 1).ravel().tolist(), "acumulada": acumulada,
+                "planos": estereo.abanico is not None,
+                "escaneo": {"activo": estereo.escaneando, "estado": esc.estado, "marcadores": esc.marc_actual,
+                            "mapa": len(esc.mapa), "cuadros": esc.cuadros, "celdas": len(esc.celdas)}})
         if ruta.startswith("/vendor/"):
             archivo = os.path.normpath(os.path.join(WEB, "shared", ruta.lstrip("/")))
             if archivo.startswith(os.path.join(WEB, "shared")) and os.path.isfile(archivo):
@@ -270,9 +279,38 @@ class Manejador(BaseHTTPRequestHandler):
                 return self.responder(200, {"activo": estereo.activo, "planos": estereo.abanico is not None})
             if self.path == "/api/guardar_nube":
                 os.makedirs(FOTOS, exist_ok=True)
-                nombre = time.strftime("%Y%m%d-%H%M%S") + "_nube.ply"
-                guardar_ply(os.path.join(FOTOS, nombre), estereo.xyz)
-                return self.responder(200, {"nube": nombre, "puntos": len(estereo.xyz)})
+                xyz = estereo.escaneo.nube() if estereo.escaneo.cuadros else estereo.xyz
+                nombre = time.strftime("%Y%m%d-%H%M%S") + ("_escaneo" if estereo.escaneo.cuadros else "_nube") + ".ply"
+                guardar_ply(os.path.join(FOTOS, nombre), xyz)
+                return self.responder(200, {"nube": nombre, "puntos": len(xyz)})
+            if self.path == "/api/escaneo":
+                accion = datos.get("accion")
+                if accion == "iniciar":
+                    # marcadores visibles sin saturar y líneas prendidas
+                    rgb.cerrar()
+                    control.hacer(lambda p: (p.escribir(161, 3), p.escribir(158, 1),
+                                             p.escribir(2026, 3000), p.escribir(3, 1)))
+                    lineas["prendidas"] = True
+                    estereo.reiniciar()
+                    estereo.activo = estereo.escaneando = True
+                elif accion == "parar":
+                    estereo.escaneando = False
+                elif accion == "borrar":
+                    estereo.escaneo.borrar()
+                else:
+                    raise ValueError(accion)
+                return self.responder(200, {"activo": estereo.escaneando})
+            if self.path == "/api/par":
+                # guarda el par rectificado actual (para diagnosticar sin parar el visor)
+                par = estereo.par
+                if par is None:
+                    raise RuntimeError("todavía no hay par izquierda/derecha")
+                ri, rd = estereo.rect.rectificar(*par)
+                os.makedirs(FOTOS, exist_ok=True)
+                sello = time.strftime("%Y%m%d-%H%M%S")
+                cv2.imwrite(os.path.join(FOTOS, f"{sello}_rect_izq.png"), ri)
+                cv2.imwrite(os.path.join(FOTOS, f"{sello}_rect_der.png"), rd)
+                return self.responder(200, {"par": [f"{sello}_rect_izq.png", f"{sello}_rect_der.png"]})
             if self.path == "/api/realce":
                 realce["activo"] = bool(datos.get("activo"))
                 return self.responder(200, {"realce": realce["activo"]})

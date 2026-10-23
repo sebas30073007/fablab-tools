@@ -87,15 +87,27 @@ def marcadores(img):
     return m
 
 
-def disparidad_marcadores(mi, md):
-    """Pares de marcadores en la misma fila; devuelve lista de (x, y, d)."""
-    pares = []
-    for xi, yi, ai in mi:
-        cand = [(abs(yd - yi), xi - xd) for xd, yd, ad in md
-                if abs(yd - yi) < 3 and xi - xd > 0 and 0.5 < ad / ai < 2]
-        if len(cand) == 1 or (cand and sorted(cand)[0][0] < 1.5 and
-                              (len(cand) < 2 or sorted(cand)[1][0] > 2.5)):
-            pares.append((xi, yi, min(cand)[1]))
+def disparidad_marcadores(mi, md, d_min=120, d_max=1100):
+    """Pares de marcadores izquierda/derecha; devuelve lista de (x, y, d).
+
+    Candidatos: misma fila (±2.5 px), disparidad posible (≈12–90 cm) y tamaño
+    parecido. Costo = diferencia de fila + diferencia de tamaño; se asigna de menor
+    a mayor costo sin repetir, y solo si el mejor gana con margen al segundo."""
+    candidatos = []
+    for i, (xi, yi, ai) in enumerate(mi):
+        cand = sorted((abs(yd - yi) + 2 * abs(np.log(ad / ai)), j, xi - xd)
+                      for j, (xd, yd, ad) in enumerate(md)
+                      if abs(yd - yi) < 2.5 and d_min < xi - xd < d_max and 0.4 < ad / ai < 2.5)
+        if cand and (len(cand) == 1 or cand[1][0] - cand[0][0] > 0.8):
+            costo, j, d = cand[0]
+            candidatos.append((costo, i, j, d))
+    pares, usados_i, usados_d = [], set(), set()
+    for costo, i, j, d in sorted(candidatos):
+        if i in usados_i or j in usados_d:
+            continue
+        usados_i.add(i)
+        usados_d.add(j)
+        pares.append((mi[i][0], mi[i][1], d))
     return pares
 
 

@@ -64,6 +64,8 @@
   .unida button:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); margin-left: 0; }
   .unida button:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
   .unida button[aria-pressed="true"] { background: var(--text); color: var(--surface); }
+  .grupo[hidden] { display: none; }
+  #escanear[aria-pressed="true"] { background: var(--text); color: var(--surface); }
 
   .aviso { font-size: 14px; color: var(--text-secondary); min-height: 20px; }
 
@@ -114,6 +116,15 @@
         <button data-v="rgb" aria-pressed="false">RGB</button>
         <button data-v="3d" aria-pressed="false">3D</button>
       </div>
+    </div>
+
+    <div class="grupo" id="gEscaneo" hidden>
+      <h2>Escaneo</h2>
+      <div class="botones">
+        <button class="secundario" id="escanear" aria-pressed="false">Escanear</button>
+        <button class="secundario" id="borrar">Borrar</button>
+      </div>
+      <div class="aviso" id="estadoEsc">Pon el objeto entre los domos de marcadores.</div>
     </div>
 
     <div class="botones">
@@ -174,7 +185,7 @@ function vista(v) {
   for (const b of $("vista").children) b.setAttribute("aria-pressed", b.dataset.v === v);
   $("cGris").hidden = v !== "gris";
   $("cRgb").hidden = v !== "rgb";
-  $("cProf").hidden = $("c3d").hidden = $("nube").hidden = v !== "3d";
+  $("cProf").hidden = $("c3d").hidden = $("nube").hidden = $("gEscaneo").hidden = v !== "3d";
   if (v === "rgb" && !$("vRgb").src) $("vRgb").src = "/rgb.mjpg";
   if (v === "3d" && !$("vProf").src) $("vProf").src = "/prof.mjpg";
   $("pausa").hidden = !hayLineas();
@@ -183,6 +194,16 @@ function vista(v) {
   });
   window.dispatchEvent(new CustomEvent("vista", { detail: v }));
 }
+$("escanear").onclick = async () => {
+  const iniciar = $("escanear").getAttribute("aria-pressed") !== "true";
+  try {
+    await api("/api/escaneo", { accion: iniciar ? "iniciar" : "parar" });
+    $("escanear").setAttribute("aria-pressed", iniciar);
+    $("escanear").textContent = iniciar ? "Pausar" : "Escanear";
+    if (iniciar) { $("lineas").setAttribute("aria-pressed", true); $("relleno").setAttribute("aria-pressed", true); }
+  } catch (e) { aviso("Escaneo: " + e.message); }
+};
+$("borrar").onclick = () => api("/api/escaneo", { accion: "borrar" }).then(() => window.dispatchEvent(new Event("borrado")));
 $("nube").onclick = async () => {
   try { const d = await api("/api/guardar_nube", {}); aviso(`Guardada: ${d.nube} (${d.puntos} puntos)`); }
   catch (e) { aviso("Nube: " + e.message); }
@@ -248,11 +269,15 @@ function tamano() {
 }
 addEventListener("resize", tamano);
 addEventListener("vista", e => { activa = e.detail === "3d"; if (activa) requestAnimationFrame(tamano); });
+addEventListener("borrado", () => { centrada = false; });
 
 async function pedir() {
   if (activa) {
     try {
-      const { puntos } = await (await fetch("/api/nube")).json();
+      const { puntos, escaneo: e } = await (await fetch("/api/nube")).json();
+      document.getElementById("estadoEsc").textContent = e.cuadros || e.activo
+        ? `${e.estado} · ${e.marcadores} marcadores a la vista · ${e.mapa} en el mapa · ${e.cuadros} cuadros · ${e.celdas.toLocaleString()} puntos`
+        : "Pon el objeto entre los domos de marcadores.";
       const n = puntos.length / 3;
       const pos = new Float32Array(puntos.length), col = new Float32Array(puntos.length);
       let zmin = Infinity, zmax = -Infinity;
