@@ -180,6 +180,77 @@ def propagar(seg_i, picos_d, semillas, d_def):
     return puntos
 
 
+class Abanico:
+    """Planos láser: todos giran alrededor del eje del emisor con un paso angular fijo
+    (calibrar_planos.py). Se ajusta θ = θ0 + i·paso con los planos calibrados y se
+    generan los de todas las líneas. Coordenadas: cámara izquierda rectificada, mm."""
+
+    def __init__(self, ruta=None, extra=12):
+        import json
+        ruta = ruta or os.path.join(os.path.dirname(os.path.abspath(__file__)), "planos", "planos.json")
+        j = json.load(open(ruta))
+        a = np.array(j["eje"]["direccion"])
+        p = np.array(j["eje"]["punto"])
+        u = np.cross(a, [0, 0, 1.0])
+        u /= np.linalg.norm(u)
+        v = np.cross(a, u)
+        th = []
+        for pl in j["planos"]:
+            n = np.array(pl["n"])
+            n = n if n @ u > 0 else -n
+            th.append(np.arctan2(n @ v, n @ u))
+        i = np.arange(len(th))
+        self.paso, th0 = np.polyfit(i, np.unwrap(th), 1)
+        ks = np.arange(-extra, len(th) + extra)
+        ang = th0 + ks * self.paso
+        self.normales = np.outer(np.cos(ang), u) + np.outer(np.sin(ang), v)
+        self.d = self.normales @ p
+        self.indices = ks
+
+    def profundidades(self, rayo):
+        """Z de cada plano para un rayo (x', y', 1) de la cámara izquierda rectificada."""
+        den = self.normales @ rayo
+        with np.errstate(divide="ignore"):
+            return np.where(np.abs(den) > 1e-6, self.d / den, np.nan)
+
+
+def profundidad_planos(izq, der, rect, abanico, z_min=120, z_max=900, tol=2.5):
+    """Profundidad con los planos: por cada línea izquierda, el plano cuyo punto
+    predicho en la derecha coincide con una línea real en más filas. Devuelve
+    (xyz, puntos (y, x, d), plano elegido por punto)."""
+    cx, cy, f = rect.P1[0, 2], rect.P1[1, 2], rect.f
+    fb = rect.f * rect.base
+    picos_d = {}
+    for y, x in picos(der):
+        picos_d.setdefault(y, []).append(x)
+    picos_d = {y: np.array(v) for y, v in picos_d.items()}
+    puntos, planos = [], []
+    for s in segmentos(picos(izq)):
+        votos = {}
+        por_fila = {}
+        for y, x in s.items():
+            xd = picos_d.get(y)
+            if xd is None:
+                continue
+            zs = abanico.profundidades(np.array([(x - cx) / f, (y - cy) / f, 1.0]))
+            for k, z in enumerate(zs):
+                if not z_min < z < z_max:
+                    continue
+                pred = x - fb / z
+                j = np.argmin(np.abs(xd - pred))
+                if abs(xd[j] - pred) < tol:
+                    votos[k] = votos.get(k, 0) + 1
+                    por_fila.setdefault(k, []).append((y, x, x - xd[j]))
+        if not votos:
+            continue
+        k = max(votos, key=votos.get)
+        if votos[k] < max(FILAS_MIN // 2, 0.3 * len(s)):
+            continue
+        puntos += por_fila[k]
+        planos += [int(abanico.indices[k])] * len(por_fila[k])
+    return triangular(puntos, rect.Q), puntos, planos
+
+
 def triangular(puntos, Q):
     if not puntos:
         return np.zeros((0, 3))
@@ -187,15 +258,16 @@ def triangular(puntos, Q):
     return cv2.perspectiveTransform(p, Q).reshape(-1, 3)
 
 
-def profundidad(izq, der, rect, distancia_mm=300.0):
-    """Devuelve (puntos 3D en mm, puntos (y, x, d), marcadores emparejados)."""
+def profundidad(izq, der, rect, distancia_mm=300.0, semillas=True):
+    """Devuelve (puntos 3D en mm, puntos (y, x, d), marcadores emparejados).
+    Con semillas=False los marcadores no guían el emparejamiento (solo distancia_mm)."""
     seg_i = segmentos(picos(izq))
     picos_d = {}
     for y, x in picos(der):
         picos_d.setdefault(y, []).append(x)
     picos_d = {y: np.array(v) for y, v in picos_d.items()}
     marc = disparidad_marcadores(marcadores(izq), marcadores(der))
-    pts = propagar(seg_i, picos_d, marc, rect.f * rect.base / distancia_mm)
+    pts = propagar(seg_i, picos_d, marc if semillas else [], rect.f * rect.base / distancia_mm)
     return triangular(pts, rect.Q), pts, marc
 
 
@@ -229,7 +301,12 @@ if __name__ == "__main__":
     izq = cv2.imread(sys.argv[1], 0)
     der = cv2.imread(sys.argv[2], 0)
     rect = Rectificador()
-    xyz, pts, marc = profundidad(izq, der, rect, float(sys.argv[3]) if len(sys.argv) > 3 else 300.0)
+    if os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "planos", "planos.json")):
+        xyz, pts, _ = profundidad_planos(izq, der, rect, Abanico())
+        marc = disparidad_marcadores(marcadores(izq), marcadores(der))
+        print("con planos láser")
+    else:
+        xyz, pts, marc = profundidad(izq, der, rect, float(sys.argv[3]) if len(sys.argv) > 3 else 300.0)
     print(f"{len(pts)} puntos, {len(marc)} marcadores emparejados")
     if marc:
         print("marcadores Z (mm):", [round(rect.f * rect.base / d) for _, _, d in marc])

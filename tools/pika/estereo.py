@@ -61,11 +61,13 @@ class Separador:
     cuadro de cada vista (las dos vistas difieren mucho; la misma, poco)."""
 
     def __init__(self, rect):
-        self.rect, self.ultimo, self.izq_es = rect, {}, None
+        self.rect, self.ultimo, self.izq_es, self.arranque = rect, {}, None, []
 
     @staticmethod
     def _huella(c):
-        return cv2.GaussianBlur(cv2.resize(c, (160, 120), interpolation=cv2.INTER_AREA), (5, 5), 0).astype(np.float32)
+        # perfil por columnas de la franja central: las líneas finas marcan picos que
+        # cambian de lugar entre vistas (una miniatura borrosa las diluye)
+        return c[240:720].mean(axis=0).astype(np.float32)
 
     def _decidir_lados(self):
         """¿Cuál de las dos vistas es la izquierda? La que da disparidad positiva al rectificar."""
@@ -77,11 +79,23 @@ class Separador:
     def agregar(self, c):
         """Devuelve (izquierda, derecha) cuando el cuadro completa un par nuevo, si no None."""
         h = self._huella(c)
-        if len(self.ultimo) < 2:
-            if not self.ultimo or np.abs(self.ultimo["a"][0] - h).mean() < 1.0:
-                self.ultimo["a"] = (h, c)
+        if not self.ultimo:
+            # arranque: con 6 cuadros, la «otra» vista es la más distinta del primero,
+            # y solo vale si se distingue claramente de la variación de una misma vista
+            self.arranque.append((h, c))
+            if len(self.arranque) < 6:
                 return None
-            self.ultimo["b"] = (h, c)
+            dif = [np.abs(self.arranque[0][0] - x[0]).mean() for x in self.arranque]
+            k = int(np.argmax(dif))
+            parecidos = sorted(dif[1:])[0]
+            if dif[k] < 3 * max(parecidos, 0.3):
+                self.arranque.pop(0)  # aún no se distinguen (luz cambiando); sigue esperando
+                return None
+            self.ultimo = {"a": self.arranque[0], "b": self.arranque[k]}
+            for x in self.arranque[k + 1:]:
+                lado = min(self.ultimo, key=lambda s: np.abs(self.ultimo[s][0] - x[0]).mean())
+                self.ultimo[lado] = x
+            self.arranque = []
         else:
             lado = min(self.ultimo, key=lambda k: np.abs(self.ultimo[k][0] - h).mean())
             self.ultimo[lado] = (h, c)

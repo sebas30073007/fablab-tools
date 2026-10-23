@@ -1,14 +1,16 @@
 """Calibra el plano de cada línea láser con capturas de una pared lisa.
 
-  python calibrar_planos.py capturar 250    Pika quieto frente a la pared a 250 mm
+  python calibrar_planos.py capturar 1      Pika quieto frente a la pared (posición 1, 2, 3…)
   python calibrar_planos.py ajustar         ajusta los planos con todas las capturas
 
-Capturar promedia varios pares rectificados (solo líneas, sin luz azul) y los
-guarda en planos/pared_<mm>_{izq,der}.png. Ajustar empareja las líneas de cada
-captura con la distancia medida como referencia (basta ±10 %), las numera de
-izquierda a derecha y prueba cómo se alinean los números entre capturas: la
-alineación correcta es la que deja todos los planos pasando por un eje común
-(el emisor). Guarda planos/planos.json.
+Sin cinta: un domo con marcadores pegado a la pared hace de regla. Los marcadores
+se emparejan sin ambigüedad y dan su distancia; la pared queda ~2 cm detrás.
+Capturar promedia varios pares rectificados (líneas + luz azul tenue para los
+marcadores) y los guarda en planos/pared_<n>_{izq,der}.png. Ajustar empareja las
+líneas de cada captura tomando esa distancia como referencia, se queda con los
+puntos de la pared, numera las líneas de izquierda a derecha y prueba cómo se
+alinean los números entre capturas: la alineación correcta deja todos los planos
+pasando por un eje común (el emisor). Guarda planos/planos.json.
 """
 import itertools, json, os, sys
 
@@ -17,17 +19,24 @@ sys.path.insert(0, AQUI)
 import cv2
 import numpy as np
 from estereo import Rectificador, Separador
-from lineas3d import profundidad
+from lineas3d import disparidad_marcadores, marcadores, picos, segmentos, triangular
 
 CARPETA = os.path.join(AQUI, "planos")
 SEPARACION = 40  # px en la imagen izquierda entre líneas distintas
+DETRAS_MM = 20   # la pared queda ~2 cm detrás de los marcadores del domo
 
 
-def capturar(mm):
+def distancia_pared(ri, rd, rect):
+    marc = disparidad_marcadores(marcadores(ri), marcadores(rd))
+    if not marc:
+        raise SystemExit("No veo marcadores en las dos vistas: acerca el domo a la pared y que salga en la imagen.")
+    return float(np.median([rect.f * rect.base / d for _, _, d in marc])) + DETRAS_MM, len(marc)
+
+
+def capturar(n):
     from pika_laser import Video
     from recortar import Banco
     rect = Rectificador()
-    sep = Separador(rect)
     banco = Banco()
     banco.parar()
     video = Video()
@@ -35,9 +44,11 @@ def capturar(mm):
     try:
         for _ in range(10):
             video.read()
+        banco.pika.relleno(True, brillo=5)
         banco.pika.laser(True)
-        for _ in range(10):
+        for _ in range(20):
             video.read()
+        sep = Separador(rect)  # con la luz ya estable
         ultimo = None
         while len(izqs) < 10:
             par = sep.agregar(video.read()[1])
@@ -48,29 +59,89 @@ def capturar(mm):
     finally:
         video.release()
         banco.parar()
-    ri, rd = rect.rectificar(np.uint8(np.mean(izqs, 0)), np.uint8(np.mean(ders, 0)))
+    a, b = np.uint8(np.mean(izqs, 0)), np.uint8(np.mean(ders, 0))
+    ri, rd = rect.rectificar(a, b)
+    # el lado correcto es el que da disparidad positiva en los marcadores
+    if not disparidad_marcadores(marcadores(ri), marcadores(rd)):
+        ri2, rd2 = rect.rectificar(b, a)
+        if disparidad_marcadores(marcadores(ri2), marcadores(rd2)):
+            ri, rd = ri2, rd2
+            print("  (vistas intercambiadas)")
     os.makedirs(CARPETA, exist_ok=True)
-    cv2.imwrite(os.path.join(CARPETA, f"pared_{mm}_izq.png"), ri)
-    cv2.imwrite(os.path.join(CARPETA, f"pared_{mm}_der.png"), rd)
-    xyz, pts, _ = profundidad(ri, rd, rect, float(mm))
-    print(f"{mm} mm: {len(pts)} puntos, Z mediana {np.median(xyz[:, 2]):.0f} mm" if len(xyz) else "sin puntos")
+    cv2.imwrite(os.path.join(CARPETA, f"pared_{n}_izq.png"), ri)
+    cv2.imwrite(os.path.join(CARPETA, f"pared_{n}_der.png"), rd)
+    xyz, _ = puntos_pared(ri, rd, rect)
+    print(f"posición {n}: {len(xyz)} puntos de pared, Z mediana {np.median(xyz[:, 2]):.0f} mm")
 
 
-def lineas_de(rect, mm):
+def puntos_pared(ri, rd, rect):
+    """Puntos 3D de la pared (sin el domo) y su posición (y, x, d) en la imagen izquierda.
+
+    Las líneas son periódicas: cada emparejamiento da una pared posible (separadas
+    ~108 px de disparidad). Se toma la hipótesis más cercana a la que indican los
+    marcadores y, como la pared es plana, la disparidad se ajusta como plano en la
+    imagen (d = a·x + b·y + c) re-emparejando con tolerancia estrecha."""
+    zp, nm = distancia_pared(ri, rd, rect)
+    pi = picos(ri)
+    pd = {}
+    for y, x in picos(rd):
+        pd.setdefault(y, []).append(x)
+    pd = {y: np.array(v) for y, v in pd.items()}
+    todas = np.concatenate([x - pd[y] for y, x in pi if y in pd])
+    todas = todas[todas > 0]
+    hist, bordes = np.histogram(todas, bins=np.arange(0, 1400, 4))
+    picos_h = [i for i in range(1, len(hist) - 1)
+               if hist[i] >= hist[i - 1] and hist[i] >= hist[i + 1] and hist[i] > 0.3 * hist.max()]
+    d_prev = rect.f * rect.base / zp
+    d0 = min((bordes[i] + 2 for i in picos_h), key=lambda d: abs(d - d_prev))
+    coef = np.array([0.0, 0.0, d0])
+    tol = 20.0
+    for _ in range(4):
+        pts = []
+        for y, x in pi:
+            if y not in pd:
+                continue
+            esperado = coef @ (x, y, 1)
+            c = x - pd[y]
+            j = np.argmin(np.abs(c - esperado))
+            if abs(c[j] - esperado) < tol:
+                pts.append((y, x, float(c[j])))
+        A = np.array([(x, y, 1) for y, x, _ in pts])
+        coef, *_ = np.linalg.lstsq(A, np.array([d for _, _, d in pts]), rcond=None)
+        tol = 6.0
+    xyz = triangular(pts, rect.Q)
+    print(f"  {nm} marcadores a ~{zp - DETRAS_MM:.0f} mm; pared elegida d ~{d0:.0f} px "
+          f"(Z ~{rect.f * rect.base / d0:.0f} mm); {len(pts)} puntos")
+    return xyz, pts
+
+
+def lineas_de(rect, n):
     """Puntos 3D de cada línea de una captura, ordenadas de izquierda a derecha."""
-    ri = cv2.imread(os.path.join(CARPETA, f"pared_{mm}_izq.png"), 0)
-    rd = cv2.imread(os.path.join(CARPETA, f"pared_{mm}_der.png"), 0)
-    xyz, pts, _ = profundidad(ri, rd, rect, float(mm))
-    x_img = np.array([x for _, x, _ in pts])
-    orden = np.argsort(x_img)
-    grupos, actual = [], [orden[0]]
-    for a, b in zip(orden, orden[1:]):
-        if x_img[b] - x_img[a] > SEPARACION:
-            grupos.append(actual)
+    ri = cv2.imread(os.path.join(CARPETA, f"pared_{n}_izq.png"), 0)
+    rd = cv2.imread(os.path.join(CARPETA, f"pared_{n}_der.png"), 0)
+    xyz, pts = puntos_pared(ri, rd, rect)
+    # tramos continuos fila a fila; en la pared cada línea es casi recta en la imagen,
+    # así que los tramos se unen por su recta x = p·y + q evaluada en la fila central
+    indice = {(y, round(x, 3)): k for k, (y, x, _) in enumerate(pts)}
+    segs = segmentos([(y, x) for y, x, _ in pts])
+    largos = [np.polyfit(sorted(s), [s[y] for y in sorted(s)], 1)[0] for s in segs if len(s) > 100]
+    pendiente = float(np.median(largos)) if largos else 0.0  # las líneas son casi paralelas
+    tramos = []
+    for s in segs:
+        filas = np.array(sorted(s))
+        xs = np.array([s[y] for y in filas])
+        tramos.append((float(np.median(xs - pendiente * (filas - 480))),
+                       [indice[(y, round(s[y], 3))] for y in filas]))
+    tramos.sort()
+    lineas, actual, x_ant = [], [], None
+    for x480, idx in tramos:
+        if x_ant is not None and x480 - x_ant > SEPARACION:
+            lineas.append(actual)
             actual = []
-        actual.append(b)
-    grupos.append(actual)
-    return [xyz[g] for g in grupos if len(g) > 30]
+        actual += idx
+        x_ant = x480
+    lineas.append(actual)
+    return [xyz[g] for g in lineas if len(g) > 30]
 
 
 def plano(p):
@@ -99,7 +170,7 @@ def ajustar():
         raise SystemExit("Hacen falta capturas a dos distancias o más.")
     capturas = {mm: lineas_de(rect, mm) for mm in medidas}
     for mm, ls in capturas.items():
-        print(f"{mm} mm: {len(ls)} líneas, Z medianas {[round(float(np.median(l[:, 2]))) for l in ls]}")
+        print(f"posición {mm}: {len(ls)} líneas, Z medianas {[round(float(np.median(l[:, 2]))) for l in ls]}")
     base = medidas[0]
     mejor = None
     # desplazamiento del índice de cada captura respecto a la primera
