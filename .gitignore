@@ -11,6 +11,10 @@ tools/pika/*.png
 tools/pika/*.jpg
 tools/pika/recorte/
 tools/pika/fotos/
+tools/pika/*.ply
+# calibración propia de cada Pika (se lee del aparato con leer_calib.py / leer_bloques.py)
+tools/pika/calib/
+tools/pika/planos/
 
 # escaneos de prueba (pesados) para el Visor 3D
 web/_prueba/

@@ -187,7 +187,7 @@ class Video:
             ["ffmpeg", "-hide_banner", "-loglevel", "error", "-f", "dshow",
              "-pixel_format", "gray", "-video_size", f"{self.ANCHO}x{self.ALTO}",
              "-framerate", "30", "-rtbufsize", "64M", "-i", f"video={NOMBRE}",
-             "-f", "rawvideo", "-pix_fmt", "gray", "-"],
+             "-fps_mode", "passthrough", "-f", "rawvideo", "-pix_fmt", "gray", "-"],
             stdout=subprocess.PIPE, bufsize=self.ANCHO * self.ALTO * 2)
 
     def read(self):
